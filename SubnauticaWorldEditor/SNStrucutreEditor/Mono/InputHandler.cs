@@ -1,0 +1,32 @@
+﻿using SNStructureEditor.StructureHandling;
+using SNStructureEditor.UI;
+using UnityEngine;
+
+namespace SNStructureEditor.Mono;
+
+public class InputHandler : MonoBehaviour
+{
+    private void Update()
+    {
+        if (GameInput.GetButtonDown(StructureHelperInput.ToggleStructureHelperKeyBind))
+        {
+            StructureHelperUI.SetUIEnabled(!StructureHelperUI.IsActive);
+        }
+
+        if (!StructureHelperUI.main || !StructureHelperUI.main.isActiveAndEnabled) return;
+        
+        if (GameInput.GetButtonHeld(StructureHelperInput.SaveHotkeyModifier) && GameInput.GetButtonDown(StructureHelperInput.SaveKeyBind))
+        {
+            StructureInstance.TrySave();
+        }
+        
+        if (Input.GetMouseButtonDown(1))
+        {
+            StructureHelperUI.main.SetInputGroupOverride(false);
+        }
+        if (Input.GetMouseButtonUp(1))
+        {
+            StructureHelperUI.main.SetInputGroupOverride(true);
+        }
+    }
+}

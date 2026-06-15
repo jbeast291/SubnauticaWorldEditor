@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SNStrucutreEditor", "SNStrucutreEditor\SNStrucutreEditor.csproj", "{A1761B71-4D44-40B5-87E8-F165249CE82B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SNTerrainEditor", "SNTerrainEditor\SNTerrainEditor.csproj", "{87F2C32A-4CDE-4FDD-B53C-375666CEFBBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SNCoreEditor", "SNCoreEditor\SNCoreEditor.csproj", "{30859DD6-DFD9-4B6C-8AFF-21B9AA2F43F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostBuildSolution", "PostBuildSolution\PostBuildSolution.csproj", "{19C64584-C79F-4512-B0FD-C59F4059075A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1761B71-4D44-40B5-87E8-F165249CE82B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1761B71-4D44-40B5-87E8-F165249CE82B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1761B71-4D44-40B5-87E8-F165249CE82B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1761B71-4D44-40B5-87E8-F165249CE82B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87F2C32A-4CDE-4FDD-B53C-375666CEFBBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87F2C32A-4CDE-4FDD-B53C-375666CEFBBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87F2C32A-4CDE-4FDD-B53C-375666CEFBBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87F2C32A-4CDE-4FDD-B53C-375666CEFBBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30859DD6-DFD9-4B6C-8AFF-21B9AA2F43F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30859DD6-DFD9-4B6C-8AFF-21B9AA2F43F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30859DD6-DFD9-4B6C-8AFF-21B9AA2F43F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30859DD6-DFD9-4B6C-8AFF-21B9AA2F43F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19C64584-C79F-4512-B0FD-C59F4059075A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19C64584-C79F-4512-B0FD-C59F4059075A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19C64584-C79F-4512-B0FD-C59F4059075A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19C64584-C79F-4512-B0FD-C59F4059075A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

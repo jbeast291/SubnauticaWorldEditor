@@ -1,0 +1,263 @@
+﻿using System;
+using Nautilus.Utility;
+using SNStructureEditor.Editing.Managers;
+using SNStructureEditor.Mono;
+using SNStructureEditor.StructureHandling;
+using SNStructureEditor.UI.Utility;
+using SNStructureEditor.Utility;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace SNStructureEditor.Editing.Tools;
+
+public class ToggleSnappingTool : ToolBase
+{
+    [SerializeField] private GameObject snappingWindow;
+    [SerializeField] private TMP_InputField positionSnapping;
+    [SerializeField] private TMP_InputField angleSnapping;
+    [SerializeField] private Toggle useGlobalGridToggle;
+    [SerializeField] private Vector3InputField gridCenterField;
+    [SerializeField] private Vector3InputField gridRotationField;
+    [SerializeField] private Button teleportToGridCenterButton;
+    [SerializeField] private Button alignButton;
+    [SerializeField] private GameObject previewDoesNotMatchValuesWarning;
+    
+    public override ToolType Type => ToolType.Snapping;
+
+    public override bool MultitaskTool => true;
+
+    private bool _windowOpen;
+    private bool _snapBindHeld;
+
+    private GameObject _snapGridPreview;
+    
+    private void Start()
+    {
+        CreateSnapGridPreview();
+        previewDoesNotMatchValuesWarning.SetActive(false);
+        // SetDefaultValues();
+        
+        if (StructureInstance.Main != null)
+        {
+            LoadValuesFromStructureMetadata(StructureInstance.Main);
+        }
+
+        StructureInstance.OnStructureInstanceChanged += OnStructureInstanceChanged;
+        
+        OnUpdateSnapping();
+    }
+
+    private void OnDestroy()
+    {
+        StructureInstance.OnStructureInstanceChanged -= OnStructureInstanceChanged;
+        Destroy(_snapGridPreview);
+    }
+
+    private void SetDefaultValues()
+    {
+        positionSnapping.text = "1.0";
+        angleSnapping.text = "45";
+        useGlobalGridToggle.isOn = false;
+        
+        gridCenterField.SetValue(Vector3.zero);
+        gridRotationField.SetValue(Vector3.zero);
+
+        UpdateInteractability(false);
+    }
+
+    private void LoadValuesFromStructureMetadata(StructureInstance instance)
+    {
+        if (instance.TryGetMetadata<float>(StructureMetadataKeys.GridSnappingDistanceFloat, out var snappingDistance))
+        {
+            positionSnapping.text = snappingDistance.ToString("0.#");
+        }
+        else
+        {
+            positionSnapping.text = "1.0";
+        }
+        if (instance.TryGetMetadata<float>(StructureMetadataKeys.GridRotationSnappingFloat, out var rotationSnapping))
+        {
+            angleSnapping.text = rotationSnapping.ToString("#");
+        }
+        else
+        {
+            angleSnapping.text = "45";
+        }
+        if (instance.TryGetMetadata<Vector3>(StructureMetadataKeys.GridCenterVector, out var gridCenter))
+        {
+            gridCenterField.SetValue(gridCenter);
+        }
+        if (instance.TryGetMetadata<Vector3>(StructureMetadataKeys.GridRotationVector, out var gridRotation))
+        {
+            gridRotationField.SetValue(gridRotation);
+        }
+
+        bool hasGlobalGrid =
+            instance.TryGetMetadata<bool>(StructureMetadataKeys.GridCenterExistsBool, out var gridCenterExists) &&
+            gridCenterExists;
+        
+        UpdateInteractability(hasGlobalGrid);
+        
+        OnUpdateSnapping();
+    }
+
+    private void UpdateInteractability(bool hasGlobalGrid)
+    {
+        gridCenterField.SetInteractable(hasGlobalGrid);
+        gridRotationField.SetInteractable(hasGlobalGrid);
+        teleportToGridCenterButton.interactable = hasGlobalGrid;
+        alignButton.interactable = hasGlobalGrid;
+    }
+    
+    private void Update()
+    {
+        _snapBindHeld = GameInput.GetButtonHeld(StructureHelperInput.HoldToSnap);
+        if (!manager.snappingManager.SnappingEnabled && _snapBindHeld)
+        {
+            EnableSnapping();
+        }
+        else if (manager.snappingManager.SnappingEnabled && !_windowOpen && !_snapBindHeld)
+        {
+            DisableSnapping();
+        }
+
+        if (manager.snappingManager.SnappingEnabled)
+        {
+            previewDoesNotMatchValuesWarning.SetActive(_snapGridPreview.activeSelf && !GetPreviewMatchesSavedValues());
+        }
+    }
+
+    private bool GetPreviewMatchesSavedValues()
+    {
+        if (Vector3.SqrMagnitude(_snapGridPreview.transform.position - gridCenterField.Value) > 0.001f)
+            return false;
+        if (Quaternion.Angle(_snapGridPreview.transform.rotation, Quaternion.Euler(gridRotationField.Value)) > 0.1f)
+            return false;
+        return true;
+    }
+
+    protected override void OnToolEnabled()
+    {
+        snappingWindow.SetActive(true);
+        _windowOpen = true;
+        EnableSnapping();
+    }
+
+    protected override void OnToolDisabled()
+    {
+        snappingWindow.SetActive(false);
+        _windowOpen = false;
+        DisableSnapping();
+    }
+    
+    protected override string GetBindString()
+    {
+        var binding = GameInput.FormatButton(StructureHelperInput.HoldToSnap);
+        return base.GetBindString() + $" (or hold {binding})";
+    }
+
+    public void OnUpdateSnapping()
+    {
+        if (float.TryParse(positionSnapping.text, out var positionSnap))
+        {
+            manager.snappingManager.SetPositionSnapping(positionSnap);
+            if (StructureInstance.Main != null)
+                StructureInstance.Main.SaveMetadata(StructureMetadataKeys.GridSnappingDistanceFloat, positionSnap);
+        }
+
+        if (float.TryParse(angleSnapping.text, out var rotationSnap))
+        {
+            manager.snappingManager.SetRotationSnapping(rotationSnap);
+            if (StructureInstance.Main != null)
+                StructureInstance.Main.SaveMetadata(StructureMetadataKeys.GridRotationSnappingFloat, rotationSnap);
+        }
+        OnUpdateGlobalGridChanged(useGlobalGridToggle.isOn);
+        OnUpdateGridPosition();
+        OnUpdateGridRotation();
+    }
+
+    public void OnUpdateGridPosition()
+    {
+        manager.snappingManager.SetGlobalGridCenter(gridCenterField.Value);
+        if (StructureInstance.Main != null)
+            StructureInstance.Main.SaveMetadata(StructureMetadataKeys.GridCenterVector, gridCenterField.Value);
+        UpdateSnappingGridPreview();
+    }
+    
+    public void OnUpdateGridRotation()
+    {
+        manager.snappingManager.SetGlobalGridRotation(gridRotationField.Value);
+        if (StructureInstance.Main != null)
+            StructureInstance.Main.SaveMetadata(StructureMetadataKeys.GridRotationVector, gridRotationField.Value);
+        UpdateSnappingGridPreview();
+    }
+
+    public void OnUpdateGlobalGridChanged(bool uselessBoolean)
+    {
+        bool useGlobalSnapping = useGlobalGridToggle.isOn;
+        if (useGlobalSnapping && StructureInstance.Main != null &&
+            !StructureInstance.Main.TryGetMetadata<bool>(StructureMetadataKeys.GridCenterExistsBool, out _))
+        {
+            var gridCenterUnrounded = MainCamera.camera.transform.position +
+                             MainCamera.camera.transform.forward * 5;
+            var gridCenterRounded = new Vector3(Mathf.RoundToInt(gridCenterUnrounded.x),
+                Mathf.RoundToInt(gridCenterUnrounded.y), Mathf.RoundToInt(gridCenterUnrounded.z));
+            gridCenterField.SetValue(gridCenterRounded);
+            _snapGridPreview.transform.position = gridCenterRounded;
+            StructureInstance.Main.SaveMetadata(StructureMetadataKeys.GridCenterExistsBool, true);
+        }
+        manager.snappingManager.SetUseGlobalGrid(useGlobalSnapping);
+        UpdateSnappingGridPreview();
+        UpdateInteractability(useGlobalSnapping);
+    }
+    
+    public void TeleportToGlobalGridCenter()
+    {
+        Player.main.SetPosition(gridCenterField.Value);
+    }
+
+    public void AlignToPhysicalPreview()
+    {
+        var pos = _snapGridPreview.transform.position;
+        var rotation = _snapGridPreview.transform.eulerAngles;
+        gridCenterField.SetValue(pos);
+        gridRotationField.SetValue(rotation);
+    }
+    
+    private void UpdateSnappingGridPreview()
+    {
+        _snapGridPreview.SetActive(manager.snappingManager.UseGlobalGrid);
+        _snapGridPreview.transform.position = gridCenterField.Value;
+        _snapGridPreview.transform.eulerAngles = gridRotationField.Value;
+    }
+
+    private void EnableSnapping()
+    {
+        OnUpdateSnapping();
+        manager.snappingManager.SnappingEnabled = true;
+    }
+
+    private void DisableSnapping()
+    {
+        manager.snappingManager.SnappingEnabled = false;
+    }
+    
+    private void OnStructureInstanceChanged(StructureInstance instance)
+    {
+        if (instance == null)
+            SetDefaultValues();
+        else
+            LoadValuesFromStructureMetadata(instance);
+    }
+
+    private void CreateSnapGridPreview()
+    {
+        var obj = Instantiate(Plugin.AssetBundle.LoadAsset<GameObject>("SnapGridPrefab"));
+        MaterialUtils.ApplySNShaders(obj, 6);
+        obj.SetActive(false);
+        obj.AddComponent<TransformableObject>();
+        obj.AddComponent<TransformableGridPlane>();
+        _snapGridPreview = obj;
+    }
+}

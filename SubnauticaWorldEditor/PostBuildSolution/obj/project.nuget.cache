@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "xvkwYSIfftM=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\jbeast\\Documents\\GitHub\\SubnauticaWorldEditor\\SubnauticaWorldEditor\\PostBuildSolution\\PostBuildSolution.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jbeast\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.3\\microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "C:\\Users\\jbeast\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net472\\1.0.3\\microsoft.netframework.referenceassemblies.net472.1.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
