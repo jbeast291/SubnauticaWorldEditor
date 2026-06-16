@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HarmonyLib;
-using SNTerrainEditor;
-using TerrainEditor.Core.DataTypes;
 using WorldStreaming;
 
-namespace TerrainEditor.Patches;
+namespace SNTerrainEditor.Patches;
 
 [HarmonyPatch(typeof(BatchOctrees))]
 public class BatchOctreesPatcher

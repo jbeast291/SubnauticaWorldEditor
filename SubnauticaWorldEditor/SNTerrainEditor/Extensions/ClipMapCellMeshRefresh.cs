@@ -2,7 +2,7 @@
 using UWE;
 using WorldStreaming;
 
-namespace TerrainEditor.Extensions;
+namespace SNTerrainEditor.Extensions;
 
 public static class ClipMapCellMeshRefresh
 {

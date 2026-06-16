@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SNCoreEditor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b08713b8f60ebd5cc4224bfc81c16690eb35695")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+79ac8b3636d16547adcf60e17015fe021b645ae4")]
 [assembly: System.Reflection.AssemblyProductAttribute("SNCoreEditor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SNCoreEditor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

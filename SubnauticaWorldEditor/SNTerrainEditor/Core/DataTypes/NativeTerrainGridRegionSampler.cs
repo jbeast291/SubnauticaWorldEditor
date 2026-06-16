@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TerrainEditor.Core.DataTypes;
+namespace SNTerrainEditor.Core.DataTypes;
 
 public partial class NativeTerrainGrid
 {

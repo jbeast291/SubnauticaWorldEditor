@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using SNTerrainEditor;
-using TerrainEditor.Extensions;
+using SNTerrainEditor.Extensions;
 using Unity.Collections;
 using WorldStreaming;
 
-namespace TerrainEditor.Core.DataTypes;
+namespace SNTerrainEditor.Core.DataTypes;
 
 public partial class NativeTerrainGrid(Int3 gridGlobalIndex) : IDisposable
 {

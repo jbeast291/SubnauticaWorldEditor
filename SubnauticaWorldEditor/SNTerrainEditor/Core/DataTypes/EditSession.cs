@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using TerrainEditor.Patches;
+using SNTerrainEditor.Patches;
 using WorldStreaming;
 
-namespace TerrainEditor.Core.DataTypes;
+namespace SNTerrainEditor.Core.DataTypes;
 
 /// <summary>
 /// Holds the currently editable voxel terrain for the active save.

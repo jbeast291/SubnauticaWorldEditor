@@ -2,10 +2,8 @@
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Mathematics;
-using UnityEngine;
 
-namespace TerrainEditor.Core.DataTypes;
+namespace SNTerrainEditor.Core.DataTypes;
 
 public static class NativeTerrainGridOctreeConverter
 {

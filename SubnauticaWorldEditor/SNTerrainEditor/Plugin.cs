@@ -3,7 +3,7 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using Nautilus.Handlers;
-using TerrainEditor.Core;
+using SNTerrainEditor.Core;
 
 namespace SNTerrainEditor;
 

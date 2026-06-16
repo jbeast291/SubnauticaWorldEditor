@@ -1,12 +1,11 @@
 ﻿using System.Collections;
-using SNTerrainEditor;
-using TerrainEditor.Core.DataTypes;
-using TerrainEditor.Extensions;
+using SNTerrainEditor.Core.DataTypes;
+using SNTerrainEditor.Extensions;
 using UnityEngine;
 using WorldStreaming;
 using Math = System.Math;
 
-namespace TerrainEditor.Core;
+namespace SNTerrainEditor.Core;
 
 public class EditorBatchManager : MonoBehaviour
 {

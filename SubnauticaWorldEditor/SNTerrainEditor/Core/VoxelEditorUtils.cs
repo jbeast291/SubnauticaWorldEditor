@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using TerrainEditor.Core.DataTypes;
+using SNTerrainEditor.Core.DataTypes;
 
-namespace TerrainEditor.Core;
+namespace SNTerrainEditor.Core;
 
 public static class VoxelEditorUtils
 {

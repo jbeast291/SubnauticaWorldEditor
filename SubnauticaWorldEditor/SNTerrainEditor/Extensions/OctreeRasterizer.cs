@@ -1,10 +1,8 @@
-﻿using System;
-using TerrainEditor.Core.DataTypes;
+﻿using SNTerrainEditor.Core.DataTypes;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using WorldStreaming;
 
-namespace TerrainEditor.Extensions;
+namespace SNTerrainEditor.Extensions;
 
 public static class OctreeRasterizer
 {
