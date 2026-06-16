@@ -9,4 +9,8 @@
     <Target Condition="Exists('..\TargetDirectories.targets')" Name="CopyBuildReferences" AfterTargets="Build">
         <Copy SourceFiles="@(ReferencesToCopy)" DestinationFolder="$(ModDir)"/>
     </Target>
+
+    <Target Condition="Exists('..\TargetDirectories.targets')" Name="CopyAssetsFromUnity" AfterTargets="Build">
+        <Copy SourceFiles="..\..\SubnauticaWorldEditorAssets\Assets" DestinationFolder="$(ModDir)"/>
+    </Target>
 </Project>

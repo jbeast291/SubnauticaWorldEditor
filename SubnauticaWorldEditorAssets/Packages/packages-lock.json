@@ -9,6 +9,13 @@
       },
       "hash": "450171d64287ebd49764e40a45dc2a2eaeebd053"
     },
+    "com.unity.assetbundlebrowser": {
+      "version": "1.7.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.collab-proxy": {
       "version": "1.14.12",
       "depth": 0,

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f9af1c6015733a42be940cc462aa7ed, type: 3}
+  m_Name: Log 3
+  m_EditorClassIdentifier: 
+  pipeline: {fileID: 11400000, guid: d7464bf974237b64098fc64c204184af, type: 2}
+  creationDate:
+    ticks: 639172498112932404
+  entries:
+  - logLevel: 0
+    internalTime:
+      ticks: 639172498115891756
+    message: '[SubnauticaWorldEditor(0 - StageAssetBundles)](assetlink://Assets%2fThunderKitSettings%2fPipelines%2fSubnauticaWorldEditor.asset)[Bundle](assetlink://Assets%2fThunderKitSettings%2fManifests%2fBundle.asset)
+      Creating 1 AssetBundles'
+    context:
+    - 'coreassets
+
+      [SNEditorCanvas](assetlink://Assets%2fCoreAssets%2fSNEditorCanvas.prefab)
+
+      
+
+      
+
+'
+  - logLevel: 3
+    internalTime:
+      ticks: 639172498114034814
+    message: '[SubnauticaWorldEditor(0 - StageAssetBundles)](assetlink://Assets%2fThunderKitSettings%2fPipelines%2fSubnauticaWorldEditor.asset)
+      Execute Job'
+    context: []
+  - logLevel: 0
+    internalTime:
+      ticks: 639172498113994206
+    message: '[SubnauticaWorldEditor](assetlink://Assets%2fThunderKitSettings%2fPipelines%2fSubnauticaWorldEditor.asset)
+      Clearing PipelineJob error states'
+    context: []
+  - logLevel: 3
+    internalTime:
+      ticks: 639172498113855863
+    message: '[SubnauticaWorldEditor](assetlink://Assets%2fThunderKitSettings%2fPipelines%2fSubnauticaWorldEditor.asset)
+      Execute Pipeline'
+    context: []

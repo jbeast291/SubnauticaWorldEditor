@@ -28,7 +28,8 @@
     </ItemGroup>
     
     <!-- custom postbuild copy -->
-    <Import Project="..\PostBuild.targets"/>
+    <!-- NOTICE: disabled for now as both patch the same places -->
+    <!-- <Import Project="..\PostBuild.targets"/>-->
     
     <!-- custom dll imports -->
     <ItemGroup>

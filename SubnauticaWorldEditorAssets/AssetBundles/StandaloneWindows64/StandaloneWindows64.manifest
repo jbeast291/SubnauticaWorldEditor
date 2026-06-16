@@ -1,0 +1,10 @@
+ManifestFileVersion: 0
+CRC: 2949169811
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: modstructurehelper
+      Dependencies: {}
+    Info_1:
+      Name: coreassets
+      Dependencies: {}

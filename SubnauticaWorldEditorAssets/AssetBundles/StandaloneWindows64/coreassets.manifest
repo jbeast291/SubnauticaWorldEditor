@@ -1,0 +1,41 @@
+ManifestFileVersion: 0
+CRC: 1035111582
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 42dbfb01fa7fdb6a2ab1b9cf074a42e2
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 1a47f097aa7e6543ec731c6101fa9eae
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+- Class: 114
+  Script: {fileID: -1437483298, guid: 06dd3d5416bf43ea368cc39ff96e6d5a, type: 3}
+- Class: 114
+  Script: {fileID: -1765898887, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 128
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 223
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/CoreAssets/SNEditorCanvas.prefab
+Dependencies: []
