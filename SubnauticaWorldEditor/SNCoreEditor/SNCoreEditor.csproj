@@ -6,8 +6,8 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>14</LangVersion>
         <RootNamespace>SNCoreEditor</RootNamespace>
-        <BepInExPluginName>SNCoreEditor</BepInExPluginName>
-        <BepInExPluginGuid>com.subnauticaworldeditor.core</BepInExPluginGuid>
+        <BepInExPluginName>SubnauticaWorldEditor</BepInExPluginName>
+        <BepInExPluginGuid>com.snmodding.worldeditor</BepInExPluginGuid>
 
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;

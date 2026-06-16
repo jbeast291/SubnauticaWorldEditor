@@ -9,7 +9,7 @@ namespace SNCoreEditor;
 [BepInDependency("com.snmodding.nautilus")]
 public class Plugin : BaseUnityPlugin
 { 
-    public new static ManualLogSource Logger { get; private set; }
+    internal new static ManualLogSource Logger { get; private set; }
 
     private static Assembly Assembly { get; } = Assembly.GetExecutingAssembly();
 
