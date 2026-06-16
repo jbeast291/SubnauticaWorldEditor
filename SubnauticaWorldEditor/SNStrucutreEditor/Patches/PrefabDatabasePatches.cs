@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using HarmonyLib;
+using SNStructureEditor;
 using UWE;
 
-namespace SNStructureEditor.Patches;
+namespace ModStructureHelperPlugin.Patches;
 
 [HarmonyPatch(typeof(PrefabDatabase))]
 public static class PrefabDatabasePatches

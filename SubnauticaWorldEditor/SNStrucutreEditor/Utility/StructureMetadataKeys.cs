@@ -1,4 +1,4 @@
-﻿namespace SNStructureEditor.Utility;
+﻿namespace ModStructureHelperPlugin.Utility;
 
 public static class StructureMetadataKeys
 {

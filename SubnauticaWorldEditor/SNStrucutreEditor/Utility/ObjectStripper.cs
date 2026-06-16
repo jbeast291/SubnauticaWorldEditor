@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Object = UnityEngine.Object;
 
-namespace SNStructureEditor.Utility;
+namespace ModStructureHelperPlugin.Utility;
 
 public static class ObjectStripper
 {

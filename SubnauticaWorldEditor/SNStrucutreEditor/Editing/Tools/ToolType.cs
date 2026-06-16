@@ -1,4 +1,4 @@
-﻿namespace SNStructureEditor.Editing.Tools;
+﻿namespace ModStructureHelperPlugin.Editing.Tools;
 
 public enum ToolType
 {

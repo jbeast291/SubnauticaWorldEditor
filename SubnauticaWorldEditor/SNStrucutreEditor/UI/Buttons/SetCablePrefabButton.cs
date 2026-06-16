@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace SNStructureEditor.UI.Buttons;
+namespace ModStructureHelperPlugin.UI.Buttons;
 
 public class SetCablePrefabButton : MonoBehaviour
 {

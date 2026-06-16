@@ -3,7 +3,7 @@
 
 using System;
 
-namespace SNStructureEditor.OutlineShit.Rendering;
+namespace ModStructureHelperPlugin.OutlineShit.Rendering;
 
 /// <summary>
 /// Enumerates outline render modes.

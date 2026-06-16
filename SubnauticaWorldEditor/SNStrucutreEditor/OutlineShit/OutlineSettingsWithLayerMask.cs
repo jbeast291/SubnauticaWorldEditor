@@ -4,7 +4,7 @@
 using System;
 using UnityEngine;
 
-namespace SNStructureEditor.OutlineShit;
+namespace ModStructureHelperPlugin.OutlineShit;
 
 [Serializable]
 internal class OutlineSettingsWithLayerMask : OutlineSettingsInstance

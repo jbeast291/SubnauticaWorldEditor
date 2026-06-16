@@ -4,12 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SNStructureEditor.OutlineShit.Rendering;
+using ModStructureHelperPlugin.OutlineShit.Rendering;
+using SNStructureEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
-namespace SNStructureEditor.OutlineShit;
+namespace ModStructureHelperPlugin.OutlineShit;
 
 /// <summary>
 /// This asset is used to store references to shaders and other resources needed at runtime without having to use a Resources folder.

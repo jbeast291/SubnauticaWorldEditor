@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SNStructureEditor.UI.Utility;
+namespace ModStructureHelperPlugin.UI.Utility;
 
 public class Vector3InputField : MonoBehaviour
 {

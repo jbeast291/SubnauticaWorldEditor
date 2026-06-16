@@ -37,3 +37,4 @@ C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNT
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNTerrainEditor\obj\Debug\net472\SNTerrai.1619973D.Up2Date
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNTerrainEditor\obj\Debug\net472\SNTerrainEditor.dll
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNTerrainEditor\obj\Debug\net472\SNTerrainEditor.pdb
+C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNTerrainEditor\obj\Debug\net472\SNTerrainEditor.sourcelink.json

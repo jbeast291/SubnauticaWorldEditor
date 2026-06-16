@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SNStructureEditor.UI.Buttons;
+namespace ModStructureHelperPlugin.UI.Buttons;
 
 public class GenericCloseButton : MonoBehaviour
 {

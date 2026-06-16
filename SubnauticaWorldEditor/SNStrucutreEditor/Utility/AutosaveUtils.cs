@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using SNStructureEditor;
 
-namespace SNStructureEditor.Utility;
+namespace ModStructureHelperPlugin.Utility;
 
 public class AutosaveUtils
 {

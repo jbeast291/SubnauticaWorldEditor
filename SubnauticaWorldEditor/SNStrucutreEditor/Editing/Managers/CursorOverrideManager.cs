@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SNStructureEditor.Editing.Managers;
+namespace ModStructureHelperPlugin.Editing.Managers;
 
 public class CursorOverrideManager : MonoBehaviour
 {

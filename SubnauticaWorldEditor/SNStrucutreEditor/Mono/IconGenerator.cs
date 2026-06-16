@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
-using SNStructureEditor.EntityHandling.Icons;
-using SNStructureEditor.Utility;
+using ModStructureHelperPlugin.EntityHandling.Icons;
+using ModStructureHelperPlugin.Utility;
+using SNStructureEditor;
 using UnityEngine;
 using UWE;
 
-namespace SNStructureEditor.Mono;
+namespace ModStructureHelperPlugin.Mono;
 
 public class IconGenerator : MonoBehaviour
 {

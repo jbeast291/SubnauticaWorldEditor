@@ -1,4 +1,4 @@
-﻿namespace SNStructureEditor.UI.Menus;
+﻿namespace ModStructureHelperPlugin.UI.Menus;
 
 public class StructureEditingMenu : StructureHelperMenuBase
 {

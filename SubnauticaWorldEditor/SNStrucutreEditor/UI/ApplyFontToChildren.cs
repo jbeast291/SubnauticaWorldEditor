@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 public class ApplyFontToChildren : MonoBehaviour
 {

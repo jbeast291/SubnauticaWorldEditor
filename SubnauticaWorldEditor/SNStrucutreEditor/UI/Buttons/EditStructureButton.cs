@@ -1,9 +1,9 @@
 ﻿using ModStructureFormatV2;
-using SNStructureEditor.StructureHandling;
+using ModStructureHelperPlugin.StructureHandling;
 using TMPro;
 using UnityEngine;
 
-namespace SNStructureEditor.UI.Buttons;
+namespace ModStructureHelperPlugin.UI.Buttons;
 
 public class EditStructureButton : MonoBehaviour
 {

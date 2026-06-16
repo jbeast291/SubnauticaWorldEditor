@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
-using SNStructureEditor.Editing.Tools;
-using SNStructureEditor.Interfaces;
-using SNStructureEditor.StructureHandling;
-using SNStructureEditor.UI;
+using ModStructureHelperPlugin.Editing.Tools;
+using ModStructureHelperPlugin.Interfaces;
+using ModStructureHelperPlugin.StructureHandling;
+using ModStructureHelperPlugin.UI;
 using UnityEngine;
 
-namespace SNStructureEditor.Mono;
+namespace ModStructureHelperPlugin.Mono;
 
 public class EnableColliderForSelection : MonoBehaviour, ITransformationListener
 {

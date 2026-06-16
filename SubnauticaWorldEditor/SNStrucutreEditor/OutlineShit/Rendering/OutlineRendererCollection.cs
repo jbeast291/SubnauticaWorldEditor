@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SNStructureEditor.OutlineShit.Rendering;
+namespace ModStructureHelperPlugin.OutlineShit.Rendering;
 
 internal class OutlineRendererCollection : ICollection<Renderer>
 {

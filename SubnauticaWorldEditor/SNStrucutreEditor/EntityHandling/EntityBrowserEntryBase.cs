@@ -1,7 +1,7 @@
-﻿using SNStructureEditor.EntityHandling.Icons;
+﻿using ModStructureHelperPlugin.EntityHandling.Icons;
 using UnityEngine;
 
-namespace SNStructureEditor.EntityHandling;
+namespace ModStructureHelperPlugin.EntityHandling;
 
 public abstract class EntityBrowserEntryBase
 {

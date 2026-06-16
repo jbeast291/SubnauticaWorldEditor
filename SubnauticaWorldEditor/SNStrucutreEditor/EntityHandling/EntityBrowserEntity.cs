@@ -1,12 +1,13 @@
 ﻿using System.Collections;
-using SNStructureEditor.EntityHandling.Icons;
-using SNStructureEditor.Mono;
-using SNStructureEditor.StructureHandling;
-using SNStructureEditor.UI;
+using ModStructureHelperPlugin.EntityHandling.Icons;
+using ModStructureHelperPlugin.Mono;
+using ModStructureHelperPlugin.StructureHandling;
+using ModStructureHelperPlugin.UI;
+using SNStructureEditor;
 using UnityEngine;
 using UWE;
 
-namespace SNStructureEditor.EntityHandling;
+namespace ModStructureHelperPlugin.EntityHandling;
 
 public class EntityBrowserEntity : EntityBrowserEntryBase
 {

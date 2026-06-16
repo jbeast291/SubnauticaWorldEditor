@@ -1,9 +1,10 @@
-﻿using SNStructureEditor.Editing.Managers;
-using SNStructureEditor.StructureHandling;
-using SNStructureEditor.UI;
+﻿using ModStructureHelperPlugin.Editing.Managers;
+using ModStructureHelperPlugin.StructureHandling;
+using ModStructureHelperPlugin.UI;
+using SNStructureEditor;
 using UnityEngine;
 
-namespace SNStructureEditor.Editing.Tools;
+namespace ModStructureHelperPlugin.Editing.Tools;
 
 public class DragAndDropTool : ToolBase
 {

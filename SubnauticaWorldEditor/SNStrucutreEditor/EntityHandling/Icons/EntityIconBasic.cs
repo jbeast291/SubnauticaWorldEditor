@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SNStructureEditor.EntityHandling.Icons;
+namespace ModStructureHelperPlugin.EntityHandling.Icons;
 
 public class EntityIconBasic : EntityIcon
 {

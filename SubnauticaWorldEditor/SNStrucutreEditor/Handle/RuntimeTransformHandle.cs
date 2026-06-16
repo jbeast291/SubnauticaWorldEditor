@@ -1,15 +1,16 @@
-﻿using SNStructureEditor.Editing.Managers;
-using SNStructureEditor.Editing.Tools;
-using SNStructureEditor.Handle.Handles;
-using SNStructureEditor.Handle.Handles.Position;
-using SNStructureEditor.Handle.Handles.Rotation;
-using SNStructureEditor.Handle.Handles.Scale;
-using SNStructureEditor.Interfaces;
-using SNStructureEditor.UI;
+﻿using ModStructureHelperPlugin.Editing.Managers;
+using ModStructureHelperPlugin.Editing.Tools;
+using ModStructureHelperPlugin.Handle.Handles;
+using ModStructureHelperPlugin.Handle.Handles.Position;
+using ModStructureHelperPlugin.Handle.Handles.Rotation;
+using ModStructureHelperPlugin.Handle.Handles.Scale;
+using ModStructureHelperPlugin.Interfaces;
+using ModStructureHelperPlugin.UI;
+using SNStructureEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SNStructureEditor.Handle;
+namespace ModStructureHelperPlugin.Handle;
 
 /**
      * Created by Peter @sHTiF Stefcek 21.10.2020

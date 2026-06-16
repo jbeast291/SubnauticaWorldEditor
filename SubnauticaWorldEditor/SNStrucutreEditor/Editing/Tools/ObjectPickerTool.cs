@@ -1,7 +1,7 @@
-﻿using SNStructureEditor.UI;
-using SNStructureEditor.Utility;
+﻿using ModStructureHelperPlugin.UI;
+using ModStructureHelperPlugin.Utility;
 
-namespace SNStructureEditor.Editing.Tools;
+namespace ModStructureHelperPlugin.Editing.Tools;
 
 public class ObjectPickerTool : ToolBase
 {

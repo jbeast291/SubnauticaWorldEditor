@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SNTerrainEditor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c91da7a05ee728d15821711682fee33195454256")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b08713b8f60ebd5cc4224bfc81c16690eb35695")]
 [assembly: System.Reflection.AssemblyProductAttribute("SNTerrainEditor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SNTerrainEditor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

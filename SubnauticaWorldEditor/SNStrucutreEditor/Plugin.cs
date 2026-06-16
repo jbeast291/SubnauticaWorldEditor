@@ -2,10 +2,11 @@
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using ModStructureHelperPlugin;
+using ModStructureHelperPlugin.OutlineShit;
+using ModStructureHelperPlugin.Utility;
 using Nautilus.Handlers;
 using Nautilus.Utility;
-using SNStructureEditor.OutlineShit;
-using SNStructureEditor.Utility;
 using UnityEngine;
 
 namespace SNStructureEditor;

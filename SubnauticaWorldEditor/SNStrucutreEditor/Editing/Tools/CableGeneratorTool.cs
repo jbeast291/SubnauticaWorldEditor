@@ -1,9 +1,9 @@
 ﻿using System;
-using SNStructureEditor.CableGeneration;
+using ModStructureHelperPlugin.CableGeneration;
 using TMPro;
 using UnityEngine;
 
-namespace SNStructureEditor.Editing.Tools;
+namespace ModStructureHelperPlugin.Editing.Tools;
 
 public class CableGeneratorTool : ToolBase
 {

@@ -1,10 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using ModStructureFormatV2;
-using SNStructureEditor.StructureHandling;
+using ModStructureHelperPlugin.StructureHandling;
+using SNStructureEditor;
 using UnityEngine;
 
-namespace SNStructureEditor.Utility;
+namespace ModStructureHelperPlugin.Utility;
 
 public static class EntityUtility
 {

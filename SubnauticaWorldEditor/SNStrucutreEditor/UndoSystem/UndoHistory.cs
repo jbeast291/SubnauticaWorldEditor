@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using SNStructureEditor.Editing.Tools;
-using SNStructureEditor.Editing.Managers;
-using SNStructureEditor.StructureHandling;
-using SNStructureEditor.UI;
+using ModStructureHelperPlugin.Editing.Managers;
+using ModStructureHelperPlugin.Editing.Tools;
+using ModStructureHelperPlugin.StructureHandling;
+using ModStructureHelperPlugin.UI;
 using UnityEngine;
 
-namespace SNStructureEditor.UndoSystem;
+namespace ModStructureHelperPlugin.UndoSystem;
 
 // This class manages the undo history and listens to the runtime handle for when an object is moved
 public class UndoHistory : MonoBehaviour

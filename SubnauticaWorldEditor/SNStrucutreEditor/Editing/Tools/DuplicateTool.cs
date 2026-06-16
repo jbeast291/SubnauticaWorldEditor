@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using SNStructureEditor.Editing.Managers;
-using SNStructureEditor.StructureHandling;
-using SNStructureEditor.UI;
-using SNStructureEditor.UndoSystem;
+using ModStructureHelperPlugin.Editing.Managers;
+using ModStructureHelperPlugin.StructureHandling;
+using ModStructureHelperPlugin.UI;
+using ModStructureHelperPlugin.UndoSystem;
 using UnityEngine;
 
-namespace SNStructureEditor.Editing.Tools;
+namespace ModStructureHelperPlugin.Editing.Tools;
 
 public class DuplicateTool : ToolBase
 {

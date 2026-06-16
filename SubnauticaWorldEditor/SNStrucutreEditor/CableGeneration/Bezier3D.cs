@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SNStructureEditor.CableGeneration;
+namespace ModStructureHelperPlugin.CableGeneration;
 
 [System.Serializable]
 public class Bezier3D

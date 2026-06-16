@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SNStructureEditor.Mono;
+namespace ModStructureHelperPlugin.Mono;
 
 public class TransformableGridPlane : MonoBehaviour
 {

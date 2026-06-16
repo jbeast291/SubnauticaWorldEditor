@@ -1,8 +1,8 @@
-﻿using SNStructureEditor.StructureHandling;
+﻿using ModStructureHelperPlugin.StructureHandling;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 public class DisableButtonIfNoStructureExists : MonoBehaviour
 {

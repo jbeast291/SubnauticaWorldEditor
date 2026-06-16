@@ -1,4 +1,4 @@
-﻿namespace SNStructureEditor.CableGeneration;
+﻿namespace ModStructureHelperPlugin.CableGeneration;
 
 public enum CableLocation
 {

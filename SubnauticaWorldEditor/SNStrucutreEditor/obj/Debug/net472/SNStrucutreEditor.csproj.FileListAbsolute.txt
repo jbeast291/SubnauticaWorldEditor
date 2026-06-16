@@ -34,3 +34,4 @@ C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNS
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNStrucutreEditor\obj\Debug\net472\SNStrucu.22359CEA.Up2Date
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNStrucutreEditor\obj\Debug\net472\SNStrucutreEditor.dll
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNStrucutreEditor\obj\Debug\net472\SNStrucutreEditor.pdb
+C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNStrucutreEditor\obj\Debug\net472\SNStrucutreEditor.sourcelink.json

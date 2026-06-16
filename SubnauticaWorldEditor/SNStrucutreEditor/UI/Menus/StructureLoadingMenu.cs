@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using ModStructureFormatV2;
-using SNStructureEditor.UI.Buttons;
-using SNStructureEditor.Utility;
+using ModStructureHelperPlugin.UI.Buttons;
+using ModStructureHelperPlugin.Utility;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SNStructureEditor.UI.Menus;
+namespace ModStructureHelperPlugin.UI.Menus;
 
 public class StructureLoadingMenu : StructureHelperMenuBase
 {

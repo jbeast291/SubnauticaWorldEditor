@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SNStructureEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SNStructureEditor.Utility;
+namespace ModStructureHelperPlugin.Utility;
 
 public static class ComponentStripUtils
 {

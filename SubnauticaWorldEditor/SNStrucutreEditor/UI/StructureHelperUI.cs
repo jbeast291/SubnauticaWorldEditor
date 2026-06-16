@@ -1,9 +1,10 @@
-﻿using SNStructureEditor.Editing.Tools;
+﻿using ModStructureHelperPlugin.Editing.Managers;
+using ModStructureHelperPlugin.Editing.Tools;
 using UnityEngine;
-using SNStructureEditor.Editing.Managers;
-using SNStructureEditor.UI.Menus;
+using ModStructureHelperPlugin.UI.Menus;
+using SNStructureEditor;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 public class StructureHelperUI : MonoBehaviour
 {

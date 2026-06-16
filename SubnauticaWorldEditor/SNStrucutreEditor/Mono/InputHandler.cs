@@ -1,8 +1,8 @@
-﻿using SNStructureEditor.StructureHandling;
-using SNStructureEditor.UI;
+﻿using ModStructureHelperPlugin.StructureHandling;
+using ModStructureHelperPlugin.UI;
 using UnityEngine;
 
-namespace SNStructureEditor.Mono;
+namespace ModStructureHelperPlugin.Mono;
 
 public class InputHandler : MonoBehaviour
 {

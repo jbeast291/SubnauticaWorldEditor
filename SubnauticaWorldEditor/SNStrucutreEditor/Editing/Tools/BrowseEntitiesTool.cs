@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SNStructureEditor.Editing.Tools;
+namespace ModStructureHelperPlugin.Editing.Tools;
 
 public class BrowseEntitiesTool : ToolBase
 {

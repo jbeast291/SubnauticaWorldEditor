@@ -1,9 +1,9 @@
-﻿using SNStructureEditor.Editing.Managers;
-using SNStructureEditor.Editing.Tools;
-using SNStructureEditor.UI;
+﻿using ModStructureHelperPlugin.Editing.Managers;
+using ModStructureHelperPlugin.Editing.Tools;
+using ModStructureHelperPlugin.UI;
 using UnityEngine;
 
-namespace SNStructureEditor.Utility;
+namespace ModStructureHelperPlugin.Utility;
 
 public static class ObjectPickingUtils
 {

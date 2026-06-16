@@ -3,9 +3,9 @@
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using SNStructureEditor.OutlineShit.Rendering;
+using ModStructureHelperPlugin.OutlineShit.Rendering;
 
-namespace SNStructureEditor.OutlineShit;
+namespace ModStructureHelperPlugin.OutlineShit;
 
 /// <summary>
 /// Extension methods for <see cref="IOutlineSettings"/>.

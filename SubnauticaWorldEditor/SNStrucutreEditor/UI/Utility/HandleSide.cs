@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SNStructureEditor.UI.Utility;
+namespace ModStructureHelperPlugin.UI.Utility;
 
 [Flags]
 public enum HandleSide

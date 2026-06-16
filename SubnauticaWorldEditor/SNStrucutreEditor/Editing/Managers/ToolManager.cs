@@ -1,12 +1,13 @@
 ﻿using System.Linq;
-using SNStructureEditor.Editing.Tools;
-using SNStructureEditor.Handle;
-using SNStructureEditor.UI;
-using SNStructureEditor.UndoSystem;
-using SNStructureEditor.Utility;
+using ModStructureHelperPlugin.Editing.Tools;
+using ModStructureHelperPlugin.Handle;
+using ModStructureHelperPlugin.UI;
+using ModStructureHelperPlugin.UndoSystem;
+using ModStructureHelperPlugin.Utility;
+using SNStructureEditor;
 using UnityEngine;
 
-namespace SNStructureEditor.Editing.Managers;
+namespace ModStructureHelperPlugin.Editing.Managers;
 
 public class ToolManager : MonoBehaviour
 {

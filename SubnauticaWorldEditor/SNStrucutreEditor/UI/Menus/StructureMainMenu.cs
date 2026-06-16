@@ -1,8 +1,8 @@
 ﻿using System.IO;
-using SNStructureEditor.StructureHandling;
-using SNStructureEditor.Utility;
+using ModStructureHelperPlugin.StructureHandling;
+using ModStructureHelperPlugin.Utility;
 
-namespace SNStructureEditor.UI.Menus;
+namespace ModStructureHelperPlugin.UI.Menus;
 
 public class StructureMainMenu : StructureHelperMenuBase
 {

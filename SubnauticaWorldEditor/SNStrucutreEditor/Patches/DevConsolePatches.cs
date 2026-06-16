@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
-using SNStructureEditor.UI;
+using ModStructureHelperPlugin.UI;
 
-namespace SNStructureEditor.Patches;
+namespace ModStructureHelperPlugin.Patches;
 
 [HarmonyPatch(typeof(DevConsole))]
 public static class DevConsolePatches

@@ -1,4 +1,4 @@
-﻿namespace SNStructureEditor.Interfaces;
+﻿namespace ModStructureHelperPlugin.Interfaces;
 
 public interface ISelectionListener
 {

@@ -1,7 +1,7 @@
-﻿using SNStructureEditor.UI;
+﻿using ModStructureHelperPlugin.UI;
 using UnityEngine;
 
-namespace SNStructureEditor.Interfaces;
+namespace ModStructureHelperPlugin.Interfaces;
 
 public interface IOverlayIconData
 {

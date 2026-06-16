@@ -1,4 +1,4 @@
-﻿namespace SNStructureEditor.EntityHandling;
+﻿namespace ModStructureHelperPlugin.EntityHandling;
 
 // Similar to System.IO features but designed for an enclosed browser system
 public static class PathUtils

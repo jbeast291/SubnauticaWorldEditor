@@ -1,9 +1,10 @@
 ﻿using System.Linq;
 using ModStructureFormatV2;
-using SNStructureEditor.Mono;
+using ModStructureHelperPlugin.Mono;
+using SNStructureEditor;
 using UnityEngine;
 
-namespace SNStructureEditor.StructureHandling;
+namespace ModStructureHelperPlugin.StructureHandling;
 
 public class EntityInstance : MonoBehaviour
 {

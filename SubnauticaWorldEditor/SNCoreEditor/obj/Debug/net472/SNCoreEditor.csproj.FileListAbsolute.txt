@@ -33,3 +33,4 @@ C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNC
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNCoreEditor\obj\Debug\net472\SNCoreEd.CE60E10F.Up2Date
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNCoreEditor\obj\Debug\net472\SNCoreEditor.dll
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNCoreEditor\obj\Debug\net472\SNCoreEditor.pdb
+C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNCoreEditor\obj\Debug\net472\SNCoreEditor.sourcelink.json

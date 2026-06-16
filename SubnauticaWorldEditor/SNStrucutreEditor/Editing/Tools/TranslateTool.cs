@@ -1,6 +1,6 @@
-﻿using SNStructureEditor.Handle.Handles;
+﻿using ModStructureHelperPlugin.Handle.Handles;
 
-namespace SNStructureEditor.Editing.Tools;
+namespace ModStructureHelperPlugin.Editing.Tools;
 
 public class TranslateTool : ToolBase
 {

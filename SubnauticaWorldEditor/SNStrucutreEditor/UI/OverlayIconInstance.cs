@@ -1,9 +1,9 @@
-﻿using SNStructureEditor.Interfaces;
+﻿using ModStructureHelperPlugin.Interfaces;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 public class OverlayIconInstance : MonoBehaviour
 {

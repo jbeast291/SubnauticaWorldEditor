@@ -3,11 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using SNStructureEditor.OutlineShit.Rendering;
+using ModStructureHelperPlugin.OutlineShit.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace SNStructureEditor.OutlineShit;
+namespace ModStructureHelperPlugin.OutlineShit;
 
 /// <summary>
 /// Attach this script to a <see cref="GameObject"/> to add outline effect. It can be configured in edit-time or in runtime via scripts.

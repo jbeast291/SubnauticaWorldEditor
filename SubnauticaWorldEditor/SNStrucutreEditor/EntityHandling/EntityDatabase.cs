@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
+using ModStructureHelperPlugin.EntityHandling.Icons;
 using Nautilus.Handlers;
-using SNStructureEditor.EntityHandling.Icons;
 using UnityEngine;
 
-namespace SNStructureEditor.EntityHandling;
+namespace ModStructureHelperPlugin.EntityHandling;
 
 public class EntityDatabase : MonoBehaviour
 {

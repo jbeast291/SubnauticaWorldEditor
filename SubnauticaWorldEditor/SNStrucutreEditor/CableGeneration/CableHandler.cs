@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SNStructureEditor.CableGeneration;
+namespace ModStructureHelperPlugin.CableGeneration;
 
 public class CableHandler : MonoBehaviour
 {

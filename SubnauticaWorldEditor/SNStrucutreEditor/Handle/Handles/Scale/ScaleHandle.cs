@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SNStructureEditor.Handle.Handles.Scale
+namespace ModStructureHelperPlugin.Handle.Handles.Scale
 {
     /**
      * Created by Peter @sHTiF Stefcek 20.10.2020

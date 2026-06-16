@@ -1,6 +1,6 @@
-﻿using SNStructureEditor.Editing.Managers;
+﻿using ModStructureHelperPlugin.Editing.Managers;
 
-namespace SNStructureEditor.Editing.Tools;
+namespace ModStructureHelperPlugin.Editing.Tools;
 
 public class SelectLastSelectedEntity : ToolBase
 {

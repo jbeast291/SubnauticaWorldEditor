@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using SNStructureEditor.Interfaces;
+using ModStructureHelperPlugin.Interfaces;
 using UnityEngine;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 public class OverlayIconManager : MonoBehaviour
 {

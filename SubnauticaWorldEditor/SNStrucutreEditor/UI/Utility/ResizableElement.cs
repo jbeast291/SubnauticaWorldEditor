@@ -1,8 +1,8 @@
-﻿using SNStructureEditor.Editing.Managers;
+﻿using ModStructureHelperPlugin.Editing.Managers;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace SNStructureEditor.UI.Utility;
+namespace ModStructureHelperPlugin.UI.Utility;
 
 public class ResizableElement : MonoBehaviour
 {

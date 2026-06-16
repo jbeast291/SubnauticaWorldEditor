@@ -1,11 +1,12 @@
-﻿using SNStructureEditor.Editing.Tools;
-using SNStructureEditor.EntityHandling;
-using SNStructureEditor.EntityHandling.Icons;
+﻿using ModStructureHelperPlugin.Editing.Tools;
+using ModStructureHelperPlugin.EntityHandling;
+using ModStructureHelperPlugin.EntityHandling.Icons;
+using SNStructureEditor;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SNStructureEditor.UI.Buttons;
+namespace ModStructureHelperPlugin.UI.Buttons;
 
 public class EntityBrowserButton : MonoBehaviour
 {

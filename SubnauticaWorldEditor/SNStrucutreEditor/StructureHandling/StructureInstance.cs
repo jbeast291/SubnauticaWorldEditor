@@ -4,13 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using ModStructureFormatV2;
-using SNStructureEditor.Editing.Managers;
-using SNStructureEditor.UI;
-using SNStructureEditor.UndoSystem;
-using SNStructureEditor.Utility;
+using ModStructureHelperPlugin.Editing.Managers;
+using ModStructureHelperPlugin.UI;
+using ModStructureHelperPlugin.UndoSystem;
+using ModStructureHelperPlugin.Utility;
+using SNStructureEditor;
 using UnityEngine;
 
-namespace SNStructureEditor.StructureHandling;
+namespace ModStructureHelperPlugin.StructureHandling;
 
 public class StructureInstance : MonoBehaviour, IScheduledUpdateBehaviour
 {

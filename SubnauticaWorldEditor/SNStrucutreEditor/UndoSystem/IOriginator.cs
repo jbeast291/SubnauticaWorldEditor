@@ -1,4 +1,4 @@
-﻿namespace SNStructureEditor.UndoSystem;
+﻿namespace ModStructureHelperPlugin.UndoSystem;
 
 public interface IOriginator
 {

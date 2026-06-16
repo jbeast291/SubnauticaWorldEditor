@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
-using SNStructureEditor.Handle;
-using SNStructureEditor.Handle.Handles;
-using SNStructureEditor.Interfaces;
-using SNStructureEditor.OutlineShit;
-using SNStructureEditor.OutlineShit.Rendering;
-using SNStructureEditor.StructureHandling;
+using ModStructureHelperPlugin.Handle;
+using ModStructureHelperPlugin.Handle.Handles;
+using ModStructureHelperPlugin.Interfaces;
+using ModStructureHelperPlugin.OutlineShit;
+using ModStructureHelperPlugin.OutlineShit.Rendering;
+using ModStructureHelperPlugin.StructureHandling;
+using SNStructureEditor;
 using UnityEngine;
 
-namespace SNStructureEditor.Editing.Managers;
+namespace ModStructureHelperPlugin.Editing.Managers;
 
 public static class SelectionManager
 {

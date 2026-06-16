@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SNStructureEditor.Handle.Utils
+namespace ModStructureHelperPlugin.Handle.Utils
 {
 	public static class HandleMathUtils
 	{

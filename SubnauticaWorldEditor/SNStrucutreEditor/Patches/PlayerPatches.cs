@@ -1,8 +1,8 @@
 ﻿using HarmonyLib;
-using SNStructureEditor.Mono;
+using ModStructureHelperPlugin.Mono;
 using UnityEngine;
 
-namespace SNStructureEditor.Patches;
+namespace ModStructureHelperPlugin.Patches;
 
 [HarmonyPatch(typeof(Player))]
 public static class PlayerPatches

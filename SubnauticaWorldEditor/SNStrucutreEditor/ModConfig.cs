@@ -2,7 +2,7 @@
 using Nautilus.Options.Attributes;
 using UnityEngine;
 
-namespace SNStructureEditor;
+namespace ModStructureHelperPlugin;
 
 [Menu("Mod Structure Helper")]
 public class ModConfig : ConfigFile

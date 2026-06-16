@@ -1,7 +1,8 @@
-using SNStructureEditor.Handle.Utils;
+using ModStructureHelperPlugin.Handle.Utils;
+using SNStructureEditor;
 using UnityEngine;
 
-namespace SNStructureEditor.Handle.Handles.Rotation
+namespace ModStructureHelperPlugin.Handle.Handles.Rotation
 {
     /**
      * Created by Peter @sHTiF Stefcek 20.10.2020

@@ -2,10 +2,10 @@
 // See the LICENSE.md file in the project root for more information.
 
 using System;
-using SNStructureEditor.OutlineShit.Rendering;
+using ModStructureHelperPlugin.OutlineShit.Rendering;
 using UnityEngine;
 
-namespace SNStructureEditor.OutlineShit;
+namespace ModStructureHelperPlugin.OutlineShit;
 
 /// <summary>
 /// Generic outline settings.

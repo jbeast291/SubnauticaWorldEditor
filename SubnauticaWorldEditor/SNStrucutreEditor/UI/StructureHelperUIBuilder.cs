@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using SNStructureEditor.UI.Menus;
+using ModStructureHelperPlugin.UI.Menus;
+using SNStructureEditor;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 public static class StructureHelperUIBuilder
 {

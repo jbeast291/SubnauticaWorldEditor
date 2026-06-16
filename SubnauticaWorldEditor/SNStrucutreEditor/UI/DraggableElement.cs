@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 public class DraggableElement : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {

@@ -1,8 +1,8 @@
 ﻿using System.Runtime.Remoting.Messaging;
-using SNStructureEditor.StructureHandling;
+using ModStructureHelperPlugin.StructureHandling;
 using UnityEngine;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 public class TaskBar : MonoBehaviour
 {

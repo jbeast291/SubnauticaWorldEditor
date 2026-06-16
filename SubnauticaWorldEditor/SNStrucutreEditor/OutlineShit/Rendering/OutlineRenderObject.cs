@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SNStructureEditor.OutlineShit.Rendering;
+namespace ModStructureHelperPlugin.OutlineShit.Rendering;
 
 /// <summary>
 /// A single outline object + its outline settings.

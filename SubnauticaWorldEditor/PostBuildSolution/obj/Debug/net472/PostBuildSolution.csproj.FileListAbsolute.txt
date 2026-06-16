@@ -7,3 +7,4 @@ C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\Pos
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\PostBuildSolution\obj\Debug\net472\PostBuildSolution.csproj.CoreCompileInputs.cache
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\PostBuildSolution\obj\Debug\net472\PostBuildSolution.dll
 C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\PostBuildSolution\obj\Debug\net472\PostBuildSolution.pdb
+C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\PostBuildSolution\obj\Debug\net472\PostBuildSolution.sourcelink.json

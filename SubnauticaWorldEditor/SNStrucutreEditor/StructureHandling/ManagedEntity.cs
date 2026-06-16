@@ -1,10 +1,11 @@
 ﻿using System.Collections;
 using ModStructureFormatV2;
-using SNStructureEditor.UI;
-using SNStructureEditor.UndoSystem;
+using ModStructureHelperPlugin.UI;
+using ModStructureHelperPlugin.UndoSystem;
+using SNStructureEditor;
 using UnityEngine;
 
-namespace SNStructureEditor.StructureHandling;
+namespace ModStructureHelperPlugin.StructureHandling;
 
 public class ManagedEntity : IOriginator
 {

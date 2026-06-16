@@ -1,8 +1,8 @@
-﻿using SNStructureEditor.CableGeneration;
-using SNStructureEditor.Editing.Tools;
+﻿using ModStructureHelperPlugin.CableGeneration;
+using ModStructureHelperPlugin.Editing.Tools;
 using UnityEngine;
 
-namespace SNStructureEditor.UI.Buttons;
+namespace ModStructureHelperPlugin.UI.Buttons;
 
 public class SetCablePrefabButtonGroup : MonoBehaviour
 {

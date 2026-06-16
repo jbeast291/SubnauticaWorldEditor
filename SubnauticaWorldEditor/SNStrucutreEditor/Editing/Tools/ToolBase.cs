@@ -1,10 +1,10 @@
-﻿using SNStructureEditor.Editing.Managers;
-using SNStructureEditor.UI;
+﻿using ModStructureHelperPlugin.Editing.Managers;
+using ModStructureHelperPlugin.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SNStructureEditor.Editing.Tools;
+namespace ModStructureHelperPlugin.Editing.Tools;
 
 public abstract class ToolBase : TooltipTarget
 {

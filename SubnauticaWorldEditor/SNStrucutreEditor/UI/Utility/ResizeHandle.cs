@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace SNStructureEditor.UI.Utility;
+namespace ModStructureHelperPlugin.UI.Utility;
 
 public class ResizeHandle : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerEnterHandler, IPointerExitHandler
 {

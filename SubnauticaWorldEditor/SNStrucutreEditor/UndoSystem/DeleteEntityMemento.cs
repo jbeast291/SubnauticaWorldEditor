@@ -1,9 +1,9 @@
 ﻿using System.Collections;
-using SNStructureEditor.StructureHandling;
+using ModStructureHelperPlugin.StructureHandling;
 using UnityEngine;
 using UWE;
 
-namespace SNStructureEditor.UndoSystem;
+namespace ModStructureHelperPlugin.UndoSystem;
 
 public readonly struct DeleteEntityMemento : IMemento
 {

@@ -1,4 +1,4 @@
-namespace SNStructureEditor.Handle.Handles
+namespace ModStructureHelperPlugin.Handle.Handles
 {
     /**
      * Created by Peter @sHTiF Stefcek 20.10.2020

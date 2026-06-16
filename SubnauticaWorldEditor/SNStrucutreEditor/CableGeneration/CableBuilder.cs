@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using SNStructureEditor.Editing.Tools;
-using SNStructureEditor.Editing.Managers;
-using SNStructureEditor.StructureHandling;
+using ModStructureHelperPlugin.Editing.Managers;
+using ModStructureHelperPlugin.Editing.Tools;
+using ModStructureHelperPlugin.StructureHandling;
+using SNStructureEditor;
 using UnityEngine;
 using UWE;
 using Random = UnityEngine.Random;
 
-namespace SNStructureEditor.CableGeneration;
+namespace ModStructureHelperPlugin.CableGeneration;
 
 public class CableBuilder : MonoBehaviour
 {

@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace SNStructureEditor.UndoSystem;
+namespace ModStructureHelperPlugin.UndoSystem;
 
 public interface IMemento
 {

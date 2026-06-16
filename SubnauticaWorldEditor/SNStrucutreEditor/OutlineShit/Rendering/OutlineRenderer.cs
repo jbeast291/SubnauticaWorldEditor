@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.XR;
 
-namespace SNStructureEditor.OutlineShit.Rendering;
+namespace ModStructureHelperPlugin.OutlineShit.Rendering;
 
 /// <summary>
 /// Helper class for outline rendering with <see cref="CommandBuffer"/>.

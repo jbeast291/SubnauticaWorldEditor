@@ -1,15 +1,16 @@
 ﻿using System;
+using ModStructureHelperPlugin.Editing.Managers;
+using ModStructureHelperPlugin.Mono;
+using ModStructureHelperPlugin.StructureHandling;
+using ModStructureHelperPlugin.UI.Utility;
+using ModStructureHelperPlugin.Utility;
 using Nautilus.Utility;
-using SNStructureEditor.Editing.Managers;
-using SNStructureEditor.Mono;
-using SNStructureEditor.StructureHandling;
-using SNStructureEditor.UI.Utility;
-using SNStructureEditor.Utility;
+using SNStructureEditor;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SNStructureEditor.Editing.Tools;
+namespace ModStructureHelperPlugin.Editing.Tools;
 
 public class ToggleSnappingTool : ToolBase
 {

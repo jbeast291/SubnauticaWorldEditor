@@ -1,10 +1,10 @@
 ﻿using HarmonyLib;
-using SNStructureEditor.UI;
+using ModStructureHelperPlugin.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SNStructureEditor.Patches;
+namespace ModStructureHelperPlugin.Patches;
 
 [HarmonyPatch(typeof(IngameMenu))]
 public static class IngameMenuPatches

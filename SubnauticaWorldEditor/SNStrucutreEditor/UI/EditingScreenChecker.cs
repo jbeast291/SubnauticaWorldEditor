@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 // Checks whether the cursor is hovering over any windows or not
 public class EditingScreenChecker : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler

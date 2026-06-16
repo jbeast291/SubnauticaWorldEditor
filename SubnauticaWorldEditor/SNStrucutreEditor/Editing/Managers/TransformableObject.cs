@@ -1,9 +1,9 @@
 ﻿using System.Collections;
-using SNStructureEditor.UI;
-using SNStructureEditor.UndoSystem;
+using ModStructureHelperPlugin.UI;
+using ModStructureHelperPlugin.UndoSystem;
 using UnityEngine;
 
-namespace SNStructureEditor.Editing.Managers;
+namespace ModStructureHelperPlugin.Editing.Managers;
 
 public class TransformableObject : MonoBehaviour, IOriginator
 {

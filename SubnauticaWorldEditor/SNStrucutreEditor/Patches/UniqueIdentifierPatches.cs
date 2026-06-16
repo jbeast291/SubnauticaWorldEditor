@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
-using SNStructureEditor.StructureHandling;
+using ModStructureHelperPlugin.StructureHandling;
 
-namespace SNStructureEditor.Patches;
+namespace ModStructureHelperPlugin.Patches;
 
 [HarmonyPatch(typeof(UniqueIdentifier))]
 public static class UniqueIdentifierPatches

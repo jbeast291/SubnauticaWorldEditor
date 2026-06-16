@@ -1,11 +1,11 @@
 ﻿using System.IO;
-using SNStructureEditor.StructureHandling;
-using SNStructureEditor.Utility;
+using ModStructureHelperPlugin.StructureHandling;
+using ModStructureHelperPlugin.Utility;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 public class CurrentlyEditedStructureText : MonoBehaviour
 {

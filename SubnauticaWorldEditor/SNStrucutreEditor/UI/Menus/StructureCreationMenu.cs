@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using ModStructureFormatV2;
-using SNStructureEditor.StructureHandling;
+using ModStructureHelperPlugin.StructureHandling;
 using TMPro;
 
-namespace SNStructureEditor.UI.Menus;
+namespace ModStructureHelperPlugin.UI.Menus;
 
 public class StructureCreationMenu : StructureHelperMenuBase
 {

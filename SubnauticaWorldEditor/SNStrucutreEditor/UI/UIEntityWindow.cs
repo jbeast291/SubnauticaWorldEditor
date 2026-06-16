@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections;
-using SNStructureEditor.EntityHandling;
-using SNStructureEditor.Mono;
-using SNStructureEditor.UI.Buttons;
+using ModStructureHelperPlugin.EntityHandling;
+using ModStructureHelperPlugin.Mono;
+using ModStructureHelperPlugin.UI.Buttons;
 using UnityEngine;
 using UnityEngine.UI;
 using UWE;
 
-namespace SNStructureEditor.UI;
+namespace ModStructureHelperPlugin.UI;
 
 public class UIEntityWindow : MonoBehaviour
 {

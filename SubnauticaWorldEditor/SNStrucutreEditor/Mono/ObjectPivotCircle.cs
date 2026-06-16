@@ -1,11 +1,12 @@
-﻿using Nautilus.Extensions;
-using SNStructureEditor.Interfaces;
-using SNStructureEditor.StructureHandling;
-using SNStructureEditor.UI;
+﻿using ModStructureHelperPlugin.Interfaces;
+using ModStructureHelperPlugin.StructureHandling;
+using ModStructureHelperPlugin.UI;
+using Nautilus.Extensions;
+using SNStructureEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace SNStructureEditor.Mono;
+namespace ModStructureHelperPlugin.Mono;
 
 public class ObjectPivotCircle : MonoBehaviour, IOverlayIconData, ISelectionListener, IPointerEnterHandler, IPointerExitHandler
 {

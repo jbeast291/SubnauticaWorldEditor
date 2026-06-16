@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Reflection;
 using Nautilus.Handlers;
+using SNStructureEditor;
 
-namespace SNStructureEditor;
+namespace ModStructureHelperPlugin;
 
 public static class StructureHelperInput
 {

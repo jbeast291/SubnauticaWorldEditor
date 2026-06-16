@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SNStructureEditor.Handle.Handles.Position
+namespace ModStructureHelperPlugin.Handle.Handles.Position
 {
     /**
      * Created by Peter @sHTiF Stefcek 20.10.2020

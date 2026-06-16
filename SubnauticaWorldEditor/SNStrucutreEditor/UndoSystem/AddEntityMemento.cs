@@ -1,7 +1,7 @@
 ﻿using System.Collections;
-using SNStructureEditor.StructureHandling;
+using ModStructureHelperPlugin.StructureHandling;
 
-namespace SNStructureEditor.UndoSystem;
+namespace ModStructureHelperPlugin.UndoSystem;
 
 public readonly struct AddEntityMemento : IMemento
 {

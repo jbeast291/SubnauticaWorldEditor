@@ -1,8 +1,8 @@
-﻿using SNStructureEditor.Handle.Handles;
-using SNStructureEditor.Mono;
+﻿using ModStructureHelperPlugin.Handle.Handles;
+using ModStructureHelperPlugin.Mono;
 using UnityEngine;
 
-namespace SNStructureEditor.Editing.Managers;
+namespace ModStructureHelperPlugin.Editing.Managers;
 
 public class SnappingManager : MonoBehaviour
 {

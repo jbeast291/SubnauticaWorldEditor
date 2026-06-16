@@ -1,4 +1,4 @@
-﻿namespace SNStructureEditor.EntityHandling;
+﻿namespace ModStructureHelperPlugin.EntityHandling;
 
 public class EntityData
 {
