@@ -8,6 +8,7 @@
         <RootNamespace>SNCoreEditor</RootNamespace>
         <BepInExPluginName>SubnauticaWorldEditor</BepInExPluginName>
         <BepInExPluginGuid>com.snmodding.worldeditor</BepInExPluginGuid>
+        <CopyToUnityProject>true</CopyToUnityProject>
 
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;

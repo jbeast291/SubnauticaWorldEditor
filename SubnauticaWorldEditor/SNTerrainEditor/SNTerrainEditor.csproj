@@ -8,6 +8,7 @@
         <RootNamespace>SNTerrainEditor</RootNamespace>
         <BepInExPluginName>SNTerrainEditor</BepInExPluginName>
         <BepInExPluginGuid>com.subnauticaworldeditor.terrain</BepInExPluginGuid>
+        <CopyToUnityProject>true</CopyToUnityProject>
 
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;

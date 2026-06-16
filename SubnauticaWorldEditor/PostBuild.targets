@@ -14,4 +14,9 @@
             <Copy SourceFiles="@(LocalizationFiles)" DestinationFolder="$(ModDir)\Localization"/>
         -->
     </Target>
+
+    <Target Condition="Exists('..\TargetDirectories.targets') And '$(CopyToUnityProject)'=='true'" Name="CopyToUnity" AfterTargets="Build">
+        <Message></Message>
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\..\SubnauticaWorldEditorAssets\Assets\References"/>
+    </Target>
 </Project>

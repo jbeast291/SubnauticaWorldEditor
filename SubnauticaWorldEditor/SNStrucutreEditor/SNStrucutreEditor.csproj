@@ -8,6 +8,7 @@
         <RootNamespace>SNStructureEditor</RootNamespace>
         <BepInExPluginName>SNStructureEditor</BepInExPluginName>
         <BepInExPluginGuid>com.subnauticaworldeditor.structure</BepInExPluginGuid>
+        <CopyToUnityProject>true</CopyToUnityProject>
 
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;

@@ -9,8 +9,4 @@
     <Target Condition="Exists('..\TargetDirectories.targets')" Name="CopyBuildReferences" AfterTargets="Build">
         <Copy SourceFiles="@(ReferencesToCopy)" DestinationFolder="$(ModDir)"/>
     </Target>
-
-    <Target Condition="Exists('..\TargetDirectories.targets') And '$(CopyToUnityProject)'=='true'" Name="CopyToUnity" AfterTargets="Build">
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ThunderkitDir)\Assets\References"/>
-    </Target>
 </Project>
