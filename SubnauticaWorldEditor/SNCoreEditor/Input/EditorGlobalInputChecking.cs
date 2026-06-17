@@ -26,13 +26,5 @@ public class InputHandler : MonoBehaviour
         {
             EditorCanvasManager.main.ToggleEditorVisibility();
         }
-
-        if (!EditorCanvasManager.main.IsVisible()) return;
-        
-        if (GameInput.GetButtonHeld(InputRegistration.SaveHotkeyModifier) && GameInput.GetButtonDown(InputRegistration.SaveKeyBind))
-        {
-            Plugin.Logger.LogError("SAVE KEYBIND");
-            //CoreEditorCanvasManager.TrySave();
-        }
     }
 }

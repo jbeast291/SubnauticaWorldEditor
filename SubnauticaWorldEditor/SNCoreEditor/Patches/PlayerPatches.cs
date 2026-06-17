@@ -11,7 +11,7 @@ public static class PlayerPatches
     [HarmonyPostfix]
     public static void StartPostfix()
     {
-        var inputHandlerObj = new GameObject("StructureHelperInputHandler");
+        GameObject inputHandlerObj = new GameObject("WorldEditorInputHandler");
         inputHandlerObj.AddComponent<InputHandler>();
     }
 }
