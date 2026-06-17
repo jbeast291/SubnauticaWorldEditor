@@ -1,9 +1,10 @@
 using System;
 using System.Collections;
 using Nautilus.Handlers;
+using SNCoreEditor.UI;
 using UnityEngine;
 
-namespace SNCoreEditor.UI;
+namespace SNCoreEditor;
 
 internal static class CanvasInitializer
 {
@@ -15,7 +16,6 @@ internal static class CanvasInitializer
         if (request.asset == null) throw new Exception("Failed to load editor canvas!");
 
         GameObject gameObject = UWE.Utils.InstantiateDeactivated(request.asset as GameObject);
-        gameObject.GetComponent<CoreEditorCanvasManager>().OnInstantiate();
-        
+        gameObject.GetComponent<EditorCanvasManager>().OnInstantiate();
     }
 }

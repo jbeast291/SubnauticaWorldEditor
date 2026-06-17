@@ -16,6 +16,41 @@ MonoBehaviour:
   creationDate:
     ticks: 639172498112932404
   entries:
+  - logLevel: 3
+    internalTime:
+      ticks: 639172498125498948
+    message: '[SubnauticaWorldEditor](assetlink://Assets%2fThunderKitSettings%2fPipelines%2fSubnauticaWorldEditor.asset)
+      Finished execution'
+    context: []
+  - logLevel: 0
+    internalTime:
+      ticks: 639172498125377462
+    message: '[SubnauticaWorldEditor(2 - Copy)](assetlink://Assets%2fThunderKitSettings%2fPipelines%2fSubnauticaWorldEditor.asset)[Bundle](assetlink://Assets%2fThunderKitSettings%2fManifests%2fBundle.asset)
+      ``` <BuildLocation> ``` to ``` <ModFolderPath> ```
+
+      
+
+      Copied
+      ``` ThunderKit/Build ``` to ``` C:/Program Files (x86)/Steam/steamapps/common/Subnautica/BepInEx/plugins/SubnauticaWorldEditor/Assets
+      ```'
+    context:
+    - 'Copied Files
+
+      
+
+      . C:/Program Files (x86)/Steam/steamapps/common/Subnautica/BepInEx/plugins/SubnauticaWorldEditor/Assets\coreassets'
+  - logLevel: 3
+    internalTime:
+      ticks: 639172498125309685
+    message: '[SubnauticaWorldEditor(2 - Copy)](assetlink://Assets%2fThunderKitSettings%2fPipelines%2fSubnauticaWorldEditor.asset)
+      Execute Job'
+    context: []
+  - logLevel: 3
+    internalTime:
+      ticks: 639172498125171821
+    message: '[SubnauticaWorldEditor(1 - DeleteFilesOfType)](assetlink://Assets%2fThunderKitSettings%2fPipelines%2fSubnauticaWorldEditor.asset)
+      Execute Job'
+    context: []
   - logLevel: 0
     internalTime:
       ticks: 639172498115891756

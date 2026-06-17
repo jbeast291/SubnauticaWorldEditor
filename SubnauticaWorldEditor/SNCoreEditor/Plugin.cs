@@ -6,6 +6,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using Nautilus.Handlers;
 using Nautilus.Utility.AttributeRegistration;
+using SNCoreEditor.Input;
 using SNCoreEditor.UI;
 
 namespace SNCoreEditor;
@@ -22,20 +23,19 @@ internal class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        // set project-scoped logger instance
         Logger = base.Logger;
         Instance = this;
-
-        // register harmony patches, if there are any
         
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+        InputRegistration.RegisterLocalization();
         
         // One time initialization
         WaitScreenHandler.RegisterEarlyLoadTask(PluginInfo.PLUGIN_NAME, PatchHarmonyMethods, "Patching");
         WaitScreenHandler.RegisterEarlyAsyncLoadTask(PluginInfo.PLUGIN_NAME, Assets.LoadCoreAssetBundle, "Loading Bundle");
         
-        // Load Canvas
+        
         WaitScreenHandler.RegisterAsyncLoadTask(PluginInfo.PLUGIN_NAME, CanvasInitializer.InstantiateCanvas, "Loading Canvas");
+        WaitScreenHandler.RegisterLateLoadTask(PluginInfo.PLUGIN_NAME, InputHandler.CreateInputHandler, "Create Input Handler");
     }
     
     private static void PatchHarmonyMethods(WaitScreenHandler.WaitScreenTask task)

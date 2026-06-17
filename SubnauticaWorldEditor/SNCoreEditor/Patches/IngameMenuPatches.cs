@@ -21,7 +21,7 @@ public static class IngameMenuPatches
         structuresButton.name = "ButtonSNWorldEditor";
         
         Button button = structuresButton.GetComponent<Button>();
-        button.onClick = new();
-        button.onClick.AddListener(CoreEditorCanvasManager.main.ToggleEditorVisibility);
+        button.onClick = new Button.ButtonClickedEvent();
+        button.onClick.AddListener(EditorCanvasManager.main.ToggleEditorVisibility);
     }
 }
