@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2434453186392056487}
   - component: {fileID: 2912639283708283740}
   - component: {fileID: 1138442785017935150}
+  - component: {fileID: 6998137793404838760}
   m_Layer: 0
   m_Name: SNEditorCanvas
   m_TagString: Untagged
@@ -139,6 +140,19 @@ MonoBehaviour:
   m_Script: {fileID: 1974687474, guid: f633d0020fe84ee4080286118c52405e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &6998137793404838760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 496869039108889881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 124321026, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  regionName: Base
 --- !u!1 &1390855585810268403
 GameObject:
   m_ObjectHideFlags: 0
@@ -148,7 +162,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8475531096498465951}
-  - component: {fileID: 6144271034488036266}
+  - component: {fileID: 1468089129256003320}
   m_Layer: 0
   m_Name: HotBars
   m_TagString: Untagged
@@ -176,7 +190,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &6144271034488036266
+--- !u!114 &1468089129256003320
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -185,7 +199,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1390855585810268403}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -1734712153, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+  m_Script: {fileID: 124321026, guid: f633d0020fe84ee4080286118c52405e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   regionName: HotBar
@@ -283,7 +297,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 8da6c4d26efc3fb49a4e1952c8248d6e, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -292,7 +306,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 15
+  m_PixelsPerUnitMultiplier: 5
 --- !u!1 &2400912784341779313
 GameObject:
   m_ObjectHideFlags: 0
@@ -338,7 +352,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8801524501513281627}
-  - component: {fileID: 3097217470179390220}
   m_Layer: 0
   m_Name: Windowing
   m_TagString: Untagged
@@ -365,19 +378,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -2460, y: -1340}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &3097217470179390220
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2434946596523972225}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1734712153, guid: f633d0020fe84ee4080286118c52405e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  regionName: GenericWindows
 --- !u!1 &3124455206544147983
 GameObject:
   m_ObjectHideFlags: 0
@@ -901,7 +901,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
+  m_Transition: 2
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}

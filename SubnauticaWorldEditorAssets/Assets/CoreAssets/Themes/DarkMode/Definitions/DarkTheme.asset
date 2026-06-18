@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: -981341905, guid: f633d0020fe84ee4080286118c52405e, type: 3}
   m_Name: DarkTheme
   m_EditorClassIdentifier: 
-  themeRegions:
-  - {fileID: 11400000, guid: 9e018dfa722c0744180da1fea4416926, type: 2}
+  themeNameLanguageKey: DarkTheme
+  regionThemes:
+  - {fileID: 11400000, guid: caac46e1af32cf94e9f7defc4c9e7da6, type: 2}

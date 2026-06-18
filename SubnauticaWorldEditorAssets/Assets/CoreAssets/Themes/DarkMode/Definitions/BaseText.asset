@@ -9,8 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -981341905, guid: f633d0020fe84ee4080286118c52405e, type: 3}
-  m_Name: SubnauticaTheme
+  m_Script: {fileID: -1194986008, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+  m_Name: BaseText
   m_EditorClassIdentifier: 
-  themeRegions:
-  - {fileID: 11400000, guid: 40e2eace3a7ed7f4abdfaa170099e6fd, type: 2}
+  color: {r: 1, g: 1, b: 1, a: 1}

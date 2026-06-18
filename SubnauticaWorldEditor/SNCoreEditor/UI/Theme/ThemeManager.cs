@@ -56,12 +56,17 @@ public class ThemeManager : MonoBehaviour
         if (refresh) _instance?.RefreshThemeAssigners();
     }
 
+    internal static RegionThemeDefinition GetRegionTheme(string regionName)
+    {
+        return _activeTheme.regionThemes.FirstOrDefault(definition => definition.regionName == regionName);
+    }
+
     public void RefreshThemeAssigners()
     {
         ThemeAssigner[] assigners = GetComponentsInChildren<ThemeAssigner>();
         foreach (ThemeAssigner assigner in assigners)
         {
-            assigner.AssignTheme();
+            assigner.AssignTheme(_activeTheme);
         }
     }
 

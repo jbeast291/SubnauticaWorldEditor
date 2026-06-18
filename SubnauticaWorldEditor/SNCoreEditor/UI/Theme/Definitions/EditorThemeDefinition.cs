@@ -1,9 +1,13 @@
 using UnityEngine;
+#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
 
 namespace SNCoreEditor.UI.Theme.Definitions;
 
-[CreateAssetMenu(fileName = "YourThemeNameHere", menuName = "SNEditor/Themes/Create Theme Definition")]
-public class EditorThemeDefinition : ScriptableObject
+[CreateAssetMenu(fileName = "EditorThemeName", menuName = "SNEditor/Themes/Editor Theme Definition")]
+public sealed class EditorThemeDefinition : ScriptableObject
 {
-    public ThemeRegionDefinition[] themeRegions;
+    [SerializeField] internal string themeNameLanguageKey;
+    [SerializeField] internal RegionThemeDefinition[] regionThemes;
 }
+
+

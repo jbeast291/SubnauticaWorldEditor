@@ -3,14 +3,13 @@ using System.Linq;
 using SNCoreEditor.UI.Theme.Definitions;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace SNCoreEditor.UI.Theme;
 
 public class ThemeAssigner : MonoBehaviour
 {
-    private RegionTheme _regionTheme; 
+    private RegionThemeMarker _regionThemeMarker; 
     [SerializeField] private GraphicType graphicType;
 
     private void OnValidate() => DetermineGraphicType();
@@ -27,50 +26,32 @@ public class ThemeAssigner : MonoBehaviour
 
     private void Start()
     {
-        _regionTheme = GetComponentInParent<RegionTheme>();
-        if (_regionTheme == null) throw new Exception($"Failed to determine the RegionTheme for {gameObject.name}");
-        AssignTheme();
+        _regionThemeMarker = GetComponentInParent<RegionThemeMarker>();
+        if (_regionThemeMarker == null) throw new Exception($"Failed to determine the RegionTheme for {gameObject.name}");
+        AssignTheme(ThemeManager.GetActiveTheme());
     }
 
-    internal void AssignTheme()
+    internal void AssignTheme(EditorThemeDefinition editorTheme)
     {
-        if (graphicType == GraphicType.Unknown) return;
-        
-        EditorThemeDefinition themeDefinition = ThemeManager.GetActiveTheme();
-        ThemeRegionDefinition regionDefinition = themeDefinition.themeRegions.FirstOrDefault(definition => definition.regionName == _regionTheme.RegionName);
-        if (regionDefinition == null)
-        {
-            throw new Exception($"Region Definition could not be found for {_regionTheme.RegionName}");
-        }
+        if (graphicType == GraphicType.Unknown) throw new Exception($"Graphic Type ({graphicType}) is unknown on {gameObject.name}! If no theme is intended for this object remove the assigner!");
 
-        if (regionDefinition is not IRegionThemeAssigner themeAssigner)
+        RegionThemeMarker currentRegion = _regionThemeMarker;
+        while (currentRegion != null)
         {
-            throw new Exception($"Region Definition ({regionDefinition.regionName}) within ({themeDefinition.name}) does not define a IThemeAssigner to apply the theme!");
+            RegionThemeDefinition regionTheme = ThemeManager.GetRegionTheme(currentRegion.RegionName);
+            if(regionTheme != null && regionTheme.TryAssignToComponent(gameObject, graphicType)) 
+                return;
+            
+            currentRegion = currentRegion.transform.parent?.GetComponentInParent<RegionThemeMarker>();
         }
-        
-        switch (graphicType)
-        {
-            case GraphicType.Button:
-                themeAssigner.AssignToButton(gameObject.GetComponent<Button>());
-                break;
-            case GraphicType.Text:
-                themeAssigner.AssignToText(gameObject.GetComponent<TextMeshProUGUI>());
-                break;
-            case GraphicType.Icon:
-                themeAssigner.AssignToIcon(gameObject.GetComponent<Image>());
-                break;
-            case GraphicType.BackgroundImage:
-                themeAssigner.AssignToBackgroundImage(gameObject.GetComponent<Image>());
-                break;
-        }
+        throw new Exception($"No Region Theme Definition could be found for '{gameObject.name}' within '{editorTheme.name}' could not be found!");
     }
 
-    private enum GraphicType
+    public enum GraphicType
     {
         Unknown,
         Button,
         Text,
-        Icon,
-        BackgroundImage
+        Icon
     }
 }

@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -1830530366, guid: f633d0020fe84ee4080286118c52405e, type: 3}
-  m_Name: HotBarTheme
+  m_Script: {fileID: -981341905, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+  m_Name: SubnauticaTheme
   m_EditorClassIdentifier: 
-  regionName: HotBar
-  buttonTheme: {fileID: 11400000, guid: 7a7a790f8975baf43a622c7433151d70, type: 2}
-  textAndIconColor: {r: 1, g: 1, b: 1, a: 1}
+  themeNameLanguageKey: SubnauticaTheme
+  regionThemes:
+  - {fileID: 11400000, guid: 8de83e41b9d1d03439fd427d56770ca6, type: 2}
