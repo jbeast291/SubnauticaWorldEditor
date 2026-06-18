@@ -8,6 +8,7 @@ using Nautilus.Handlers;
 using Nautilus.Utility.AttributeRegistration;
 using SNCoreEditor.Input;
 using SNCoreEditor.UI;
+using SNCoreEditor.UI.Theme;
 
 namespace SNCoreEditor;
 
@@ -32,7 +33,7 @@ internal class Plugin : BaseUnityPlugin
         // One time initialization
         WaitScreenHandler.RegisterEarlyLoadTask(PluginInfo.PLUGIN_NAME, PatchHarmonyMethods, "Patching");
         WaitScreenHandler.RegisterEarlyAsyncLoadTask(PluginInfo.PLUGIN_NAME, Assets.LoadCoreAssetBundle, "Loading Bundle");
-        
+        WaitScreenHandler.RegisterEarlyLoadTask(PluginInfo.PLUGIN_NAME, ThemeManager.Initialize, "Initializing Core Themes");
         
         WaitScreenHandler.RegisterAsyncLoadTask(PluginInfo.PLUGIN_NAME, CanvasInitializer.InstantiateCanvas, "Loading Canvas");
         WaitScreenHandler.RegisterLateLoadTask(PluginInfo.PLUGIN_NAME, InputHandler.CreateInputHandler, "Create Input Handler");
