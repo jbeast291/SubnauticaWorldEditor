@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1148383375, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+  m_Name: BaseScrollbar
+  m_EditorClassIdentifier: 
+  baseSprite: {fileID: 21300000, guid: 4433bb95e870cf347be5a8575eed76aa, type: 3}
+  highlightedSprite: {fileID: 21300000, guid: 13ffa39d61a6e4a4aa81b37c1aa965fc, type: 3}
+  pressedSprite: {fileID: 21300000, guid: abf04e55516b2894e990d4cf4a2d6d59, type: 3}
+  selectedSprite: {fileID: 21300000, guid: 54686a359b8c10447a0ddd65d758fda4, type: 3}
+  disabledSprite: {fileID: 21300000, guid: 638527ad42402a144b137c003325560d, type: 3}

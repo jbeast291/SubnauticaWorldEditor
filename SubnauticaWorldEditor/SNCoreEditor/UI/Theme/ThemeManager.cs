@@ -7,14 +7,14 @@ using UnityEngine;
 
 namespace SNCoreEditor.UI.Theme;
 
-public class ThemeManager : MonoBehaviour
+public sealed class ThemeManager : MonoBehaviour
 {
     private static ThemeManager _instance;
     
-    private static List<EditorThemeDefinition> _themes = new();
+    private static readonly HashSet<EditorThemeDefinition> Themes = new();
     private static EditorThemeDefinition _activeTheme;
 
-    public void Awake()
+    private void Awake()
     {
         if (_instance != null)
         {
@@ -42,12 +42,12 @@ public class ThemeManager : MonoBehaviour
     
     public static void RegisterEditorTheme(EditorThemeDefinition theme)
     {
-        _themes.Add(theme);
+        Themes.Add(theme);
     }
 
     internal static void SetActiveTheme(string name, bool refresh = false)
     {
-        EditorThemeDefinition theme = _themes.FirstOrDefault(t => t.name == name);
+        EditorThemeDefinition theme = Themes.FirstOrDefault(t => t.name == name);
         if (theme == null)
         {
             throw new Exception("Invalid theme name attempted to active! Falling back to previous (if it exists)");
@@ -61,7 +61,7 @@ public class ThemeManager : MonoBehaviour
         return _activeTheme.regionThemes.FirstOrDefault(definition => definition.regionName == regionName);
     }
 
-    public void RefreshThemeAssigners()
+    internal void RefreshThemeAssigners()
     {
         ThemeAssigner[] assigners = GetComponentsInChildren<ThemeAssigner>();
         foreach (ThemeAssigner assigner in assigners)

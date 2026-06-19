@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace SNCoreEditor.UI.Theme;
 
-public class ThemeAssigner : MonoBehaviour
+public sealed class ThemeAssigner : MonoBehaviour
 {
     private RegionThemeMarker _regionThemeMarker; 
     [SerializeField] private GraphicType graphicType;
@@ -22,6 +22,7 @@ public class ThemeAssigner : MonoBehaviour
         //This isn't the most efficient but its editor only so whatever :/
         if (monos.FirstOrDefault(mono => mono is Button) != null) graphicType = GraphicType.Button;
         else if (monos.FirstOrDefault(mono => mono is TextMeshProUGUI) != null) graphicType = GraphicType.Text;
+        else if (monos.FirstOrDefault(mono => mono is Scrollbar) != null) graphicType = GraphicType.Scrollbar;
     }
 
     private void Start()
@@ -47,11 +48,14 @@ public class ThemeAssigner : MonoBehaviour
         throw new Exception($"No Region Theme Definition could be found for '{gameObject.name}' within '{editorTheme.name}' could not be found!");
     }
 
+    //TODO: not sure i like an enum here for other mod extendability, but it feels aweful otherwise in editor
+    //  maybe some dual compromise is needed :/
     public enum GraphicType
     {
         Unknown,
         Button,
         Text,
-        Icon
+        Icon,
+        Scrollbar
     }
 }

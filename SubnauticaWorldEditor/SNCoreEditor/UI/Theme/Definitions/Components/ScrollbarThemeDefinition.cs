@@ -4,8 +4,8 @@ using UnityEngine.UI;
 
 namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
-[CreateAssetMenu(fileName = "ButtonThemeDefinition", menuName = "SNEditor/Themes/Components/Button Definition")]
-internal sealed class ButtonThemeDefinition : ComponentThemeDefinition
+[CreateAssetMenu(fileName = "ScrollbarThemeDefinition", menuName = "SNEditor/Themes/Components/ScrollBar Definition")]
+internal sealed  class ScrollbarThemeDefinition : ComponentThemeDefinition
 {
     [SerializeField] internal Sprite baseSprite;
     [SerializeField] internal Sprite highlightedSprite;
@@ -15,12 +15,12 @@ internal sealed class ButtonThemeDefinition : ComponentThemeDefinition
     
     public override bool TryAssignToComponent(GameObject gameObject, ThemeAssigner.GraphicType graphicType)
     {
-        if (graphicType != ThemeAssigner.GraphicType.Button) return false;
-        if (!gameObject.TryGetComponent(out UnityEngine.UI.Button button)) return false;
+        if (graphicType != ThemeAssigner.GraphicType.Scrollbar) return false;
+        if (!gameObject.TryGetComponent(out Scrollbar scrollbar)) return false;
         
-        if (button.targetGraphic is not Image img)
+        if (scrollbar.targetGraphic is not Image img)
         {
-            throw new Exception("Cannot apply button theme to a button without an image target graphic");
+            throw new Exception("Cannot apply scrollbar theme to a scrollbar without an image target graphic");
         }
         img.sprite = baseSprite;
         SpriteState state = new()
@@ -30,7 +30,7 @@ internal sealed class ButtonThemeDefinition : ComponentThemeDefinition
             selectedSprite = selectedSprite,
             disabledSprite = disabledSprite
         };
-        button.spriteState = state;
+        scrollbar.spriteState = state;
         return true;
     }
 }

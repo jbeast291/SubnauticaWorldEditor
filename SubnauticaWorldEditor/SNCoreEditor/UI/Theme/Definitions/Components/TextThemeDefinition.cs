@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
-[CreateAssetMenu(fileName = "TextThemeDefinition", menuName = "SNEditor/Themes/Components/Text Theme Definition")]
-public class TextThemeDefinition : ComponentThemeDefinition
+[CreateAssetMenu(fileName = "TextThemeDefinition", menuName = "SNEditor/Themes/Components/Text Definition")]
+internal sealed class TextThemeDefinition : ComponentThemeDefinition
 {
     [Tooltip("Changes the color of the text")]
-    [SerializeField] public Color color = Color.white;
+    [SerializeField] internal Color color = Color.white;
     
     public override bool TryAssignToComponent(GameObject gameObject, ThemeAssigner.GraphicType graphicType)
     {
