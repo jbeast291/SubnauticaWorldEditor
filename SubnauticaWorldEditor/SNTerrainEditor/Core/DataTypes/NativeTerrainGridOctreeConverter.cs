@@ -16,9 +16,12 @@ public static class NativeTerrainGridOctreeConverter
         /// it is just the raw nodes in correct order</remarks>
         public NativeArray<byte> GetAsOctreeBytes()
         {
-            return ConvertGridToOctree(terrainGrid)
-                    .AsArray()
-                    .Reinterpret<byte>(UnsafeUtility.SizeOf<OctNode>());
+            NativeList<OctNode> nodes = ConvertGridToOctree(terrainGrid);
+            NativeArray<byte> nodeBytes = nodes.AsArray().Reinterpret<byte>(UnsafeUtility.SizeOf<OctNode>());
+            NativeArray<byte> octreeBytes = new(nodeBytes.Length, Allocator.Persistent);
+            octreeBytes.CopyFrom(nodeBytes);
+            nodes.Dispose();
+            return octreeBytes;
         }
     }
 
