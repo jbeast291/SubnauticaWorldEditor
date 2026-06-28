@@ -1,7 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <PropertyGroup>
-        <!--> The first portion of this should match your Subnautica installation directory! </!-->
-        <ModDir>C:\Program Files (x86)\Steam\steamapps\common\Subnautica\BepInEx\plugins\SubnauticaWorldEditor</ModDir>
-    </PropertyGroup>
-</Project>
