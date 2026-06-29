@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 1684276726, guid: f633d0020fe84ee4080286118c52405e, type: 3}
   m_Name: BaseButtonThemeDefinition
   m_EditorClassIdentifier: 
-  baseSprite: {fileID: 21300000, guid: 13ffa39d61a6e4a4aa81b37c1aa965fc, type: 3}
+  baseSprite: {fileID: 21300000, guid: 4433bb95e870cf347be5a8575eed76aa, type: 3}
   highlightedSprite: {fileID: 21300000, guid: 13ffa39d61a6e4a4aa81b37c1aa965fc, type: 3}
   pressedSprite: {fileID: 21300000, guid: abf04e55516b2894e990d4cf4a2d6d59, type: 3}
   selectedSprite: {fileID: 21300000, guid: 54686a359b8c10447a0ddd65d758fda4, type: 3}
