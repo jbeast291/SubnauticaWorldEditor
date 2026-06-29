@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   themeNameLanguageKey: DarkTheme
   regionThemes:
-  - {fileID: 11400000, guid: caac46e1af32cf94e9f7defc4c9e7da6, type: 2}
+  - {fileID: 11400000, guid: f1107575d0a1db4aa9ec8ac9580544f7, type: 2}

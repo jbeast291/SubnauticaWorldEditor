@@ -7,6 +7,6 @@ namespace SNCoreEditor.UI.Theme;
 /// </summary>
 public sealed class RegionThemeMarker : MonoBehaviour
 {
-    [SerializeField] private string regionName = "Base";
+    [SerializeField] public string regionName = "Base";
     public string RegionName => regionName;
 }

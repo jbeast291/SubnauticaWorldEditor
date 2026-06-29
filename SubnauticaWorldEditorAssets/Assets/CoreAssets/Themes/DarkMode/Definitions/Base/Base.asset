@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   regionName: Base
   componentsThemeDefinitions:
-  - {fileID: 11400000, guid: 8075d80b7637c7e48a0b80f3f0e455bb, type: 2}
-  - {fileID: 11400000, guid: 9eeb3b1fa01ee9042ab6c9681b2e01ca, type: 2}
-  - {fileID: 11400000, guid: 693de5e07ce0a5e46b69baa471a22d69, type: 2}
-  - {fileID: 11400000, guid: 9c2a0e730bbddb9459bf07a80419bac9, type: 2}
+  - {fileID: 11400000, guid: 33a9b078fad6766cb89283932beebdcf, type: 2}
+  - {fileID: 11400000, guid: b02621db4d7f47f47803cee0139bbf57, type: 2}
+  - {fileID: 11400000, guid: e7996182b07c10412a29814fd703372d, type: 2}
+  - {fileID: 11400000, guid: 4fa6bda835fe59a37956f414ae2b08fd, type: 2}

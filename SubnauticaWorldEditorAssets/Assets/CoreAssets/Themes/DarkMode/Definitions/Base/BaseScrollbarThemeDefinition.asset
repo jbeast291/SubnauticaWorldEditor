@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1684276726, guid: f633d0020fe84ee4080286118c52405e, type: 3}
-  m_Name: BaseButton
+  m_Script: {fileID: 1148383375, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+  m_Name: BaseScrollbarThemeDefinition
   m_EditorClassIdentifier: 
   baseSprite: {fileID: 21300000, guid: 4433bb95e870cf347be5a8575eed76aa, type: 3}
   highlightedSprite: {fileID: 21300000, guid: 13ffa39d61a6e4a4aa81b37c1aa965fc, type: 3}
