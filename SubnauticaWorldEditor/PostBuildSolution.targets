@@ -8,5 +8,6 @@
     
     <Target Condition="Exists('..\TargetDirectories.targets')" Name="CopyBuildReferences" AfterTargets="Build">
         <Copy SourceFiles="@(ReferencesToCopy)" DestinationFolder="$(ModDir)"/>
+        <MakeDir Directories="$(ModDir)\Assets"/>
     </Target>
 </Project>

@@ -1,0 +1,27 @@
+{
+    "name": "Editor",
+    "references": [
+        "ThunderKit.Core",
+        "ThunderKit.Markdown",
+        "ThunderKit.SpaceDock",
+        "ThunderKit.Thunderstore",
+        "ThunderKit.Common",
+        "ThunderKit.Addressable.Tools",
+        "ThunderKit.Addressable.Config"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Assembly-CSharp.dll",
+        "Assembly-CSharp-firstpass.dll",
+        "SNCoreEditor.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

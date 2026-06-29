@@ -376,7 +376,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -2460, y: -1340}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &3124455206544147983
 GameObject:
@@ -943,7 +943,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 311653199580626358}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.92651755
+  m_Size: 0.8735902
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
