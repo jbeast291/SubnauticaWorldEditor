@@ -7,7 +7,8 @@
         "ThunderKit.Thunderstore",
         "ThunderKit.Common",
         "ThunderKit.Addressable.Tools",
-        "ThunderKit.Addressable.Config"
+        "ThunderKit.Addressable.Config",
+        "UnityEditor.UI"
     ],
     "includePlatforms": [
         "Editor"

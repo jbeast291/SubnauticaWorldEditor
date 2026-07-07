@@ -1,15 +1,15 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
-
+using UnityEngine;
 namespace SNCoreEditor.UI.Workspace;
 
-public class WorkspaceManager
-{
-    /*
-    public List<IWorkspace> Workspaces { get; }
 
-    public void RegisterWorkspace(IWorkspace workspace) => Workspaces.Add(workspace);
+public class WorkspaceManager : MonoBehaviour
+{
+    public List<IWorkspace> Workspaces;
     
-    public void GetWorkspaceByID(string id) => Workspaces.First(workspace => workspace.)
-    */
+    public void Start()
+    {
+        throw new NotImplementedException();
+    }
 }

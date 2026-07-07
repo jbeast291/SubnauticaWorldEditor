@@ -7,22 +7,23 @@ using UnityEngine.UI;
 
 namespace SNCoreEditor.UI.Theme;
 
+
 public sealed class ThemeAssigner : MonoBehaviour
 {
-    private RegionThemeMarker _regionThemeMarker; 
-    [SerializeField] private GraphicType graphicType;
+    private RegionThemeMarker _regionThemeMarker;
+    [SerializeField] private string graphicKey;
 
-    private void OnValidate() => DetermineGraphicType();
+    private void OnValidate() => DetermineGraphicKey();
 
-    private void DetermineGraphicType()
+    private void DetermineGraphicKey()
     {
-        if (graphicType != default) return;
-        
+        if (!string.IsNullOrEmpty(graphicKey)) return;
+
         MonoBehaviour[] monos = gameObject.GetComponents<MonoBehaviour>();
         //This isn't the most efficient but its editor only so whatever :/
-        if (monos.FirstOrDefault(mono => mono is Button) != null) graphicType = GraphicType.Button;
-        else if (monos.FirstOrDefault(mono => mono is TextMeshProUGUI) != null) graphicType = GraphicType.Text;
-        else if (monos.FirstOrDefault(mono => mono is Scrollbar) != null) graphicType = GraphicType.Scrollbar;
+        if (monos.FirstOrDefault(mono => mono is Button) != null) graphicKey = "Button";
+        else if (monos.FirstOrDefault(mono => mono is TextMeshProUGUI) != null) graphicKey = "Text";
+        else if (monos.FirstOrDefault(mono => mono is Scrollbar) != null) graphicKey = "Scrollbar";
     }
 
     private void Start()
@@ -34,28 +35,17 @@ public sealed class ThemeAssigner : MonoBehaviour
 
     internal void AssignTheme(EditorThemeDefinition editorTheme)
     {
-        if (graphicType == GraphicType.Unknown) throw new Exception($"Graphic Type ({graphicType}) is unknown on {gameObject.name}! If no theme is intended for this object remove the assigner!");
+        if (string.IsNullOrEmpty(graphicKey) || graphicKey == "Unknown") throw new Exception($"Graphic Key ({graphicKey}) is unknown on {gameObject.name}! If no theme is intended for this object remove the assigner!");
 
         RegionThemeMarker currentRegion = _regionThemeMarker;
         while (currentRegion != null)
         {
             RegionThemeDefinition regionTheme = ThemeManager.GetRegionTheme(currentRegion.RegionName);
-            if(regionTheme != null && regionTheme.TryAssignToComponent(gameObject, graphicType)) 
+            if (regionTheme != null && regionTheme.TryAssignToComponent(gameObject, graphicKey))
                 return;
-            
+
             currentRegion = currentRegion.transform.parent?.GetComponentInParent<RegionThemeMarker>();
         }
         throw new Exception($"No Region Theme Definition could be found for '{gameObject.name}' within '{editorTheme.name}' could not be found!");
-    }
-
-    //TODO: not sure i like an enum here for other mod extendability, but it feels aweful otherwise in editor
-    //  maybe some dual compromise is needed :/
-    public enum GraphicType
-    {
-        Unknown,
-        Button,
-        Text,
-        Icon,
-        Scrollbar
     }
 }

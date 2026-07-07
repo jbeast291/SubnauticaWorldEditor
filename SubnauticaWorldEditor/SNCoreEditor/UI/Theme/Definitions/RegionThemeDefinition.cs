@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 using SNCoreEditor.UI.Theme.Definitions.Components;
 using UnityEngine;
 
@@ -18,12 +21,32 @@ public sealed class RegionThemeDefinition : ScriptableObject
     
     public void SetRegionName(string name) => this.regionName = name;
 
-    internal bool TryAssignToComponent(GameObject gameObject, ThemeAssigner.GraphicType graphicType)
+    internal bool TryAssignToComponent(GameObject gameObject, string graphicKey)
     {
         foreach (ComponentThemeDefinition assigner in componentsThemeDefinitions)
         {
-            if(assigner.TryAssignToComponent(gameObject, graphicType)) return true;
+            Type componentType = assigner.GetType();
+            if (!componentKeys.TryGetValue(componentType, out string key))
+            {
+                key = GetGraphicKeyFromAttribute(componentType);
+                componentKeys.Add(componentType, key);
+            }
+            if (key != graphicKey) continue;
+            
+            assigner.AssignToComponent(gameObject);
+            return true;
         }
         return false;
     }
+
+    private static string GetGraphicKeyFromAttribute(Type componentType)
+    {
+        GraphicKeyAttribute attribute = componentType.GetCustomAttribute<GraphicKeyAttribute>();
+
+        if (attribute == null) throw new Exception($"{componentType.Name} has no GraphicKeyAttribute! A component definition MUST have this attribute");
+        
+        return attribute.Key;
+    }
+    
+    private static readonly Dictionary<Type, string> componentKeys = new();
 }

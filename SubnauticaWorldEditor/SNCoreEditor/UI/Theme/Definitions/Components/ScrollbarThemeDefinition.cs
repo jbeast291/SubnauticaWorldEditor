@@ -4,8 +4,9 @@ using UnityEngine.UI;
 
 namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
+[GraphicKey("Scrollbar")]
 [CreateAssetMenu(fileName = "ScrollbarThemeDefinition", menuName = "SNEditor/Themes/Components/ScrollBar Definition")]
-internal sealed  class ScrollbarThemeDefinition : ComponentThemeDefinition
+internal sealed class ScrollbarThemeDefinition : ComponentThemeDefinition
 {
     [SerializeField] internal Sprite baseSprite;
     [SerializeField] internal Sprite highlightedSprite;
@@ -13,10 +14,9 @@ internal sealed  class ScrollbarThemeDefinition : ComponentThemeDefinition
     [SerializeField] internal Sprite selectedSprite;
     [SerializeField] internal Sprite disabledSprite;
     
-    public override bool TryAssignToComponent(GameObject gameObject, ThemeAssigner.GraphicType graphicType)
+    public override void AssignToComponent(GameObject gameObject)
     {
-        if (graphicType != ThemeAssigner.GraphicType.Scrollbar) return false;
-        if (!gameObject.TryGetComponent(out Scrollbar scrollbar)) return false;
+        if (!gameObject.TryGetComponent(out Scrollbar scrollbar)) throw new Exception("Failed to get Scrollbar component while assigning theme!");
         
         if (scrollbar.targetGraphic is not Image img)
         {
@@ -31,6 +31,5 @@ internal sealed  class ScrollbarThemeDefinition : ComponentThemeDefinition
             disabledSprite = disabledSprite
         };
         scrollbar.spriteState = state;
-        return true;
     }
 }

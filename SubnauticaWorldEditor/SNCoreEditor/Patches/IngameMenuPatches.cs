@@ -22,6 +22,6 @@ public static class IngameMenuPatches
         
         Button button = structuresButton.GetComponent<Button>();
         button.onClick = new Button.ButtonClickedEvent();
-        button.onClick.AddListener(EditorCanvasManager.main.ToggleEditorVisibility);
+        button.onClick.AddListener(EditorCanvasManager.main.ToggleEditorVisibility); 
     }
 }

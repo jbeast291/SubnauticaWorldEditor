@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
+[GraphicKey("Button")]
 [CreateAssetMenu(fileName = "ButtonThemeDefinition", menuName = "SNEditor/Themes/Components/Button Definition")]
 internal sealed class ButtonThemeDefinition : ComponentThemeDefinition
 {
@@ -13,10 +14,9 @@ internal sealed class ButtonThemeDefinition : ComponentThemeDefinition
     [SerializeField] internal Sprite selectedSprite;
     [SerializeField] internal Sprite disabledSprite;
     
-    public override bool TryAssignToComponent(GameObject gameObject, ThemeAssigner.GraphicType graphicType)
+    public override void AssignToComponent(GameObject gameObject)
     {
-        if (graphicType != ThemeAssigner.GraphicType.Button) return false;
-        if (!gameObject.TryGetComponent(out UnityEngine.UI.Button button)) return false;
+        if (!gameObject.TryGetComponent(out Button button)) throw new Exception("Cannot apply button theme to a button without a button...");
         
         if (button.targetGraphic is not Image img)
         {
@@ -31,6 +31,5 @@ internal sealed class ButtonThemeDefinition : ComponentThemeDefinition
             disabledSprite = disabledSprite
         };
         button.spriteState = state;
-        return true;
     }
 }

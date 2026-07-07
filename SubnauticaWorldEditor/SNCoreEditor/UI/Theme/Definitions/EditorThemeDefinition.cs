@@ -11,5 +11,3 @@ public sealed class EditorThemeDefinition : ScriptableObject
     [Tooltip("The region themes for this theme. A 'base' region should be defined with all possible components at minimum")]
     [SerializeField] internal RegionThemeDefinition[] regionThemes;
 }
-
-

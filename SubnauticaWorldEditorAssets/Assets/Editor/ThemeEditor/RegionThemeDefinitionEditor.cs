@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using SNCoreEditor.UI.Theme.Definitions;
 using SNCoreEditor.UI.Theme.Definitions.Components;
 using UnityEditor;

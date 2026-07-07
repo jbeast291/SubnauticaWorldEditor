@@ -146,7 +146,7 @@ MonoBehaviour:
   m_Script: {fileID: -1734429587, guid: f633d0020fe84ee4080286118c52405e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  graphicType: 2
+  graphicKey: Text
 --- !u!1 &2465561380662199832
 GameObject:
   m_ObjectHideFlags: 0
@@ -158,7 +158,7 @@ GameObject:
   - component: {fileID: 6169800095155262166}
   - component: {fileID: 1295082822496453425}
   - component: {fileID: 6530364616307457603}
-  - component: {fileID: 2308076503614955345}
+  - component: {fileID: 7391605117594686761}
   m_Layer: 0
   m_Name: Image
   m_TagString: Untagged
@@ -212,7 +212,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 6b98212a3c79ea6468aa13fef8689c5e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 2c674b737e791e44db3b200133b3eda2, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -222,7 +222,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &2308076503614955345
+--- !u!114 &7391605117594686761
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -234,7 +234,7 @@ MonoBehaviour:
   m_Script: {fileID: -1734429587, guid: f633d0020fe84ee4080286118c52405e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  graphicType: 3
+  graphicKey: Icon
 --- !u!1 &2866176923276076930
 GameObject:
   m_ObjectHideFlags: 0
@@ -247,6 +247,7 @@ GameObject:
   - component: {fileID: 2086091519898298403}
   - component: {fileID: 7341929150309945402}
   - component: {fileID: 7690569144848843335}
+  - component: {fileID: 8655510701411735299}
   - component: {fileID: 4032522897416675350}
   - component: {fileID: 2429028360801148240}
   m_Layer: 0
@@ -368,6 +369,20 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &8655510701411735299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2866176923276076930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 498218346, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ButtonIcon: {fileID: 6530364616307457603}
+  Button: {fileID: 7690569144848843335}
 --- !u!114 &4032522897416675350
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -380,7 +395,7 @@ MonoBehaviour:
   m_Script: {fileID: -1734429587, guid: f633d0020fe84ee4080286118c52405e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  graphicType: 1
+  graphicKey: Button
 --- !u!114 &2429028360801148240
 MonoBehaviour:
   m_ObjectHideFlags: 0

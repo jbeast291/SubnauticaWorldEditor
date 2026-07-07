@@ -6,9 +6,14 @@ using BepInEx.Logging;
 using HarmonyLib;
 using Nautilus.Handlers;
 using Nautilus.Utility.AttributeRegistration;
+using SNCoreEditor.CoreWorkspaceStuff;
+using SNCoreEditor.CoreWorkspaceStuff.Buttons;
 using SNCoreEditor.Input;
 using SNCoreEditor.UI;
+using SNCoreEditor.UI.HotBar;
 using SNCoreEditor.UI.Theme;
+using SNCoreEditor.UI.Workspace;
+using UnityEngine;
 
 namespace SNCoreEditor;
 
@@ -30,18 +35,23 @@ internal class Plugin : BaseUnityPlugin
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         InputRegistration.RegisterLocalization();
         
+
+        Harmony.CreateAndPatchAll(Assembly, $"{PluginInfo.PLUGIN_GUID}");
         // One time initialization
-        WaitScreenHandler.RegisterEarlyLoadTask(PluginInfo.PLUGIN_NAME, PatchHarmonyMethods, "Patching");
         WaitScreenHandler.RegisterEarlyAsyncLoadTask(PluginInfo.PLUGIN_NAME, Assets.LoadCoreAssetBundle, "Loading Bundle");
+
+        // Load on every game start
         WaitScreenHandler.RegisterEarlyLoadTask(PluginInfo.PLUGIN_NAME, ThemeManager.Initialize, "Initializing Core Themes");
-        
+        WaitScreenHandler.RegisterEarlyLoadTask(PluginInfo.PLUGIN_NAME, RegisterCoreWorkspace, "Registering Core Workspace");
         WaitScreenHandler.RegisterAsyncLoadTask(PluginInfo.PLUGIN_NAME, CanvasInitializer.InstantiateCanvas, "Loading Canvas");
         WaitScreenHandler.RegisterLateLoadTask(PluginInfo.PLUGIN_NAME, InputHandler.CreateInputHandler, "Create Input Handler");
     }
-    
-    private static void PatchHarmonyMethods(WaitScreenHandler.WaitScreenTask task)
+
+    public void RegisterCoreWorkspace(WaitScreenHandler.WaitScreenTask task)
     {
-        if (Initialized) return;
-        Harmony.CreateAndPatchAll(Assembly, $"{PluginInfo.PLUGIN_GUID}");
+        WorkspaceDefinition definition = new WorkspaceDefinition("Core", null, WorkspaceMode.Persistent, () => new CoreWorkspace())
+            .WithHotBarButton(new HotBarButtonDefinition(Assets.CoreBundle.LoadAsset<Sprite>("UndoIcon"), () => new UndoButton()));
+        
+        WorkspaceRegistration.Register<CoreWorkspace>(definition);
     }
 }
