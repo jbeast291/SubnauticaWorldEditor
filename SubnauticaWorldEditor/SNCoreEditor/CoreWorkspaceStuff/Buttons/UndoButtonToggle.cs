@@ -11,7 +11,7 @@ public class UndoButtonToggle : IHotBarToggleAction, IHotBarDefinitionProvider
     public HotBarButtonDefinition Definition() => new(
         Assets.CoreBundle.LoadAsset<Sprite>("UndoIcon"),
         "UndoButtonToggle",
-        [InputRegistration.AltToolHotkeyModifier, InputRegistration.UndoBind],
+        [InputRegistration.CtrlModifier, InputRegistration.UndoBind],
         () => new UndoButtonToggle());
     
     public List<string> incompatibleWith { get; } = new();

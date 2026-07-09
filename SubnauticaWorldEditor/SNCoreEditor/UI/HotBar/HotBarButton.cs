@@ -49,7 +49,7 @@ internal class HotBarButton : MonoBehaviour
         if(toggled) Button.image.sprite = buttonActiveSprite;
     }
 
-    private void OnButtonPressed()
+    internal void OnButtonPressed()
     {
         if (toggleListener != null)
         {

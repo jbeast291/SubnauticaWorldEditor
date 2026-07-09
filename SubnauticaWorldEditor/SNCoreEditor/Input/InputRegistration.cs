@@ -238,7 +238,7 @@ public static class InputRegistration
         .WithCategory(ModifiersCategory);
     
     [EnglishTranslation("Control tool modifier")]
-    public static readonly GameInput.Button ToolHotkeyModifier = EnumHandler
+    public static readonly GameInput.Button CtrlModifier = EnumHandler
         .AddEntry<GameInput.Button>("SNWEC_ToolHotkeyModifier")
         .CreateInput()
         .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.LeftCtrl)
@@ -246,7 +246,7 @@ public static class InputRegistration
         .WithCategory(ModifiersCategory);
     
     [EnglishTranslation("Alt tool modifier")]
-    public static readonly GameInput.Button AltToolHotkeyModifier = EnumHandler
+    public static readonly GameInput.Button AltModifier = EnumHandler
         .AddEntry<GameInput.Button>("SNWEC_AltToolHotkeyModifier")
         .CreateInput()
         .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.LeftAlt)
