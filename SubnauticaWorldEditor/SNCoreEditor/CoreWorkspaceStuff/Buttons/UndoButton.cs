@@ -8,8 +8,8 @@ namespace SNCoreEditor.CoreWorkspaceStuff.Buttons;
 public class UndoButton : IHotBarAction, IHotBarDefinitionProvider
 {
     public HotBarButtonDefinition Definition() => new(
-        Assets.CoreBundle.LoadAsset<Sprite>("UndoIcon"), 
         "UndoButton",
+        Assets.CoreBundle.LoadAsset<Sprite>("UndoIcon"), 
         [InputRegistration.UndoBind],
         () => new UndoButton());
     

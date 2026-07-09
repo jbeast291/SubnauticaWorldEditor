@@ -49,7 +49,8 @@ internal class Plugin : BaseUnityPlugin
     {
         WorkspaceDefinition definition = new WorkspaceDefinition("Core", null, WorkspaceMode.Persistent, () => new CoreWorkspace())
             .WithHotBarButton<UndoButton>()
-            .WithHotBarButton<UndoButtonToggle>();
+            .WithHotBarButton<UndoButtonToggle>()
+            .WithHotBarButton<UndoButtonToggleTwo>();
 
         WorkspaceRegistration.Register<CoreWorkspace>(definition);
     }

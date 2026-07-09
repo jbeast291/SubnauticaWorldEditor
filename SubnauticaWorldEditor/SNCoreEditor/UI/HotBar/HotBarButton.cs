@@ -14,11 +14,13 @@ internal class HotBarButton : MonoBehaviour
     [SerializeField] private TextMeshProUGUI ButtonHoverText;
 
     internal HotBarButtonDefinition definition { private get; set; }
+    internal HotBarManager manager { private get; set; }
 
     //Action mode
     private IHotBarAction actionListener;
     //Toggle mode
     private IHotBarToggleAction toggleListener;
+    private bool buttonIsToggleAction => toggleListener != null;
     private bool toggled = false;
     private Sprite buttonDefaultSprite;
     private Sprite buttonActiveSprite;
@@ -30,7 +32,7 @@ internal class HotBarButton : MonoBehaviour
     
     private void Start()
     {
-        Button.onClick.AddListener(OnButtonPressed);
+        Button.onClick.AddListener(() => OnButtonPressed());
         ButtonIcon.sprite = definition.Icon;
         ButtonHoverText.text = GenerateHotKeyText(definition);
         
@@ -45,53 +47,58 @@ internal class HotBarButton : MonoBehaviour
     {
         buttonDefaultSprite = Button.image.sprite;
         buttonActiveSprite = Button.spriteState.selectedSprite;
-        //Theme assigner overwites the base sprite, so set it back if its toggled
+        //Theme assigner overwrites the base sprite, so set it back if its toggled
         if(toggled) Button.image.sprite = buttonActiveSprite;
     }
 
-    internal void OnButtonPressed()
+    internal void OnButtonPressed(bool sendEvents = true)
     {
-        if (toggleListener != null)
+        if (buttonIsToggleAction)
         {
-            HandleToggleOnActivated();
+            ToggleOnActivated(sendEvents);
             return;
         }
-        HandleActionOnActivated();
+        ActionOnActivated(sendEvents);
     }
-
-    private void SetActive()
+    
+    internal void SetActive(bool sendEvents)
     {
         Button.image.sprite = buttonActiveSprite;
-        actionListener.OnActivated();//inherited by toggle as well
+        toggled = true;
+        
+        if(sendEvents) actionListener.OnActivated();//inherited by toggle as well
+        if(buttonIsToggleAction) manager.DeactivateIncompatibleWith(toggleListener);
     }
     
-    private void SetDeActive()
+    internal void SetDeActive(bool sendEvents)
     {
         Button.image.sprite = buttonDefaultSprite;
-        toggleListener?.OnDeactivated();
+        toggled = false;
+        
+        if(sendEvents) toggleListener?.OnDeactivated();
     }
     
-    private void HandleActionOnActivated()
+    private void ActionOnActivated(bool sendEvents)
     {
-        SetActive();
+        SetActive(sendEvents);
         StartCoroutine(SwapSpriteBack());
-    }
-
-    private IEnumerator SwapSpriteBack()
-    {
-        yield return new WaitForSecondsRealtime(0.1f);
-        SetDeActive();
+        return;
+        
+        IEnumerator SwapSpriteBack()
+        {
+            yield return new WaitForSecondsRealtime(0.1f);
+            SetDeActive(sendEvents);
+        }
     }
     
-    private void HandleToggleOnActivated()
+    private void ToggleOnActivated(bool sendEvents)
     {
-        toggled = !toggled;
         if (toggled)
         {
-            SetActive();
+            SetDeActive(sendEvents);
             return;
         }
-        SetDeActive();
+        SetActive(sendEvents);
     }
 
     private static string GenerateHotKeyText(HotBarButtonDefinition definition)

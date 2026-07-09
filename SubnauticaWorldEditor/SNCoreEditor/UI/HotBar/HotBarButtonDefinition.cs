@@ -6,7 +6,7 @@ namespace SNCoreEditor.UI.HotBar;
 
 
 public sealed record HotBarButtonDefinition(
+    string ID,
     Sprite Icon, 
-    string hoverLanguageKey,
     List<GameInput.Button> buttons,
     Func<IHotBarAction> HotBarButtonFactory);

@@ -6,15 +6,15 @@ using UnityEngine;
 namespace SNCoreEditor.CoreWorkspaceStuff.Buttons;
 
 
-public class UndoButtonToggle : IHotBarToggleAction, IHotBarDefinitionProvider
+internal class UndoButtonToggleTwo : IHotBarToggleAction, IHotBarDefinitionProvider
 {
     public HotBarButtonDefinition Definition() => new(
-        "UndoButtonToggle",
+        "UndoButtonToggleTwo",
         Assets.CoreBundle.LoadAsset<Sprite>("UndoIcon"),
         [InputRegistration.CtrlModifier, InputRegistration.UndoBind],
-        () => new UndoButtonToggle());
+        () => new UndoButtonToggleTwo());
     
-    public List<string> incompatibleWith { get; } = ["UndoButtonToggleTwo"];
+    public List<string> incompatibleWith { get; } = ["UndoButtonToggle"];
     
     public void OnActivated()
     {

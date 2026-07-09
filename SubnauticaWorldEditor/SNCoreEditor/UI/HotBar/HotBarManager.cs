@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using SNCoreEditor.Input;
 using SNCoreEditor.UI.HotBar.Interfaces;
 using SNCoreEditor.UI.Workspace;
-using TMPro;
 using UnityEngine;
 namespace SNCoreEditor.UI.HotBar;
 
@@ -10,23 +9,32 @@ public class HotBarManager : MonoBehaviour
 {
     [SerializeField] private GameObject HotBarButtonPrefab;
     [SerializeField] private Transform HotBarContent;
+    
+    private readonly Dictionary<HotBarButtonDefinition, HotBarButton> buttonMap = new();
 
-    private List<(List<GameInput.Button> hotKeys, HotBarButton button)> hotkeyMap = new();
-
-    public void Start()
+    private void Start()
     {
         ConstructWorkspaces();
     }
 
-    public void Update()
+    private void Update()
     {
-        foreach ((List<GameInput.Button> hotKeys, HotBarButton button) in hotkeyMap)
+        foreach (KeyValuePair<HotBarButtonDefinition, HotBarButton> button in buttonMap)
         {
-            if(GameInput.GetHotKeyComboDown(hotKeys)) button.OnButtonPressed();
+            if(GameInput.GetHotKeyComboDown(button.Key.buttons)) button.Value.OnButtonPressed();
         }
     }
 
-    public void ConstructWorkspaces()
+    internal void DeactivateIncompatibleWith(IHotBarToggleAction toggleAction)
+    {
+        List<string> disableIDs = toggleAction.incompatibleWith;
+        foreach (KeyValuePair<HotBarButtonDefinition, HotBarButton> button in buttonMap)
+        {
+            if(disableIDs.Contains(button.Key.ID)) button.Value.SetDeActive(false);
+        }
+    }
+
+    private void ConstructWorkspaces()
     {
         List<WorkspaceDefinition> workspaces = WorkspaceRegistration.GetAllWorkspaces();
         foreach (WorkspaceDefinition workspace in workspaces)
@@ -38,11 +46,12 @@ public class HotBarManager : MonoBehaviour
         }
     }
 
-    public void CreateHotBarButton(HotBarButtonDefinition button)
+    private void CreateHotBarButton(HotBarButtonDefinition button)
     {
         GameObject buttonObj = Instantiate(HotBarButtonPrefab, HotBarContent);
         HotBarButton hotbarButton = buttonObj.GetComponent<HotBarButton>();
         hotbarButton.definition = button;
-        hotkeyMap.Add((button.buttons, hotbarButton));
+        hotbarButton.manager = this;
+        buttonMap.Add(button, hotbarButton);
     }
 }
