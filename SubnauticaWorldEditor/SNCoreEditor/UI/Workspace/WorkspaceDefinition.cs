@@ -5,8 +5,7 @@ using UnityEngine;
 namespace SNCoreEditor.UI.Workspace;
 
 /// <summary>
-/// Represents non-state based information about the workspace
-/// ie, data that's persistent between saves for this workspace
+/// Represents data that is persistent between saves for a workspace.
 /// </summary>
 public sealed record WorkspaceDefinition(
     string NameKey,
@@ -15,10 +14,10 @@ public sealed record WorkspaceDefinition(
     Func<IWorkspace> WorkspaceFactory)
 {
     internal List<HotBarButtonDefinition> HotbarButtons { get; } = new();
-    
-    public WorkspaceDefinition WithHotBarButton(HotBarButtonDefinition button)
+
+    public WorkspaceDefinition WithHotBarButton(HotBarButtonDefinition definition)
     {
-        HotbarButtons.Add(button);
+        HotbarButtons.Add(definition);
         return this;
     }
 }

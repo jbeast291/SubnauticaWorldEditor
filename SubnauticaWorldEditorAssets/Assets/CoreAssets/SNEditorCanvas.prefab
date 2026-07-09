@@ -984,4 +984,4 @@ MonoBehaviour:
   m_Script: {fileID: -1734429587, guid: f633d0020fe84ee4080286118c52405e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  graphicType: 4
+  graphicKey: Scrollbar

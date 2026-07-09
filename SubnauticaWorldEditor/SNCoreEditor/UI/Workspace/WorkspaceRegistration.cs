@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using SNCoreEditor.UI.HotBar;
 
 namespace SNCoreEditor.UI.Workspace;
 

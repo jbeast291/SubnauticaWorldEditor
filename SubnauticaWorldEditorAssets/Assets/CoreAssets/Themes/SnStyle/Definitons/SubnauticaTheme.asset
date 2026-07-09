@@ -15,3 +15,4 @@ MonoBehaviour:
   themeNameLanguageKey: SubnauticaTheme
   regionThemes:
   - {fileID: 11400000, guid: 8de83e41b9d1d03439fd427d56770ca6, type: 2}
+  - {fileID: 11400000, guid: 845bf60a594595b6dbee223340928883, type: 2}

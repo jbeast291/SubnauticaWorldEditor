@@ -4,7 +4,6 @@ using UnityEngine.UI;
 
 namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
-[GraphicKey("Scrollbar")]
 [CreateAssetMenu(fileName = "ScrollbarThemeDefinition", menuName = "SNEditor/Themes/Components/ScrollBar Definition")]
 internal sealed class ScrollbarThemeDefinition : ComponentThemeDefinition
 {
@@ -13,6 +12,9 @@ internal sealed class ScrollbarThemeDefinition : ComponentThemeDefinition
     [SerializeField] internal Sprite pressedSprite;
     [SerializeField] internal Sprite selectedSprite;
     [SerializeField] internal Sprite disabledSprite;
+    
+    [UninitializedContext]
+    public override string GraphicKey() => "Scrollbar";
     
     public override void AssignToComponent(GameObject gameObject)
     {

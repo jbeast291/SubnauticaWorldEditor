@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SNCoreEditor.UI.HotBar.Interfaces;
 using SNCoreEditor.UI.Workspace;
 using UnityEngine;
 namespace SNCoreEditor.UI.HotBar;
@@ -10,9 +11,8 @@ public class HotBarManager : MonoBehaviour
 
     public void Start()
     {
-        Plugin.Logger.LogError("HOTBAR START CALLED()");
         ConstructUI();
-    } 
+    }
 
     public void ConstructUI()
     {
@@ -28,6 +28,8 @@ public class HotBarManager : MonoBehaviour
 
     public void CreateHotBarButton(HotBarButtonDefinition button)
     {
-        Instantiate(HotBarButtonPrefab, HotBarContent);
+        GameObject buttonObj = Instantiate(HotBarButtonPrefab, HotBarContent);
+        HotBarButton hotbarButton = buttonObj.GetComponent<HotBarButton>();
+        hotbarButton.definition = button;
     }
 }

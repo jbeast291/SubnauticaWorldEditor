@@ -13,6 +13,8 @@ public sealed class ThemeAssigner : MonoBehaviour
     private RegionThemeMarker _regionThemeMarker;
     [SerializeField] private string graphicKey;
 
+    private Action onThemeChange;
+
     private void OnValidate() => DetermineGraphicKey();
 
     private void DetermineGraphicKey()
@@ -24,8 +26,10 @@ public sealed class ThemeAssigner : MonoBehaviour
         if (monos.FirstOrDefault(mono => mono is Button) != null) graphicKey = "Button";
         else if (monos.FirstOrDefault(mono => mono is TextMeshProUGUI) != null) graphicKey = "Text";
         else if (monos.FirstOrDefault(mono => mono is Scrollbar) != null) graphicKey = "Scrollbar";
-    }
+    } 
 
+    public void RegisterForOnChange(Action action) => onThemeChange += action;
+    
     private void Start()
     {
         _regionThemeMarker = GetComponentInParent<RegionThemeMarker>();
@@ -42,8 +46,10 @@ public sealed class ThemeAssigner : MonoBehaviour
         {
             RegionThemeDefinition regionTheme = ThemeManager.GetRegionTheme(currentRegion.RegionName);
             if (regionTheme != null && regionTheme.TryAssignToComponent(gameObject, graphicKey))
+            {
+                onThemeChange?.Invoke();
                 return;
-
+            }
             currentRegion = currentRegion.transform.parent?.GetComponentInParent<RegionThemeMarker>();
         }
         throw new Exception($"No Region Theme Definition could be found for '{gameObject.name}' within '{editorTheme.name}' could not be found!");

@@ -25,28 +25,11 @@ public sealed class RegionThemeDefinition : ScriptableObject
     {
         foreach (ComponentThemeDefinition assigner in componentsThemeDefinitions)
         {
-            Type componentType = assigner.GetType();
-            if (!componentKeys.TryGetValue(componentType, out string key))
-            {
-                key = GetGraphicKeyFromAttribute(componentType);
-                componentKeys.Add(componentType, key);
-            }
-            if (key != graphicKey) continue;
+            if (assigner.GraphicKey() != graphicKey) continue;
             
             assigner.AssignToComponent(gameObject);
             return true;
         }
         return false;
     }
-
-    private static string GetGraphicKeyFromAttribute(Type componentType)
-    {
-        GraphicKeyAttribute attribute = componentType.GetCustomAttribute<GraphicKeyAttribute>();
-
-        if (attribute == null) throw new Exception($"{componentType.Name} has no GraphicKeyAttribute! A component definition MUST have this attribute");
-        
-        return attribute.Key;
-    }
-    
-    private static readonly Dictionary<Type, string> componentKeys = new();
 }

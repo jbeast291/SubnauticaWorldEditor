@@ -4,7 +4,6 @@ using UnityEngine.UI;
 
 namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
-[GraphicKey("Button")]
 [CreateAssetMenu(fileName = "ButtonThemeDefinition", menuName = "SNEditor/Themes/Components/Button Definition")]
 internal sealed class ButtonThemeDefinition : ComponentThemeDefinition
 {
@@ -13,6 +12,9 @@ internal sealed class ButtonThemeDefinition : ComponentThemeDefinition
     [SerializeField] internal Sprite pressedSprite;
     [SerializeField] internal Sprite selectedSprite;
     [SerializeField] internal Sprite disabledSprite;
+
+    [UninitializedContext]
+    public override string GraphicKey() => "Button";
     
     public override void AssignToComponent(GameObject gameObject)
     {

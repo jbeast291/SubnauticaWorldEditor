@@ -1,19 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.Serialization;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using Nautilus.Handlers;
-using Nautilus.Utility.AttributeRegistration;
 using SNCoreEditor.CoreWorkspaceStuff;
 using SNCoreEditor.CoreWorkspaceStuff.Buttons;
 using SNCoreEditor.Input;
-using SNCoreEditor.UI;
 using SNCoreEditor.UI.HotBar;
 using SNCoreEditor.UI.Theme;
 using SNCoreEditor.UI.Workspace;
-using UnityEngine;
 
 namespace SNCoreEditor;
 
@@ -50,8 +48,9 @@ internal class Plugin : BaseUnityPlugin
     public void RegisterCoreWorkspace(WaitScreenHandler.WaitScreenTask task)
     {
         WorkspaceDefinition definition = new WorkspaceDefinition("Core", null, WorkspaceMode.Persistent, () => new CoreWorkspace())
-            .WithHotBarButton(new HotBarButtonDefinition(Assets.CoreBundle.LoadAsset<Sprite>("UndoIcon"), () => new UndoButton()));
-        
+            .WithHotBarButton<UndoButton>()
+            .WithHotBarButton<UndoButtonToggle>();
+
         WorkspaceRegistration.Register<CoreWorkspace>(definition);
     }
 }

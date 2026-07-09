@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.Serialization;
 using SNCoreEditor.UI.Theme;
 using SNCoreEditor.UI.Theme.Definitions.Components;
 using UnityEditor;
@@ -14,7 +15,6 @@ public class ThemeAssignerEditor : Editor
 
     private List<string> graphicKeys;
     
-
     private void OnEnable()
     {
         _graphicKey = serializedObject.FindProperty("graphicKey");
@@ -55,17 +55,8 @@ public class ThemeAssignerEditor : Editor
         IEnumerable<Type> types = UnityCustomEditorUtils.GetAllDerivedTypes(typeof(ComponentThemeDefinition));
         foreach (Type type in types)
         {
-            string key = GetGraphicKeyFromAttribute(type);
-            graphicKeys.Add(key);
+            ComponentThemeDefinition componentDef = (ComponentThemeDefinition) FormatterServices.GetUninitializedObject(type);
+            graphicKeys.Add(componentDef.GraphicKey());
         }
-    }
-    
-    private static string GetGraphicKeyFromAttribute(Type componentType)
-    {
-        GraphicKeyAttribute attribute = componentType.GetCustomAttribute<GraphicKeyAttribute>();
-
-        if (attribute == null) throw new Exception($"{componentType.Name} has no GraphicKeyAttribute! A component definition MUST have this attribute");
-        
-        return attribute.Key;
     }
 }

@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: '[keybind string]'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -333,7 +333,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 2
+  m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
@@ -381,8 +381,10 @@ MonoBehaviour:
   m_Script: {fileID: 498218346, guid: f633d0020fe84ee4080286118c52405e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ButtonIcon: {fileID: 6530364616307457603}
   Button: {fileID: 7690569144848843335}
+  themeAssigner: {fileID: 4032522897416675350}
+  ButtonIcon: {fileID: 6530364616307457603}
+  ButtonHoverText: {fileID: 4148186827505280899}
 --- !u!114 &4032522897416675350
 MonoBehaviour:
   m_ObjectHideFlags: 0
