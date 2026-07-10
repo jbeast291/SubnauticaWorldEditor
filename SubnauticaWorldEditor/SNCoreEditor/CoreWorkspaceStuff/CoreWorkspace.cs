@@ -2,7 +2,7 @@ using SNCoreEditor.UI.Workspace;
 using UnityEngine;
 namespace SNCoreEditor.CoreWorkspaceStuff;
 
-public class CoreWorkspace : IWorkspace
+internal class CoreWorkspace : IWorkspace
 {
     public void Initialize()
     {

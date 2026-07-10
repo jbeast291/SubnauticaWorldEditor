@@ -32,7 +32,7 @@ internal class Plugin : BaseUnityPlugin
 
         Harmony.CreateAndPatchAll(Assembly, $"{PluginInfo.PLUGIN_GUID}");
         // One time initialization
-        WaitScreenHandler.RegisterEarlyAsyncLoadTask(PluginInfo.PLUGIN_NAME, Assets.LoadCoreAssetBundle, "Loading Bundle");
+        WaitScreenHandler.RegisterEarlyAsyncLoadTask(PluginInfo.PLUGIN_NAME, Assets.LoadAssetBundle, "Loading Bundle");
         WaitScreenHandler.RegisterEarlyLoadTask(PluginInfo.PLUGIN_NAME, RegisterCoreWorkspace, "Registering Core Workspace");
         WaitScreenHandler.RegisterEarlyLoadTask(PluginInfo.PLUGIN_NAME, ThemeManager.Initialize, "Initializing Core Themes");
 

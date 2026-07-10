@@ -8,7 +8,7 @@ namespace SNCoreEditor.UI.Workspace;
 /// Represents data that is persistent between saves for a workspace.
 /// </summary>
 public sealed record WorkspaceDefinition(
-    string NameKey,
+    string ID,
     Sprite Icon,
     WorkspaceMode Mode,
     Func<IWorkspace> WorkspaceFactory)

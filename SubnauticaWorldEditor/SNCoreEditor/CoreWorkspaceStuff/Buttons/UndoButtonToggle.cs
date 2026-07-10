@@ -6,7 +6,7 @@ using UnityEngine;
 namespace SNCoreEditor.CoreWorkspaceStuff.Buttons;
 
 
-public class UndoButtonToggle : IHotBarToggleAction, IHotBarDefinitionProvider
+internal class UndoButtonToggle : IHotBarToggleAction, IHotBarDefinitionProvider
 {
     public HotBarButtonDefinition Definition() => new(
         "UndoButtonToggle",

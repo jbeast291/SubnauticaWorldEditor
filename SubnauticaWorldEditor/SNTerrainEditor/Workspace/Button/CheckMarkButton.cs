@@ -2,16 +2,16 @@ using SNCoreEditor.Input;
 using SNCoreEditor.UI.HotBar;
 using SNCoreEditor.UI.HotBar.Interfaces;
 using UnityEngine;
-namespace SNCoreEditor.CoreWorkspaceStuff.Buttons;
+namespace SNTerrainEditor.Workspace.Button;
 
 
-internal class UndoButton : IHotBarAction, IHotBarDefinitionProvider
+internal class CheckMarkButton : IHotBarAction, IHotBarDefinitionProvider
 {
     public HotBarButtonDefinition Definition() => new(
-        "UndoButton",
-        Assets.CoreBundle.LoadAsset<Sprite>("UndoIcon"), 
+        "CheckMark",
+        Assets.TerrainBundle.LoadAsset<Sprite>("Checkmark"), 
         [InputRegistration.UndoBind],
-        () => new UndoButton());
+        () => new CheckMarkButton());
     
     public void OnActivated()
     {

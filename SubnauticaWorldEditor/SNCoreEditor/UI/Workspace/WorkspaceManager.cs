@@ -6,10 +6,14 @@ namespace SNCoreEditor.UI.Workspace;
 
 public class WorkspaceManager : MonoBehaviour
 {
-    public List<IWorkspace> Workspaces;
+    private Dictionary<WorkspaceDefinition, IWorkspace> Workspaces;
     
-    public void Start()
+    private void Start()
     {
-        throw new NotImplementedException();
+        foreach (WorkspaceDefinition workspaceDef in WorkspaceRegistration.GetAllWorkspaces())
+        {
+            IWorkspace workspace = workspaceDef.WorkspaceFactory.Invoke();
+            Workspaces.Add(workspaceDef, workspace);
+        }
     }
 }
