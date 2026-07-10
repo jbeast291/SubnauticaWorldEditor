@@ -36,7 +36,7 @@ public class HotBarInputGlyphText : MonoBehaviour
 
     private static string SetGlyphColors(string text, TextThemeDefinition textDefinition)
     {
-        string newColorHex = ColorUtility.ToHtmlStringRGBA(textDefinition.inputGlyphColor);
+        string newColorHex = ColorUtility.ToHtmlStringRGBA(textDefinition.GetInputGlyphColor());
 
         return Regex.Replace(
             text,

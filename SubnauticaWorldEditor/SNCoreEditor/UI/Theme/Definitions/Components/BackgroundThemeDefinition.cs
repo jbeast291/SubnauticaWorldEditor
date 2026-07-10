@@ -6,7 +6,7 @@ namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
 public class BackgroundThemeDefinition : ComponentThemeDefinition
 {
-    [SerializeField] internal Sprite backgroundSprite;
+    [SerializeField] private Sprite backgroundSprite;
     
     [UninitializedContext]
     public override string GraphicKey() => "BackgroundSprite";

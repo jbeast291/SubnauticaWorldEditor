@@ -7,7 +7,7 @@ namespace SNCoreEditor.UI.Theme.Definitions.Components;
 internal sealed class IconThemeDefinition : ComponentThemeDefinition
 {
     [Tooltip("Changes the color of the icon.")]
-    [SerializeField] internal Color color  = Color.white;
+    [SerializeField] private Color color  = Color.white;
     
     [UninitializedContext]
     public override string GraphicKey() => "Icon";

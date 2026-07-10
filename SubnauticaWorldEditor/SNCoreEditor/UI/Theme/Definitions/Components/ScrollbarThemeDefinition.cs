@@ -6,11 +6,11 @@ namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
 internal sealed class ScrollbarThemeDefinition : ComponentThemeDefinition
 {
-    [SerializeField] internal Sprite baseSprite;
-    [SerializeField] internal Sprite highlightedSprite;
-    [SerializeField] internal Sprite pressedSprite;
-    [SerializeField] internal Sprite selectedSprite;
-    [SerializeField] internal Sprite disabledSprite;
+    [SerializeField] private Sprite baseSprite;
+    [SerializeField] private Sprite highlightedSprite;
+    [SerializeField] private Sprite pressedSprite;
+    [SerializeField] private Sprite selectedSprite;
+    [SerializeField] private Sprite disabledSprite;
     
     [UninitializedContext]
     public override string GraphicKey() => "Scrollbar";
