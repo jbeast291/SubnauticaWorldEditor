@@ -1,6 +1,7 @@
 using System.Collections;
 using SNCoreEditor.UI.HotBar.Interfaces;
 using SNCoreEditor.UI.Theme;
+using SNCoreEditor.UI.ToolTips;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +12,7 @@ internal class HotBarButton : MonoBehaviour
     [SerializeField] private Button Button;
     [SerializeField] private ThemeAssigner themeAssigner;
     [SerializeField] private Image ButtonIcon;
-    [SerializeField] private TextMeshProUGUI ButtonHoverText;
+    [SerializeField] private TooltipTarget tooltipTarget;
 
     internal HotBarButtonDefinition definition { private get; set; }
     internal HotBarManager manager { private get; set; }
@@ -34,13 +35,14 @@ internal class HotBarButton : MonoBehaviour
     {
         Button.onClick.AddListener(() => OnButtonPressed());
         ButtonIcon.sprite = definition.Icon;
-        ButtonHoverText.text = GenerateHotKeyText(definition);
         
         actionListener = definition.HotBarButtonFactory.Invoke();
         if (actionListener is IHotBarToggleAction toggleAction)
         {
             toggleListener = toggleAction;
         }
+
+        tooltipTarget.SetToolTipText(Language.main.Get(definition.ID));
     }
 
     private void OnThemeChange()
@@ -99,17 +101,5 @@ internal class HotBarButton : MonoBehaviour
             return;
         }
         SetActive(sendEvents);
-    }
-
-    private static string GenerateHotKeyText(HotBarButtonDefinition definition)
-    {
-        string text = "";
-        for (int i = 0; i < definition.buttons.Count; i++)
-        {
-            text += GameInput.FormatButton(definition.buttons[i]);
-            
-            if (i < definition.buttons.Count - 1) text += " + ";
-        }
-        return text;
     }
 }

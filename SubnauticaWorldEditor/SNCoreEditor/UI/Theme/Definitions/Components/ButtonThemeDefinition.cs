@@ -4,7 +4,6 @@ using UnityEngine.UI;
 
 namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
-[CreateAssetMenu(fileName = "ButtonThemeDefinition", menuName = "SNEditor/Themes/Components/Button Definition")]
 internal sealed class ButtonThemeDefinition : ComponentThemeDefinition
 {
     [SerializeField] internal Sprite baseSprite;

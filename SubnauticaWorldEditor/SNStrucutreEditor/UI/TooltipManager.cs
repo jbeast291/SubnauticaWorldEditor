@@ -56,7 +56,7 @@ public class TooltipManager : MonoBehaviour
         }
 
         var selected = _targets[^1];
-        if (selected.updateToolTipEachFrame)
+        if (selected.updateToolTipTextEachFrame)
         {
             textComponent.text = selected.GetTooltipText();
         }

@@ -4,11 +4,12 @@ using UnityEngine;
 
 namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
-[CreateAssetMenu(fileName = "TextThemeDefinition", menuName = "SNEditor/Themes/Components/Text Definition")]
 internal sealed class TextThemeDefinition : ComponentThemeDefinition
 {
     [Tooltip("Changes the color of the text")]
     [SerializeField] internal Color color = Color.white;
+    [Tooltip("Changes the color of input glyph icons/text. If this region does not have input glyphs this can be ignored")]
+    [SerializeField] internal Color inputGlyphColor = new Color32(173, 248, 255, 255);
     
     [UninitializedContext]
     public override string GraphicKey() => "Text";

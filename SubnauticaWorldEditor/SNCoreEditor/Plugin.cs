@@ -32,7 +32,7 @@ internal class Plugin : BaseUnityPlugin
         
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         InputRegistration.RegisterLocalization();
-        
+        LanguageHandler.RegisterLocalizationFolder();
 
         Harmony.CreateAndPatchAll(Assembly, $"{PluginInfo.PLUGIN_GUID}");
         // One time initialization

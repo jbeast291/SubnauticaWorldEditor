@@ -9,8 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -1194986008, guid: f633d0020fe84ee4080286118c52405e, type: 3}
-  m_Name: BaseTextThemeDefinition
+  m_Script: {fileID: -74845911, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+  m_Name: BaseBackgroundThemeDefinition
   m_EditorClassIdentifier: 
-  color: {r: 1, g: 1, b: 1, a: 1}
-  inputGlyphColor: {r: 0.73892033, g: 0.6148985, b: 0.8867924, a: 1}
+  backgroundSprite: {fileID: 21300000, guid: 4433bb95e870cf347be5a8575eed76aa, type: 3}

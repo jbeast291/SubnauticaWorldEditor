@@ -21,15 +21,17 @@ public sealed class RegionThemeDefinition : ScriptableObject
     
     public void SetRegionName(string name) => this.regionName = name;
 
-    internal bool TryAssignToComponent(GameObject gameObject, string graphicKey)
+    internal bool TryAssignToComponent(GameObject gameObject, string graphicKey, out ComponentThemeDefinition component)
     {
         foreach (ComponentThemeDefinition assigner in componentsThemeDefinitions)
         {
             if (assigner.GraphicKey() != graphicKey) continue;
             
             assigner.AssignToComponent(gameObject);
+            component = assigner;
             return true;
         }
+        component = null;
         return false;
     }
 }

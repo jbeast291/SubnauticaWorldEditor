@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6990747420220086869}
   - component: {fileID: 3694507633032623598}
   - component: {fileID: 4148186827505280899}
+  - component: {fileID: 8460779208928742681}
   - component: {fileID: 1222116669050071687}
   m_Layer: 0
   m_Name: Input
@@ -134,6 +135,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8460779208928742681
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 131604991079107691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -2132484520, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ButtonHoverText: {fileID: 4148186827505280899}
+  themeAssigner: {fileID: 1222116669050071687}
 --- !u!114 &1222116669050071687
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -249,6 +264,7 @@ GameObject:
   - component: {fileID: 7690569144848843335}
   - component: {fileID: 8655510701411735299}
   - component: {fileID: 4032522897416675350}
+  - component: {fileID: 6470179721710206179}
   - component: {fileID: 2429028360801148240}
   m_Layer: 0
   m_Name: HotBarButton
@@ -384,7 +400,7 @@ MonoBehaviour:
   Button: {fileID: 7690569144848843335}
   themeAssigner: {fileID: 4032522897416675350}
   ButtonIcon: {fileID: 6530364616307457603}
-  ButtonHoverText: {fileID: 4148186827505280899}
+  tooltipTarget: {fileID: 6470179721710206179}
 --- !u!114 &4032522897416675350
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -398,6 +414,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   graphicKey: Button
+--- !u!114 &6470179721710206179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2866176923276076930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 157976995, guid: f633d0020fe84ee4080286118c52405e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultTooltipText: Unknown
+  updateToolTipEachFrame: 1
 --- !u!114 &2429028360801148240
 MonoBehaviour:
   m_ObjectHideFlags: 0

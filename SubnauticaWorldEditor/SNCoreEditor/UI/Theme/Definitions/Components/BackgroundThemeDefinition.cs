@@ -1,20 +1,19 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-
 namespace SNCoreEditor.UI.Theme.Definitions.Components;
 
-internal sealed class IconThemeDefinition : ComponentThemeDefinition
+
+public class BackgroundThemeDefinition : ComponentThemeDefinition
 {
-    [Tooltip("Changes the color of the icon.")]
-    [SerializeField] internal Color color  = Color.white;
+    [SerializeField] internal Sprite backgroundSprite;
     
     [UninitializedContext]
-    public override string GraphicKey() => "Icon";
-    
+    public override string GraphicKey() => "BackgroundSprite";
+
     public override void AssignToComponent(GameObject gameObject)
     {
         if (!gameObject.TryGetComponent(out Image image)) throw new Exception("Failed to get image on image graphic!");
-        image.color = color;
+        image.sprite = backgroundSprite;
     }
 }

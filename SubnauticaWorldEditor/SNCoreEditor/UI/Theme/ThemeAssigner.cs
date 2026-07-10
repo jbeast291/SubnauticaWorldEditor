@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using SNCoreEditor.UI.HotBar;
 using SNCoreEditor.UI.Theme.Definitions;
+using SNCoreEditor.UI.Theme.Definitions.Components;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +15,7 @@ public sealed class ThemeAssigner : MonoBehaviour
     private RegionThemeMarker _regionThemeMarker;
     [SerializeField] private string graphicKey;
 
-    private Action onThemeChange;
+    private Action<ComponentThemeDefinition> onThemeChange;
 
     private void OnValidate() => DetermineGraphicKey();
 
@@ -28,7 +30,9 @@ public sealed class ThemeAssigner : MonoBehaviour
         else if (monos.FirstOrDefault(mono => mono is Scrollbar) != null) graphicKey = "Scrollbar";
     } 
 
-    public void RegisterForOnChange(Action action) => onThemeChange += action;
+    public void RegisterForOnChange(Action action) => onThemeChange += _ => action();
+    
+    public void RegisterForOnChange(Action<ComponentThemeDefinition> action) => onThemeChange += action;
     
     private void Start()
     {
@@ -45,9 +49,9 @@ public sealed class ThemeAssigner : MonoBehaviour
         while (currentRegion != null)
         {
             RegionThemeDefinition regionTheme = ThemeManager.GetRegionTheme(currentRegion.RegionName);
-            if (regionTheme != null && regionTheme.TryAssignToComponent(gameObject, graphicKey))
+            if (regionTheme != null && regionTheme.TryAssignToComponent(gameObject, graphicKey, out ComponentThemeDefinition definition))
             {
-                onThemeChange?.Invoke();
+                onThemeChange?.Invoke(definition);
                 return;
             }
             currentRegion = currentRegion.transform.parent?.GetComponentInParent<RegionThemeMarker>();

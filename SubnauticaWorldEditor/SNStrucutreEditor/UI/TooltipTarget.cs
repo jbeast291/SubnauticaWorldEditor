@@ -5,8 +5,8 @@ namespace ModStructureHelperPlugin.UI;
 
 public class TooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    public string defaultTooltipText;
-    public bool updateToolTipEachFrame;
+    [SerializeField] public string defaultTooltipText = "Unknown";
+    [SerializeField] public bool updateToolTipTextEachFrame;
     
     public void OnPointerEnter(PointerEventData eventData)
     {

@@ -5,7 +5,7 @@ namespace SNCoreEditor.UI.ToolTips;
 
 public class TooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    public string defaultTooltipText;
+    [SerializeField] private string defaultTooltipText;
     public bool updateToolTipEachFrame;
     
     public void OnPointerEnter(PointerEventData eventData)
@@ -19,13 +19,12 @@ public class TooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         TooltipManager.Main.RemoveTarget(this);
     }
 
-    protected virtual void OnDisable()
+    private void OnDisable()
     {
         TooltipManager.Main.RemoveTarget(this);
     }
 
-    public virtual string GetTooltipText()
-    {
-        return defaultTooltipText;
-    }
+    //Yes a field would be better but unity serialization does not like displaying that neatly in 2019 :/
+    internal string SetToolTipText(string text) => defaultTooltipText = text;
+    internal string GetTooltipText() => defaultTooltipText;
 }

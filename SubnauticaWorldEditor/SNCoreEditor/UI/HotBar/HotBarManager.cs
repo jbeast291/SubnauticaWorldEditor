@@ -52,6 +52,8 @@ public class HotBarManager : MonoBehaviour
         HotBarButton hotbarButton = buttonObj.GetComponent<HotBarButton>();
         hotbarButton.definition = button;
         hotbarButton.manager = this;
+        HotBarInputGlyphText hotbarText = buttonObj.GetComponentInChildren<HotBarInputGlyphText>();
+        hotbarText.definition = button;
         buttonMap.Add(button, hotbarButton);
     }
 }

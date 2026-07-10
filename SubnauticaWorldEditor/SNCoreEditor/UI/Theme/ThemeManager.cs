@@ -63,7 +63,7 @@ public sealed class ThemeManager : MonoBehaviour
 
     internal void RefreshThemeAssigners()
     {
-        ThemeAssigner[] assigners = GetComponentsInChildren<ThemeAssigner>();
+        ThemeAssigner[] assigners = GetComponentsInChildren<ThemeAssigner>(includeInactive: true);
         foreach (ThemeAssigner assigner in assigners)
         {
             assigner.AssignTheme(_activeTheme);
