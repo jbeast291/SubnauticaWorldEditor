@@ -1,4 +1,54 @@
 {
+  // Keybind Categories
+  "WorldEditorGeneral": "<u>World Editor</u>: General",
+  "WorldEditorTools": "<u>World Editor</u>: Tools",
+  "WorldEditorModifiers": "<u>World Editor</u>: Modifiers",
+  "WorldEditorOther": "<u>World Editor</u>: Other",
+
+  // Keybind General
+  "OptionSNWEC_ToggleEditorKeyBind": "Toggle world editor UI",
+  "OptionSNWEC_SaveKeyBind": "Save (w/ modifier)",
+  "OptionSNWEC_Interact": "Interact",
+  "OptionSNWEC_ControlCamera": "Control camera (with editor open)",
+
+  // Keybind Tools
+  "OptionSNWEC_SelectBind": "Activate select mode",
+  "OptionSNWEC_TranslateBind": "Translate",
+  "OptionSNWEC_RotateBind": "Rotate",
+  "OptionSNWEC_ScaleBind": "Scale",
+  "OptionSNWEC_DragBind": "Activate drag & drop tool",
+  "OptionSNWEC_EntityEditorBind": "Open entity browser",
+  "OptionSNWEC_PaintBrushBind": "Activate brush tool",
+  "OptionSNWEC_ToggleGlobalSpaceBind": "Toggle global space",
+  "OptionSNWEC_ToggleSnappingBind": "Toggle snapping",
+  "OptionSNWEC_PickObjectBind": "Pick object for brushing",
+  "OptionSNWEC_QuickPickEntityBind": "Quick pick entity",
+  "OptionSNWEC_CableEditorBind": "Toggle cable editor",
+  "OptionSNWEC_DuplicateBind": "Duplicate (w/ modifier)",
+  "OptionSNWEC_SelectAllBind": "Select all (w/ modifier)",
+  "OptionSNWEC_UndoBind": "Undo (w/ modifier)",
+  "OptionSNWEC_SelectLastSelectedBind": "Select last selected (w/ alt modifier)",
+  "OptionSNWEC_DeleteBind": "Delete",
+
+  // Keybind Modifiers
+  "OptionSNWEC_HoldToSnap": "Enable snapping temporarily",
+  "OptionSNWEC_PrioritizeTriggers": "Prioritize triggers when selecting",
+  "OptionSNWEC_ScaleUniform": "Scale uniformly modifier",
+  "OptionSNWEC_SaveHotkeyModifier": "Save hotkey modifier",
+  "OptionSNWEC_ToolHotkeyModifier": "Control tool modifier",
+  "OptionSNWEC_AltToolHotkeyModifier": "Alt tool modifier",
+  "OptionSNWEC_SelectMultipleModifier": "Select: select multiple",
+
+  // Keybind Other
+  "OptionSNWEC_BrushRotateLeft": "Brush: rotate left",
+  "OptionSNWEC_BrushRotateRight": "Brush: rotate right",
+  "OptionSNWEC_BrushDecreaseScale": "Brush: decrease scale",
+  "OptionSNWEC_BrushIncreaseScale": "Brush: increase scale",
+  "OptionSNWEC_UseGlobalUpNormal": "Brush/drag: use global up normal",
+  "OptionSNWEC_GoBack": "Browser: go back",
+  "OptionSNWEC_GoForward": "Browser: go forward",
+  
+  // Core Workspace
   "UndoButton": "Undo Button",
   "UndoButtonToggle": "Undo Button Toggle",
   "UndoButtonToggleTwo": "Undo Button Toggle Two"

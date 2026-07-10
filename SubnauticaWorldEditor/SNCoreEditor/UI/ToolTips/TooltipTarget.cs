@@ -25,6 +25,6 @@ public class TooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     }
 
     //Yes a field would be better but unity serialization does not like displaying that neatly in 2019 :/
-    internal string SetToolTipText(string text) => defaultTooltipText = text;
+    internal void SetToolTipText(string text) => defaultTooltipText = text;
     internal string GetTooltipText() => defaultTooltipText;
 }
