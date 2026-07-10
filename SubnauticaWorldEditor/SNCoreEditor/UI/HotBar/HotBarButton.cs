@@ -45,6 +45,11 @@ internal class HotBarButton : MonoBehaviour
         tooltipTarget.SetToolTipText(Language.main.Get(definition.ID));
     }
 
+    private void Update()
+    {
+        if(toggled) toggleListener.OnUpdate();
+    }
+
     private void OnThemeChange()
     {
         buttonDefaultSprite = Button.image.sprite;

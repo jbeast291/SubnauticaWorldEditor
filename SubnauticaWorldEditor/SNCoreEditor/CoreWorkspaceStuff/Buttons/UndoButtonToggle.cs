@@ -25,4 +25,6 @@ public class UndoButtonToggle : IHotBarToggleAction, IHotBarDefinitionProvider
     {
         
     }
+    
+    public void OnUpdate() { }
 }

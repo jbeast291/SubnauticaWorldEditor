@@ -7,4 +7,6 @@ public interface IHotBarToggleAction : IHotBarAction
     List<string> incompatibleWith { get; }
     
     void OnDeactivated();
+
+    void OnUpdate();
 }
