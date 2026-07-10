@@ -14,6 +14,8 @@ public sealed class ThemeManager : MonoBehaviour
     private static readonly HashSet<EditorThemeDefinition> Themes = new();
     private static EditorThemeDefinition _activeTheme;
 
+    private static bool CoreThemesRegistered;
+
     private void Awake()
     {
         if (_instance != null)
@@ -26,8 +28,10 @@ public sealed class ThemeManager : MonoBehaviour
     
     internal static void Initialize(WaitScreenHandler.WaitScreenTask task)
     {
+        if(CoreThemesRegistered) return;
         LoadCoreThemes();
         SetActiveTheme("SubnauticaTheme");
+        CoreThemesRegistered = true;
     }
 
     private static void LoadCoreThemes()

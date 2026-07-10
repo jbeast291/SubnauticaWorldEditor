@@ -14,15 +14,11 @@ internal static class Assets
     
     internal static IEnumerator LoadCoreAssetBundle(WaitScreenHandler.WaitScreenTask task)
     {
-        if (Plugin.Initialized || CoreBundle != null) yield break;
+        if (CoreBundle != null) yield break;
         
-        var assetBundleRequest = AssetBundle.LoadFromFileAsync(Path.Combine(Path.GetDirectoryName(Plugin.Assembly.Location)!, "Assets", BundleName));
+        AssetBundleCreateRequest assetBundleRequest = AssetBundle.LoadFromFileAsync(Path.Combine(Path.GetDirectoryName(Plugin.Assembly.Location)!, "Assets", BundleName));
         yield return assetBundleRequest;
         if(assetBundleRequest.assetBundle == null) throw new Exception("Failed to load core asset bundle!");
         CoreBundle = assetBundleRequest.assetBundle;
-        
-        Plugin.Initialized = true;
     }
-    
-    
 }
