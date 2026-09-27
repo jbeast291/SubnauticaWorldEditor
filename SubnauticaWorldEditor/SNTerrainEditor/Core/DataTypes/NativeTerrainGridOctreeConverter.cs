@@ -27,7 +27,7 @@ public static class NativeTerrainGridOctreeConverter
         NativeList<OctNode> nodes = new(1024, Allocator.Persistent);
         
         // Breath First as nodes must be listed top down from the tree
-        Queue<(int nodeIdx, int x, int y, int z, int width)> queue = new();
+        Queue<(int nodeIdx, uint x, uint y, uint z, uint width)> queue = new(128);
         
         // root
         nodes.Add(new());
@@ -35,7 +35,7 @@ public static class NativeTerrainGridOctreeConverter
 
         while (queue.Count > 0)
         {
-            (int nodeIdx, int x, int y, int z, int width) = queue.Dequeue();
+            (int nodeIdx, uint x, uint y, uint z, uint width) = queue.Dequeue();
 
             // Sample the region to determine dominant type, average density, uniformity
             terrainGrid.SampleRegion(
@@ -55,7 +55,7 @@ public static class NativeTerrainGridOctreeConverter
             }
             // Internal node reserve 8 consecutive child slots
             ushort firstChildIdx = (ushort)nodes.Length;
-            for (int c = 0; c < 8; c++) nodes.Add(new());
+            nodes.ResizeUninitialized(nodes.Length + 8);
 
             // We can only get a reference to the parent node AFTER we add the children.
             // When nativeList reallocates its memory to expand, the ref to the struct can become invalid and cause undefined behavior
@@ -66,9 +66,8 @@ public static class NativeTerrainGridOctreeConverter
             parent.density = avgDensity;
             parent.childIndex = firstChildIdx;
                 
-            int half = width / 2;
-                
-            // Enqueue 8 children
+            uint half = width / 2;
+            
             queue.Enqueue((firstChildIdx,     x,        y,        z,        half));
             queue.Enqueue((firstChildIdx + 1, x,        y       , z + half, half));
             queue.Enqueue((firstChildIdx + 2, x,        y + half, z,        half));

@@ -1,66 +1,69 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
 public partial class NativeTerrainGrid
 {
-    public unsafe void SampleRegion(int x, int y, int z, int regionWidth, 
+    public unsafe void SampleRegion(uint x, uint y, uint z, uint regionWidth,
         out byte dominantType,
         out byte avgDensity,
         out bool isUniform
     ) {
-        long densitySum = 0;
-        int sampleCount = 0;
-            
-        // Allocate it to the stack for efficiently reasons. A dictionary is too slow but 256 bytes fits easily on the stack
-        Span<int> typeDictionary = stackalloc int[254];//255 is reserved and won't ever show up so we can ignore it
+        uint startPos = GetVoxelIndex(z, y, x);
+        uint regionVolume = regionWidth * regionWidth * regionWidth;
+        Voxel* ptr = _gridPtr + startPos;
 
-        byte firstType = 0;
-        byte firstDensity = 0;
-        bool first = true;
+        Voxel firstVoxel = ptr[0];
         isUniform = true;
-
-        for (int ix = x; ix < x + regionWidth; ix++)
-        for (int iy = y; iy < y + regionWidth; iy++)
-        for (int iz = z; iz < z + regionWidth; iz++)
+        if (regionVolume <= 1) 
         {
-            int pos = GetVoxelIndex(ix, iy, iz);
-            Voxel voxel = _gridPtr[pos];
-            byte density = voxel.density;
-            byte type = voxel.type; 
-                
-            // special case, when the type not 0 but the density is 0 treat it as 252
-            if (density == 0 && type != 0) density = 252;
-                
-            typeDictionary[type]++;
-            densitySum += density;
-            sampleCount++;
-
-            if (first)
-            {
-                firstType = type;
-                firstDensity = density;
-                first = false;
-            }
-            else if (isUniform && (type != firstType || density != firstDensity))
-            {
-                isUniform = false;
-            }
+            isUniform = true;
         }
-            
-        avgDensity = sampleCount > 0 ? (byte)(densitySum / sampleCount) : (byte)0;
+        else
+        {
+            int voxelSize = UnsafeUtility.SizeOf<Voxel>();
+            long totalBytesToCompare = (regionVolume - 1) * voxelSize;
+            // compare the array to itself but the elements shifted 1 over
+            isUniform = UnsafeUtility.MemCmp(ptr, ptr + 1, totalBytesToCompare) == 0;
+        }
+        
+        // if the region is already uniform, no reason to check every value
+        if (isUniform)
+        {
+            byte finalDensity = GetAdjustedDensity(firstVoxel);
+            avgDensity = finalDensity;
+            dominantType = (avgDensity >= 126) ? firstVoxel.type : (byte)0;
+            return;
+        }
+
+        long densitySum = 0;
+        Span<int> typeDictionary = stackalloc int[byte.MaxValue];
+        for (uint i = 0; i < regionVolume; i++) {
+            Voxel voxel = ptr[i];
+            densitySum += GetAdjustedDensity(voxel);;
+            typeDictionary[voxel.type]++;
+        }
+
+        // ReSharper disable once IntDivisionByZero
+        avgDensity = (byte)(densitySum / regionVolume);
         dominantType = 0;
-            
+
         if (avgDensity < 126) return;
-        //determine the best possible material that is non-air
+
         int maxCount = 0;
-        //start iterating at 1 as the terrain is solid
-        for (int t = 1; t < 254; t++)
+        for (int t = 1; t < byte.MaxValue; t++)
         {
             if (typeDictionary[t] <= maxCount) continue;
-                
             maxCount = typeDictionary[t];
             dominantType = (byte)t;
         }
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static byte GetAdjustedDensity(Voxel voxel)
+    {
+        return (voxel.density == 0 && voxel.type != 0) ? (byte)252 : voxel.density;
     }
 }

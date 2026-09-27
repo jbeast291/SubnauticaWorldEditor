@@ -25,7 +25,7 @@ public class EditSession : IDisposable, IBatchStreamingEventListener
         BatchOctreesPatcher.RegisterListener(this);
     }
     
-    public void AddBatch(Int3 batchIndex)
+    public void AllocateBatch(Int3 batchIndex)
     {
         _managedBatchIndexes.Add(batchIndex);
         
@@ -33,8 +33,11 @@ public class EditSession : IDisposable, IBatchStreamingEventListener
         {
             _editableGrids.Add(gridGlobalIndex, new(gridGlobalIndex));
         }
+    }
 
-        BatchOctrees batchOctrees = _worldStreamer.octreesStreamer.batches.FirstOrDefault(batch => batch.id == batchIndex);
+    public void SetupBatch(Int3 batchIndex)
+    {
+        BatchOctrees batchOctrees = _worldStreamer.octreesStreamer.GetBatch(batchIndex);
         if(batchOctrees != null) RegisterActiveBatch(batchOctrees);
     }
 
@@ -50,7 +53,7 @@ public class EditSession : IDisposable, IBatchStreamingEventListener
             terrainGrid.SetGridsByOctree(octree);
             //give the array back to the allocator, so we can manage the array ourselves without starving the pool
             octree.Clear(BatchOctreesAllocator.octreePool);
-            terrainGrid.UpdateAssociatedOctree();
+            //terrainGrid.UpdateAssociatedOctree();
         }
     }
     

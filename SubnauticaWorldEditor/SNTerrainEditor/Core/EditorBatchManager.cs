@@ -33,8 +33,7 @@ public class EditorBatchManager : MonoBehaviour
 
         activeSession = new(worldStreamer);
     }
-
-    //TEMPORARY UTILITY FOR UNITY EXPLORER
+    
     public Int3 CreateInt3(int x, int y, int z)
     {
         return new(x, y, z);
@@ -59,10 +58,15 @@ public class EditorBatchManager : MonoBehaviour
                 
         System.Diagnostics.Stopwatch sw = new();
         sw.Start();
-        try { activeSession.AddBatch(new(12, 18, 12)); } catch {}
+        activeSession.AllocateBatch(new(12, 18, 12));
         sw.Stop();
-        Plugin.Logger.LogError($"TOOK {sw.ElapsedMilliseconds}ms");
-
+        Plugin.Logger.LogError($"Allocations Took {sw.ElapsedMilliseconds}ms");
+        
+        sw.Restart();
+        activeSession.SetupBatch(new(12, 18, 12));
+        sw.Stop();
+        Plugin.Logger.LogError($"Total Rasterize {sw.ElapsedMilliseconds}ms");
+        
         sw.Restart();
         activeSession.DEBUG__ModifyAllLava();
         sw.Stop();
