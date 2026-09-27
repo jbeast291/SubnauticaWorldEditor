@@ -16,15 +16,13 @@ public class BatchOctreesPatcher
     [HarmonyPrefix]
     private static void OnBatchLoaded_Prefix(BatchOctrees __instance)
     {
-        Plugin.Logger.LogError($"LOADED {__instance.id}");
         _listeners.ForEach(listener => listener.OnBatchLoaded(__instance));
     }
 
     [HarmonyPatch(nameof(BatchOctrees.BeginUnloadOctrees), [])]
     [HarmonyPrefix]
     private static void BeginUnloadOctrees_Prefix(BatchOctrees __instance)
-    {
-        Plugin.Logger.LogError($"UNLOADED {__instance.id}");
+    { 
         _listeners.ForEach(listener => listener.OnBatchUnloaded(__instance));
     }
 

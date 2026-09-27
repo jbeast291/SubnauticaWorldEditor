@@ -24,18 +24,14 @@ public static class NativeTerrainGridOctreeConverter
 
     private static NativeList<OctNode> ConvertGridToOctree(NativeTerrainGrid terrainGrid)
     {
-        // Each node is 4 bytes as a struct.
-        // We can modify the nodes afterward.
-        NativeList<OctNode> nodes = new(Allocator.Persistent);
-
-        // Queue allow checking parent nodes before adding child nodes
-        // Breath First in a sense as nodes must be listed top down from the tree
+        NativeList<OctNode> nodes = new(1024, Allocator.Persistent);
+        
+        // Breath First as nodes must be listed top down from the tree
         Queue<(int nodeIdx, int x, int y, int z, int width)> queue = new();
-
-        //Add root node
+        
+        // root
         nodes.Add(new());
-        //Enqueue it to start off the "recursive" sequence
-        queue.Enqueue((0, 0, 0, 0, NativeTerrainGrid.SideLength));//start at the entire size of the grid
+        queue.Enqueue((0, 0, 0, 0, NativeTerrainGrid.SideLength));
 
         while (queue.Count > 0)
         {
@@ -55,54 +51,41 @@ public static class NativeTerrainGridOctreeConverter
                 octNode.type = dominantType;
                 octNode.density = avgDensity;
                 octNode.childIndex = 0;
+                continue;
             }
-            else
-            {
-                // Internal node — reserve 8 consecutive child slots
-                ushort firstChildIdx = (ushort)nodes.Length;
-                for (int c = 0; c < 8; c++)
-                    nodes.Add(new());
+            // Internal node reserve 8 consecutive child slots
+            ushort firstChildIdx = (ushort)nodes.Length;
+            for (int c = 0; c < 8; c++) nodes.Add(new());
 
-                //We can only get a reference to the parent node AFTER we add the children.
-                //When nativeList reallocates its memory to expand, the ref to the struct can become invalid and cause undefined behavior
-                ref OctNode octNode = ref nodes.ElementAt(nodeIdx);
-                    
-                // Modify parent node to point to children.
-                octNode.type = dominantType;
-                octNode.density = avgDensity;
-                octNode.childIndex = firstChildIdx;
-
-                // Enqueue 8 children 
-                int half = width / 2;
-                for (int i = 0; i < 8; i++)
-                {
-                    Int3 offset = CornerOffsets[i] * half;
-                    queue.Enqueue((firstChildIdx + i, x + offset.x, y + offset.y, z + offset.z, half));
-                }
-            }
+            // We can only get a reference to the parent node AFTER we add the children.
+            // When nativeList reallocates its memory to expand, the ref to the struct can become invalid and cause undefined behavior
+            ref OctNode parent = ref nodes.ElementAt(nodeIdx);
+                
+            // Modify parent node to point to children.
+            parent.type = dominantType;
+            parent.density = avgDensity;
+            parent.childIndex = firstChildIdx;
+                
+            int half = width / 2;
+                
+            // Enqueue 8 children
+            queue.Enqueue((firstChildIdx,     x,        y,        z,        half));
+            queue.Enqueue((firstChildIdx + 1, x,        y       , z + half, half));
+            queue.Enqueue((firstChildIdx + 2, x,        y + half, z,        half));
+            queue.Enqueue((firstChildIdx + 3, x,        y + half, z + half, half));
+            queue.Enqueue((firstChildIdx + 4, x + half, y,        z,        half));
+            queue.Enqueue((firstChildIdx + 5, x + half, y,        z + half, half));
+            queue.Enqueue((firstChildIdx + 6, x + half, y + half, z,        half));
+            queue.Enqueue((firstChildIdx + 7, x + half, y + half, z + half, half));
         }
         return nodes;
     }
-    
-    //TODO: check if hitting this is slower than generating the offsets from a byte sequence
-    private static readonly Int3[] CornerOffsets =
-    [
-        new (0, 0, 0),
-        new (0, 0, 1),
-        new (0, 1, 0),
-        new (0, 1, 1),
-        new (1, 0, 0),
-        new (1, 0, 1),
-        new (1, 1, 0),
-        new (1, 1, 1)
-    ];
-        
-    //ensure this struct is stored in memory like an array of bytes
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    private struct OctNode
-    {
-        public byte type;
-        public byte density;
-        public ushort childIndex;
-    }
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct OctNode
+{
+    public byte type;
+    public byte density;
+    public ushort childIndex;
 }

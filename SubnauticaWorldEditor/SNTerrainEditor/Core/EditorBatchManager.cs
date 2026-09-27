@@ -39,12 +39,6 @@ public class EditorBatchManager : MonoBehaviour
     {
         return new(x, y, z);
     }
-    
-    //TEMPORARY UTILITY FOR UNITY EXPLORER
-    public Int3.Bounds CreateBounds(int x1, int y1, int z1, int x2, int y2, int z2)
-    {
-        return new(new(x1, y1, z1), new(x2, y2, z2));
-    }
 
     public ClipmapCell GetActiveCellForPosition(Int3 position)
     {
@@ -58,6 +52,23 @@ public class EditorBatchManager : MonoBehaviour
         }
 
         return null;
+    }
+    
+    public void DEBUG__Batch121812Lava()
+    {
+                
+        System.Diagnostics.Stopwatch sw = new();
+        sw.Start();
+        try { activeSession.AddBatch(new(12, 18, 12)); } catch {}
+        sw.Stop();
+        Plugin.Logger.LogError($"TOOK {sw.ElapsedMilliseconds}ms");
+
+        sw.Restart();
+        activeSession.DEBUG__ModifyAllLava();
+        sw.Stop();
+        Plugin.Logger.LogError($"TOOK {sw.ElapsedMilliseconds}ms");
+        
+        DEBUG__RefreshMeshForBatch(12, 18, 12);
     }
     
     public void DEBUG__ClearBatchOctrees(int x, int y, int z)

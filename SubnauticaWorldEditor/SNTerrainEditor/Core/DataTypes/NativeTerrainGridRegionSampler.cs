@@ -4,11 +4,11 @@ namespace SNTerrainEditor.Core.DataTypes;
 
 public partial class NativeTerrainGrid
 {
-    public void SampleRegion(int x, int y, int z, int regionWidth, 
+    public unsafe void SampleRegion(int x, int y, int z, int regionWidth, 
         out byte dominantType,
         out byte avgDensity,
-        out bool isUniform)
-    {
+        out bool isUniform
+    ) {
         long densitySum = 0;
         int sampleCount = 0;
             
@@ -24,12 +24,13 @@ public partial class NativeTerrainGrid
         for (int iy = y; iy < y + regionWidth; iy++)
         for (int iz = z; iz < z + regionWidth; iz++)
         {
-            int pos = GetBlockIndex(ix, iy, iz);
-            byte density = _densityGrid[pos];
-            byte type = _typeGrid[pos]; 
+            int pos = GetVoxelIndex(ix, iy, iz);
+            Voxel voxel = _gridPtr[pos];
+            byte density = voxel.density;
+            byte type = voxel.type; 
                 
-            if (density == 0 && type != 0)
-                density = 252;//special case, when the type not 0 but the density is 0 treat it as 252
+            // special case, when the type not 0 but the density is 0 treat it as 252
+            if (density == 0 && type != 0) density = 252;
                 
             typeDictionary[type]++;
             densitySum += density;

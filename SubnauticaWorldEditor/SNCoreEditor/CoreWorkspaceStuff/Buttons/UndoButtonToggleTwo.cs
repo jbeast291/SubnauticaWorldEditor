@@ -8,7 +8,7 @@ namespace SNCoreEditor.CoreWorkspaceStuff.Buttons;
 
 internal class UndoButtonToggleTwo : IHotBarToggleAction, IHotBarDefinitionProvider
 {
-    public HotBarButtonDefinition Definition() => new(
+    public HotBarButtonDefinition Definition() => new( 
         "UndoButtonToggleTwo",
         Assets.CoreBundle.LoadAsset<Sprite>("UndoIcon"),
         [InputRegistration.CtrlModifier, InputRegistration.UndoBind],
