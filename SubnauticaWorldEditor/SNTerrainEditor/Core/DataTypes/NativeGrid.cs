@@ -1,49 +1,23 @@
 ﻿using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using SNTerrainEditor.Extensions;
-using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using WorldStreaming;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
-public unsafe partial class NativeTerrainGrid : IDisposable
+public unsafe partial class NativeGrid : IDisposable
 {
     public const int SideLength = 32;
-    public const int GridArrayLength = SideLength * SideLength * SideLength;
-
-    public Int3 GridGlobalIndex { get; }
+    private const int GridArrayLength = SideLength * SideLength * SideLength;
     
-    public Octree _associatedOctree;
-    
-    private GridStatus _status;
-    private NativeArray<Voxel> _grid;
+    private NativeArray<Voxel> _grid = new(GridArrayLength, Allocator.Persistent);
     private Voxel* _gridPtr;
 
-    public NativeTerrainGrid(Int3 gridGlobalIndex) {
-        GridGlobalIndex = gridGlobalIndex;
-        _grid = new NativeArray<Voxel>(GridArrayLength, Allocator.Persistent);
-    }
-
-    public void SetGridsByOctree(Octree octree)
-    {
-        if(_status == GridStatus.Loaded) Dispose();
-        octree.RasterizeIntoGrid(_grid);
+    public void SetFromOctree(NativeArray<byte> octreeData) {
         _gridPtr = (Voxel*)_grid.GetUnsafePtr();
-        
-        _associatedOctree = octree;
-        _status = GridStatus.Loaded;
-    }
-
-    public void UnloadGrid()
-    {
-        Plugin.Logger.LogError("DISPOSING GRIDS");
-        Dispose();
-        _associatedOctree = null;
-        _status = GridStatus.Unloaded;
+        OctreeRasterizer.RasterizeToGrid(octreeData, _gridPtr);
     }
     
     /// <summary>
@@ -82,18 +56,10 @@ public unsafe partial class NativeTerrainGrid : IDisposable
                | (x & layer5Mask) << 10;
     }
     
-    public void UpdateAssociatedOctree()
-    {
-        _associatedOctree.data.Dispose();
-        _associatedOctree.data = this.GetAsOctreeBytes();
-    }
-    
-    public void DEBUG__ModifyWithLavaTexture()
-    {
-        Voxel* ptr = (Voxel*)_grid.GetUnsafePtr();
+    public void DEBUG__ModifyWithLavaTexture() {
         for (int i = 0; i < _grid.Length; i++)
         {
-            ref Voxel voxel = ref ptr[i];
+            ref Voxel voxel = ref _gridPtr[i];
             if (voxel.type != 0)
             {
                 voxel.type = 4;
@@ -101,14 +67,5 @@ public unsafe partial class NativeTerrainGrid : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        _grid.Dispose();
-    }
-    
-    public enum GridStatus
-    {
-        Unloaded,
-        Loaded,
-    }
+    public void Dispose() => _grid.Dispose();
 }

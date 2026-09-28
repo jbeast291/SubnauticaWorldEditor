@@ -7,22 +7,18 @@ using WorldStreaming;
 
 namespace SNTerrainEditor.Extensions;
 
-public static unsafe class OctreeRasterizer
-{
-    extension(Octree octree)
-    {
-        public void RasterizeIntoGrid(NativeArray<Voxel> grid)
-        {
-            if (!octree.data.IsCreated || octree.data.Length == 0) return;
-            ConvertOctreeToGrid(octree.data.Reinterpret<OctNode>(), (ushort*)grid.GetUnsafePtr());
-        }
+internal static unsafe class OctreeRasterizer {
+    /// <summary>Rasterize an octree to a 32x32x32 grid of points</summary>
+    internal static void RasterizeToGrid(NativeArray<byte> octreeData, Voxel* grid) {
+        if (!octreeData.IsCreated || octreeData.Length == 0) return;
+        ConvertOctreeToGrid(octreeData.Reinterpret<OctNode>(), (ushort*)grid);
     }
     
     private static void ConvertOctreeToGrid(
         NativeArray<OctNode> nodes,
         ushort* gridPtr,
         int currentNodeIndex = 0, 
-        uint currentNodeRegionWidth = NativeTerrainGrid.SideLength,
+        uint currentNodeRegionWidth = NativeGrid.SideLength,
         uint x = 0, uint y = 0, uint z = 0
     ) {
         OctNode currentNode = nodes[currentNodeIndex];
@@ -30,7 +26,7 @@ public static unsafe class OctreeRasterizer
         
         // Leaf Node, safe to fill in the grid from here
         if (startingChildIndex == 0 || currentNodeRegionWidth <= 1) {
-            int startIndex = (int)NativeTerrainGrid.GetVoxelIndex(z, y, x);
+            int startIndex = (int)NativeGrid.GetVoxelIndex(z, y, x);
             ushort voxelPacked = (ushort)(currentNode.type | (currentNode.density << 8));
             int volume = (int)(currentNodeRegionWidth * currentNodeRegionWidth * currentNodeRegionWidth);
             

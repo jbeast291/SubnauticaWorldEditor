@@ -1,28 +1,22 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
-public static class NativeTerrainGridOctreeConverter
+public unsafe partial class NativeGrid
 {
-    extension(NativeTerrainGrid terrainGrid)
-    {
-        /// <summary>
-        /// Converts the native terrain grid into an octree byte sequence compatible with the terrain streamer.
-        /// </summary>
-        /// <remarks>If this is being written to a file, it does not include the node count ushort in the array,
-        /// it is just the raw nodes in correct order</remarks>
-        public NativeArray<byte> GetAsOctreeBytes()
-        {
-            return ConvertGridToOctree(terrainGrid)
-                    .AsArray()
-                    .Reinterpret<byte>(UnsafeUtility.SizeOf<OctNode>());
-        }
-    }
+    /// <summary>
+    /// Converts the native terrain grid into an octree byte sequence compatible with the terrain streamer.
+    /// </summary>
+    /// <remarks>If this is being written to a file, it does not include the node count ushort in the array,
+    /// it is just the raw nodes in correct order</remarks>
+    public NativeArray<byte> DerasterizeToOctree() 
+        => ConvertGridToOctree()
+            .AsArray()
+            .Reinterpret<byte>(UnsafeUtility.SizeOf<OctNode>());
 
-    private static NativeList<OctNode> ConvertGridToOctree(NativeTerrainGrid terrainGrid)
+    private NativeList<OctNode> ConvertGridToOctree()
     {
         NativeList<OctNode> nodes = new(1024, Allocator.Persistent);
         
@@ -31,14 +25,14 @@ public static class NativeTerrainGridOctreeConverter
         
         // root
         nodes.Add(new());
-        queue.Enqueue((0, 0, 0, 0, NativeTerrainGrid.SideLength));
+        queue.Enqueue((0, 0, 0, 0, SideLength));
 
         while (queue.Count > 0)
         {
             (int nodeIdx, uint x, uint y, uint z, uint width) = queue.Dequeue();
 
             // Sample the region to determine dominant type, average density, uniformity
-            terrainGrid.SampleRegion(
+            SampleRegion(
                 x, y, z, width,
                 out byte dominantType,
                 out byte avgDensity,
@@ -81,10 +75,3 @@ public static class NativeTerrainGridOctreeConverter
     }
 }
 
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct OctNode
-{
-    public byte type;
-    public byte density;
-    public ushort childIndex;
-}

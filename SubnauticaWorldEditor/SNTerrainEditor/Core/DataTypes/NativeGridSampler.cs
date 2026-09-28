@@ -4,7 +4,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
-public partial class NativeTerrainGrid
+public partial class NativeGrid
 {
     public unsafe void SampleRegion(uint x, uint y, uint z, uint regionWidth,
         out byte dominantType,
@@ -46,7 +46,7 @@ public partial class NativeTerrainGrid
             typeDictionary[voxel.type]++;
         }
 
-        // ReSharper disable once IntDivisionByZero
+        // ReSharper disable once IntDivisionByZero - its not possible for a region volume to be 0 atp
         avgDensity = (byte)(densitySum / regionVolume);
         dominantType = 0;
 

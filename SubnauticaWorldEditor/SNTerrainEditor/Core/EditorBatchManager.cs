@@ -1,32 +1,34 @@
 ﻿using System.Collections;
 using SNTerrainEditor.Core.DataTypes;
 using SNTerrainEditor.Extensions;
+using SNTerrainEditor.FileOperations;
+using Unity.Collections;
 using UnityEngine;
 using WorldStreaming;
 using Math = System.Math;
 
 namespace SNTerrainEditor.Core;
 
-public class EditorBatchManager : MonoBehaviour
+internal class EditorBatchManager : MonoBehaviour
 {
-    public static EditorBatchManager main { get; private set;}
+    internal static EditorBatchManager main { get; private set;}
     
     private WorldStreamer worldStreamer;
     
-    public EditSession activeSession { get; private set; }
+    internal EditSession activeSession { get; private set; }
     
-    public void Awake()
+    private void Awake()
     {
         if (main != null)
         {
-            Plugin.Logger.LogError("Duplicate Editor Batch Manager found!");
+            Plugin.LogError("Duplicate Editor Batch Manager found!");
             DestroyImmediate(this);
             return;
         }
         main = this;
     }
 
-    public IEnumerator Start()
+    private IEnumerator Start()
     {
         yield return new WaitUntil( () => LargeWorldStreamer.main.streamerV2 != null);
         worldStreamer = LargeWorldStreamer.main.streamerV2;
@@ -34,12 +36,12 @@ public class EditorBatchManager : MonoBehaviour
         activeSession = new(worldStreamer);
     }
     
-    public Int3 CreateInt3(int x, int y, int z)
+    private Int3 CreateInt3(int x, int y, int z)
     {
         return new(x, y, z);
     }
 
-    public ClipmapCell GetActiveCellForPosition(Int3 position)
+    private ClipmapCell GetActiveCellForPosition(Int3 position)
     {
         Int3.Bounds blockBounds = new(position, position);
 
@@ -53,35 +55,42 @@ public class EditorBatchManager : MonoBehaviour
         return null;
     }
     
-    public void DEBUG__Batch121812Lava()
+    private void DEBUG__Batch121812Lava()
     {
-                
         System.Diagnostics.Stopwatch sw = new();
         sw.Start();
-        activeSession.AllocateBatch(new(12, 18, 12));
+        activeSession.AddBatch(new(12, 18, 12));
         sw.Stop();
-        Plugin.Logger.LogError($"Allocations Took {sw.ElapsedMilliseconds}ms");
-        
-        sw.Restart();
-        activeSession.SetupBatch(new(12, 18, 12));
-        sw.Stop();
-        Plugin.Logger.LogError($"Total Rasterize {sw.ElapsedMilliseconds}ms");
+        Plugin.LogError($"Reading + Octree Allocations Took {sw.ElapsedMilliseconds}ms");
         
         sw.Restart();
         activeSession.DEBUG__ModifyAllLava();
         sw.Stop();
-        Plugin.Logger.LogError($"TOOK {sw.ElapsedMilliseconds}ms");
+        Plugin.LogError($"Rasterize + Modify Took: {sw.ElapsedMilliseconds}ms");
         
+        sw.Restart();
+        DEBUG__UploadChangesToWorldStreamer(new(12, 18, 12));
+        sw.Stop();
+        Plugin.LogError($"Upload Took: {sw.ElapsedMilliseconds}ms");
+        
+        sw.Restart();
         DEBUG__RefreshMeshForBatch(12, 18, 12);
+        sw.Stop(); 
+        Plugin.LogError($"Visual Refreshed Queued In: {sw.ElapsedMilliseconds}ms");
     }
-    
-    public void DEBUG__ClearBatchOctrees(int x, int y, int z)
-    {
+
+    private void DEBUG__UploadChangesToWorldStreamer(Int3 batchID) {
         BatchOctreesStreamer octreesStreamer = worldStreamer.octreesStreamer;
-        octreesStreamer.GetBatch(new Int3(x, y, z))?.ClearOctrees();
+        BatchOctrees batchOctrees = octreesStreamer.GetBatch(batchID);
+        
+        foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
+            Octree octree = batchOctrees.octrees.Get(octreeLocalIndex);
+            batchOctrees.allocator.Return(octree.data);
+            octree.data = activeSession.GetBatchOctree(batchID, octreeLocalIndex).octreeBytes;
+        }
     }
     
-    public void DEBUG__RefreshMeshForBatch(int x, int y, int z)
+    private void DEBUG__RefreshMeshForBatch(int x, int y, int z)
     {
         const int batchSize = 160;
         Int3 batchMinBlockPos = new(x * batchSize, y * batchSize, z * batchSize);

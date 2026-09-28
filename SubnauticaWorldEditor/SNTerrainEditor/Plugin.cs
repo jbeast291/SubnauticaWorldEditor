@@ -12,17 +12,15 @@ namespace SNTerrainEditor;
 
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 [BepInDependency("com.snmodding.nautilus")]
-public class Plugin : BaseUnityPlugin
-{ 
-    public new static ManualLogSource Logger { get; private set; }
+public class Plugin : BaseUnityPlugin { 
+    private static ManualLogSource? LOGGER = null;
 
     internal static Assembly Assembly { get; } = Assembly.GetExecutingAssembly();
 
     private bool WorkspaceRegistered;
     
-    private void Awake()
-    {
-        Logger = base.Logger;
+    private void Awake() {
+        LOGGER = Logger;
         
         Harmony.CreateAndPatchAll(Assembly, $"{PluginInfo.PLUGIN_GUID}");
         
@@ -33,6 +31,12 @@ public class Plugin : BaseUnityPlugin
         WaitScreenHandler.RegisterLoadTask(PluginInfo.PLUGIN_NAME, InitializeEditor, "Initialize Editor");
     }
 
+    internal static void LogDebug(string message) => LOGGER?.LogDebug(message);
+    internal static void LogInfo(string message) => LOGGER?.LogInfo(message);
+    internal static void LogWarning(string message) => LOGGER?.LogWarning(message);
+    internal static void LogError(string message) => LOGGER?.LogError(message);
+    internal static void LogFatal(string message) => LOGGER?.LogFatal(message);
+    
     private void InitializeEditor(WaitScreenHandler.WaitScreenTask task)
     {
         LargeWorldStreamer.main.gameObject.EnsureComponent<EditorBatchManager>();

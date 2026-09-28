@@ -15,6 +15,6 @@ internal class CheckMarkButton : IHotBarAction, IHotBarDefinitionProvider
     
     public void OnActivated()
     {
-        Plugin.Logger.LogError("ACTION PRESSED!!!!!!");
+        Plugin.LogError("ACTION PRESSED!!!!!!");
     }
 }
