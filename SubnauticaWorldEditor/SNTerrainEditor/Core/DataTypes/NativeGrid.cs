@@ -1,68 +1,98 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using SNTerrainEditor.Extensions;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using WorldStreaming;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
-public unsafe partial class NativeGrid : IDisposable
-{
-    public const int SideLength = 32;
-    private const int GridArrayLength = SideLength * SideLength * SideLength;
+internal unsafe partial class NativeGrid : IDisposable {
+    private const int SideLength = 32;
+    internal const int GridArrayLength = SideLength * SideLength * SideLength;
     
-    private NativeArray<Voxel> _grid = new(GridArrayLength, Allocator.Persistent);
-    private Voxel* _gridPtr;
-
-    public void SetFromOctree(NativeArray<byte> octreeData) {
-        _gridPtr = (Voxel*)_grid.GetUnsafePtr();
-        OctreeRasterizer.RasterizeToGrid(octreeData, _gridPtr);
+    private readonly NativeArray<Voxel> _grid = new(GridArrayLength, Allocator.Persistent);
+    private readonly Voxel* _gridPtr;
+    
+    internal NativeGrid() {
+        _gridPtr = (Voxel*) _grid.GetUnsafePtr();
     }
     
+    internal Voxel* GridPtr => _gridPtr;
+    
+    private const uint layer1Mask = 0b_00001u;
+    private const uint layer2Mask = 0b_00010u;
+    private const uint layer3Mask = 0b_00100u;
+    private const uint layer4Mask = 0b_01000u;
+    private const uint layer5Mask = 0b_10000u;
     /// <summary>
     /// Z-order curve based indexing<br/>
     /// Maps regions of the grid to continuous blocks of memory that match the
     /// octree layout but in a dense grid
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint GetVoxelIndex(uint z, uint y, uint x)
-    {
+    internal static uint GetVoxelIndex(uint z, uint y, uint x) {
         // This only works cause the grid is 32x32x32 with 5 layers on powers of 2.
         // if that changes for some reason, this will need to be updated
-        const uint layer1Mask = 0b_00001u;
-        const uint layer2Mask = 0b_00010u;
-        const uint layer3Mask = 0b_00100u;
-        const uint layer4Mask = 0b_01000u;
-        const uint layer5Mask = 0b_10000u;
         return   (z & layer1Mask)
-               | (y & layer1Mask) << 1
-               | (x & layer1Mask) << 2
-               
                | (z & layer2Mask) << 2
-               | (y & layer2Mask) << 3
-               | (x & layer2Mask) << 4
-               
                | (z & layer3Mask) << 4
-               | (y & layer3Mask) << 5
-               | (x & layer3Mask) << 6
-               
                | (z & layer4Mask) << 6
-               | (y & layer4Mask) << 7
-               | (x & layer4Mask) << 8
-               
                | (z & layer5Mask) << 8
+               
+               | (y & layer1Mask) << 1
+               | (y & layer2Mask) << 3
+               | (y & layer3Mask) << 5
+               | (y & layer4Mask) << 7
                | (y & layer5Mask) << 9
+               
+               | (x & layer1Mask) << 2
+               | (x & layer2Mask) << 4
+               | (x & layer3Mask) << 6
+               | (x & layer4Mask) << 8
                | (x & layer5Mask) << 10;
     }
+
     
-    public void DEBUG__ModifyWithLavaTexture() {
-        for (int i = 0; i < _grid.Length; i++)
-        {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static uint ExpandBits5(uint v) {
+        // Keep only the lowest 5 bits
+        v &= 0b0001_1111u; 
+    
+        // Spread 5 bits out into 3-bit strides
+        v = (v | (v << 8)) & 0b0001_0000_0000_0000_0000_1111u; // 0x1000F
+        v = (v | (v << 4)) & 0b0001_0000_0000_1100_0000_0011u; // 0x100C3
+        v = (v | (v << 2)) & 0b0001_0010_0100_1001_0010_0100u; // 0x12492
+    
+        return v;
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void GetVoxelCoordinates(uint index, out uint z, out uint y, out uint x)
+    {
+        z =    (index      & layer1Mask)
+             | (index >> 2 & layer2Mask)
+             | (index >> 4 & layer3Mask)
+             | (index >> 6 & layer4Mask)
+             | (index >> 8 & layer5Mask);
+
+        y =    (index >> 1 & layer1Mask)
+             | (index >> 3 & layer2Mask)
+             | (index >> 5 & layer3Mask)
+             | (index >> 7 & layer4Mask)
+             | (index >> 9 & layer5Mask);
+
+        x =    (index >> 2  & layer1Mask)
+             | (index >> 4  & layer2Mask)
+             | (index >> 6  & layer3Mask)
+             | (index >> 8  & layer4Mask)
+             | (index >> 10 & layer5Mask);
+    }
+    
+    internal void DEBUG__Clear() {
+        for (int i = 0; i < _grid.Length; i++) {
             ref Voxel voxel = ref _gridPtr[i];
-            if (voxel.type != 0)
-            {
-                voxel.type = 4;
+            if (voxel.type != 0) {
+                voxel.type = 0;
+                voxel.density = 0;
             }
         }
     }

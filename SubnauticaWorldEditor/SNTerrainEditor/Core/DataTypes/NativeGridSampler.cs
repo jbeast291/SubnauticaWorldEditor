@@ -4,9 +4,9 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
-public partial class NativeGrid
+internal partial class NativeGrid
 {
-    public unsafe void SampleRegion(uint x, uint y, uint z, uint regionWidth,
+    private unsafe void SampleRegion(uint x, uint y, uint z, uint regionWidth,
         out byte dominantType,
         out byte avgDensity,
         out bool isUniform

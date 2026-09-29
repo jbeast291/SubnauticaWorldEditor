@@ -3,13 +3,13 @@ using System.IO;
 using SNTerrainEditor.Core.DataTypes;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using WorldStreaming;
 
 namespace SNTerrainEditor.FileOperations;
 
 public static class OctreeReading {
-
-    private static readonly NativeArray<byte> empty = new(0, Allocator.Persistent);
+    
+    internal static readonly NativeArray<byte> empty = new(0, Allocator.Persistent);
+    
     private static readonly byte[] readBuffer = new byte[65536];
 
     internal static ManagedBatch GetBatchOctrees(Int3 id) {
@@ -58,37 +58,31 @@ public static class OctreeReading {
         return true;
     }
 
-
     private static unsafe NativeArray<byte> ReadOctree(PooledBinaryReader reader) {
-        int num = reader.ReadUInt16() * 4;
-        if (num == 0) {
-            return empty;
-        }
-        NativeArray<byte> data = new(num, Allocator.Persistent);
+        int bytesToRead = reader.ReadUInt16() * 4;
+        if (bytesToRead == 0) return empty;
+        NativeArray<byte> data = new(bytesToRead, Allocator.Persistent);
         lock (readBuffer) {
-            int num2 = 0;
-            if (num <= readBuffer.Length) {
-                num2 = reader.Read(readBuffer, 0, num);
+            int totalBytesRead = 0;
+            if (bytesToRead <= readBuffer.Length) {
+                totalBytesRead = reader.Read(readBuffer, 0, bytesToRead);
                 fixed (byte* ptr = readBuffer) {
-                    void* source = ptr;
-                    UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(data), source, num2);
+                    UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(data), ptr, totalBytesRead);
                 }
                 return data;
             }
-            int num3 = num;
-            int num4;
+            int bytesRemaining = bytesToRead;
+            int bytesReadToBuffer;
             do {
-                int count = Math.Min(num3, readBuffer.Length);
-                if ((num4 = reader.Read(readBuffer, 0, count)) <= 0) continue;
-                
+                int count = Math.Min(bytesRemaining, readBuffer.Length);
+                if ((bytesReadToBuffer = reader.Read(readBuffer, 0, count)) <= 0) continue;
                 fixed (byte* ptr = readBuffer) {
-                    void* source2 = ptr;
-                    UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(data.GetSubArray(num2, num4)), source2, num4);
+                    UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(data.GetSubArray(totalBytesRead, bytesReadToBuffer)), ptr, bytesReadToBuffer);
                 }
-                num2 += num4;
-                num3 -= num4;
+                totalBytesRead += bytesReadToBuffer;
+                bytesRemaining -= bytesReadToBuffer;
             }
-            while (num4 > 0 && num2 < num);
+            while (bytesReadToBuffer > 0 && totalBytesRead < bytesToRead);
         }
         return data;
     }

@@ -44,11 +44,11 @@ internal class Plugin : BaseUnityPlugin
     public void RegisterCoreWorkspace(WaitScreenHandler.WaitScreenTask task)
     {
         if (CoreRegistered) return;
-        
-        WorkspaceDefinition definition = new WorkspaceDefinition("Core", null, WorkspaceMode.Persistent, () => new CoreWorkspace())
-            .WithHotBarButton<UndoButton>()
-            .WithHotBarButton<UndoButtonToggle>()
-            .WithHotBarButton<UndoButtonToggleTwo>();
+
+        WorkspaceDefinition definition = new WorkspaceDefinition("Core", null, WorkspaceMode.Persistent, () => new CoreWorkspace());
+            //.WithHotBarButton<UndoButton>()
+            //.WithHotBarButton<UndoButtonToggle>()
+            //.WithHotBarButton<UndoButtonToggleTwo>();
 
         WorkspaceRegistration.Register<CoreWorkspace>(definition);
         CoreRegistered = true;

@@ -1,23 +1,72 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
-public unsafe partial class NativeGrid
-{
+internal unsafe partial class NativeGrid {
+    
+    /// <summary>Rasterizes an octree into the NativeGrid, overwriting it entirely</summary>
+    internal void RasterizeOctreeIntoGrid(NativeArray<byte> octreeData) {
+        if (!octreeData.IsCreated || octreeData.Length == 0) return;
+        ConvertOctreeToGrid(octreeData.Reinterpret<OctNode>(), (ushort*)_gridPtr);
+    }
+    
+    private static void ConvertOctreeToGrid(
+        NativeArray<OctNode> nodes,
+        ushort* gridPtr,
+        int currentNodeIndex = 0, 
+        uint currentNodeRegionWidth = SideLength,
+        uint x = 0, uint y = 0, uint z = 0
+    ) {
+        OctNode currentNode = nodes[currentNodeIndex];
+        ushort startingChildIndex = currentNode.childIndex;
+        
+        // Leaf Node, safe to fill in the grid from here
+        if (startingChildIndex == 0 || currentNodeRegionWidth <= 1) {
+            int startIndex = (int)NativeGrid.GetVoxelIndex(z, y, x);
+            ushort voxelPacked = (ushort)(currentNode.type | (currentNode.density << 8));
+            int volume = (int)(currentNodeRegionWidth * currentNodeRegionWidth * currentNodeRegionWidth);
+            
+            ushort* dst = gridPtr + startIndex;
+            dst[0] = voxelPacked;
+            
+            // Gradually copy the ushort for the region we want. This is the only real way to (blazingly fast)
+            // fill a ushort value for a continuous region
+            int filled = 1;
+            while (filled < volume) {
+                int countToCopy = Math.Min(filled, volume - filled);
+                UnsafeUtility.MemCpy(dst + filled, dst, countToCopy * sizeof(ushort));
+                filled += countToCopy;
+            }
+            return;
+        }
+
+        // Subdivide work into child nodes
+        uint half = currentNodeRegionWidth / 2;
+        ConvertOctreeToGrid(nodes, gridPtr, startingChildIndex,     half, x,        y,        z       );
+        ConvertOctreeToGrid(nodes, gridPtr, startingChildIndex + 1, half, x,        y,        z + half);
+        ConvertOctreeToGrid(nodes, gridPtr, startingChildIndex + 2, half, x,        y + half, z       );
+        ConvertOctreeToGrid(nodes, gridPtr, startingChildIndex + 3, half, x,        y + half, z + half);
+        ConvertOctreeToGrid(nodes, gridPtr, startingChildIndex + 4, half, x + half, y,               z);
+        ConvertOctreeToGrid(nodes, gridPtr, startingChildIndex + 5, half, x + half, y,        z + half);
+        ConvertOctreeToGrid(nodes, gridPtr, startingChildIndex + 6, half, x + half, y + half, z       );
+        ConvertOctreeToGrid(nodes, gridPtr, startingChildIndex + 7, half, x + half, y + half, z + half);
+    }
+    
+    
     /// <summary>
     /// Converts the native terrain grid into an octree byte sequence compatible with the terrain streamer.
     /// </summary>
     /// <remarks>If this is being written to a file, it does not include the node count ushort in the array,
     /// it is just the raw nodes in correct order</remarks>
-    public NativeArray<byte> DerasterizeToOctree() 
+    internal NativeArray<byte> DerasterizeToOctree()
         => ConvertGridToOctree()
             .AsArray()
             .Reinterpret<byte>(UnsafeUtility.SizeOf<OctNode>());
 
-    private NativeList<OctNode> ConvertGridToOctree()
-    {
+    private NativeList<OctNode> ConvertGridToOctree() {
         NativeList<OctNode> nodes = new(1024, Allocator.Persistent);
         
         // Breath First as nodes must be listed top down from the tree

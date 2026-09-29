@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using SNTerrainEditor.Core.Editing;
 using SNTerrainEditor.FileOperations;
 using Unity.Collections;
 using UnityEngine.Yoga;
@@ -58,15 +59,41 @@ internal class EditSession : IDisposable
         return managedBatches[batchIndex].octrees.Get(octreeIndex);
     }
     
-    internal void DEBUG__ModifyAllLava() {
+    internal void DEBUG__Clear() {
         NativeGrid grid = EDIT_GRID_POOl.Take();
         
         foreach (ManagedBatch batch in managedBatches.Values) {
             foreach (ManagedOctree octree in batch.octrees) {
-                grid.SetFromOctree(octree.octreeBytes);
-                grid.DEBUG__ModifyWithLavaTexture();
-                octree.octreeBytes.Dispose();
+                NativeArray<byte> old = octree.octreeBytes;
+                grid.RasterizeOctreeIntoGrid(old);
+                grid.DEBUG__Clear();
                 octree.octreeBytes = grid.DerasterizeToOctree();
+                old.Dispose();
+            }
+        }
+    }
+    
+    internal void DEBUG__Sphere(Int3 batchIndex) {
+        NativeGrid grid = EDIT_GRID_POOl.Take();
+
+        foreach (ManagedBatch batch in managedBatches.Values) {
+            Int3 batchBlockPos = batchIndex * ManagedBatch.OCTREES_PER_SIDE;
+            
+            foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
+                ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
+                
+                NativeArray<byte> old = octree.octreeBytes;
+                grid.RasterizeOctreeIntoGrid(old);
+
+                Int3 gridBlockPos = batchBlockPos + octreeLocalIndex;
+        
+                SdfSphereEdit edit = new(grid, gridBlockPos + new Int3(16, 16, 16), gridBlockPos);
+                edit.Schedule();
+        
+                edit.jobHandle.Complete();
+        
+                octree.octreeBytes = grid.DerasterizeToOctree();
+                old.Dispose();
             }
         }
     }
