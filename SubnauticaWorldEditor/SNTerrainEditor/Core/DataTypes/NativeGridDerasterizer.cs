@@ -16,15 +16,6 @@ internal static unsafe class NativeGridDerasterizer
     private static readonly OctNode* bufferPtr = (OctNode*)buffer.GetUnsafePtr();
     private static ushort bufferPos;
     
-    //Burst shit
-    private static readonly GetDominantTypeDelegate getDominantType_Burst;
-
-    static NativeGridDerasterizer()
-    {
-        var ptr = BurstCompiler.CompileFunctionPointer<GetDominantTypeDelegate>(GetDominantType);
-        getDominantType_Burst = ptr.Invoke;
-    }
-    
     /// <summary>
     /// Converts the native terrain grid into an octree byte sequence compatible with the terrain streamer.
     /// </summary>
@@ -63,25 +54,27 @@ internal static unsafe class NativeGridDerasterizer
                 children[7] = GenerateNodes(gridPtr, x+halfWidth, y+halfWidth, z+halfWidth, newSize);
             }
 
-            OctNode first = children[0];
-            bool isUniform = true;
-            bool hasChildren = false;
-            
-            for (int i = 0; i < 8; i++) {
-                OctNode current = children[i];
-                if (current.childIndex != 0) {
-                    hasChildren = true;
-                    break;
-                }
-                if (i > 1 && first.density != current.density || first.type != current.type) {
-                    isUniform = false;
-                    break;
-                }
-            }
 
-            if (isUniform && !hasChildren) {
-                return first with { childIndex = 0 };
+            bool hasChildren;
+            if (size == 1) {
+                hasChildren = false;
+            } else {
+                hasChildren = children[0].childIndex != 0 || children[1].childIndex != 0 ||
+                              children[2].childIndex != 0 || children[3].childIndex != 0 ||
+                              children[4].childIndex != 0 || children[5].childIndex != 0 ||
+                              children[6].childIndex != 0 || children[7].childIndex != 0;
             }
+            
+            OctNode first = children[0];
+            bool isUniform = children[1].density == first.density && children[1].type == first.type &&
+                             children[2].density == first.density && children[2].type == first.type &&
+                             children[3].density == first.density && children[3].type == first.type &&
+                             children[4].density == first.density && children[4].type == first.type &&
+                             children[5].density == first.density && children[5].type == first.type &&
+                             children[6].density == first.density && children[6].type == first.type &&
+                             children[7].density == first.density && children[7].type == first.type;
+
+            if (isUniform && !hasChildren) return first with { childIndex = 0 };
 
             ushort densitySum = 0;
             for (int i = 0; i < 8; i++) {
@@ -93,7 +86,7 @@ internal static unsafe class NativeGridDerasterizer
             byte dominantType = 0;
 
             if (avgDensity >= 126) {
-                dominantType = getDominantType_Burst(children);
+                dominantType = GetDominantType(children);
             }
             
             bufferPos -= 8;
@@ -124,10 +117,6 @@ internal static unsafe class NativeGridDerasterizer
         return outputNodes.Reinterpret<byte>();
     }
     
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate byte GetDominantTypeDelegate(OctNode* children);
-    
-    [BurstCompile]
     private static byte GetDominantType(OctNode* children)
     {
         byte maxType = 0;
