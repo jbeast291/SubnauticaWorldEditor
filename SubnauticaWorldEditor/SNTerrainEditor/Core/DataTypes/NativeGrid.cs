@@ -6,10 +6,10 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace SNTerrainEditor.Core.DataTypes;
 
 internal unsafe partial class NativeGrid : IDisposable {
-    private const int SideLength = 32;
+    internal const int SideLength = 32;
     internal const int GridArrayLength = SideLength * SideLength * SideLength;
     
-    private readonly NativeArray<Voxel> _grid = new(GridArrayLength, Allocator.Persistent);
+    private readonly NativeArray<Voxel> _grid = new(GridArrayLength, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
     private readonly Voxel* _gridPtr;
     
     internal NativeGrid() {

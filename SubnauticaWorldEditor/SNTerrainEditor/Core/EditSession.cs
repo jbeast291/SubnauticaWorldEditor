@@ -67,9 +67,9 @@ internal class EditSession : IDisposable
         foreach (ManagedBatch batch in managedBatches.Values) {
             foreach (ManagedOctree octree in batch.octrees) {
                 NativeArray<byte> old = octree.octreeBytes;
-                grid.RasterizeOctreeIntoGrid(old);
+                NativeGridRasiterizer.FromOctreeIntoGrid(grid, old);
                 grid.DEBUG__Clear();
-                octree.octreeBytes = grid.DerasterizeToOctree();
+                octree.octreeBytes = NativeGridDerasterizer.ToOctree(grid);
                 old.Dispose();
             }
         }
@@ -87,7 +87,7 @@ internal class EditSession : IDisposable
             grids.Add(octreeLocalIndex, grid);
             ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
             NativeArray<byte> old = octree.octreeBytes;
-            grid.RasterizeOctreeIntoGrid(old);
+            NativeGridRasiterizer.FromOctreeIntoGrid(grid, old);
         }
         sw.Stop();
         Plugin.LogError($"(Spheres) Rasterize Took: {sw.ElapsedMilliseconds}ms");
@@ -103,13 +103,13 @@ internal class EditSession : IDisposable
         prev.Complete();
         sw.Stop();
         Plugin.LogError($"(Spheres) Voxel Opp: {sw.ElapsedMilliseconds}ms");
-
+        
         sw.Restart();
         foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
             ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
             NativeArray<byte> old = octree.octreeBytes;
             NativeGrid grid = grids[octreeLocalIndex];
-            octree.octreeBytes = grid.DerasterizeToOctree();
+            octree.octreeBytes = NativeGridDerasterizer.ToOctree(grid);
             old.Dispose();
             EDIT_GRID_POOl.Push(grid);
         }

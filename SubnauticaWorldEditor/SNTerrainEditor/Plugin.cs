@@ -90,7 +90,7 @@ public class BurstConfirm
 
         Plugin.LogInfo($"Function pointer: 0x{ptr.Value.ToInt64():X}");
 
-        var fn = ptr.Invoke;
+        TestDelegate? fn = ptr.Invoke;
         Plugin.LogInfo($"Result: {fn(10)}");
     }
 
