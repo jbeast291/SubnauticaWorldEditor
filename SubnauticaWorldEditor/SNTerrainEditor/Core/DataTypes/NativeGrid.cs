@@ -50,20 +50,6 @@ internal unsafe partial class NativeGrid : IDisposable {
                | (x & layer4Mask) << 8
                | (x & layer5Mask) << 10;
     }
-
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static uint ExpandBits5(uint v) {
-        // Keep only the lowest 5 bits
-        v &= 0b0001_1111u; 
-    
-        // Spread 5 bits out into 3-bit strides
-        v = (v | (v << 8)) & 0b0001_0000_0000_0000_0000_1111u; // 0x1000F
-        v = (v | (v << 4)) & 0b0001_0000_0000_1100_0000_0011u; // 0x100C3
-        v = (v | (v << 2)) & 0b0001_0010_0100_1001_0010_0100u; // 0x12492
-    
-        return v;
-    }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void GetVoxelCoordinates(uint index, out uint z, out uint y, out uint x)

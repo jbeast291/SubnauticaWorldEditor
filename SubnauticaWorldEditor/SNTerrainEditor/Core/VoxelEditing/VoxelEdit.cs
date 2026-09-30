@@ -11,6 +11,6 @@ internal abstract class VoxelEdit(NativeGrid grid, Int3 brushBlockPos, Int3 grid
     protected readonly Int3 GridBlockPos = gridBlockPos;
     public JobHandle jobHandle;
 
-    public abstract void Schedule();
+    public abstract JobHandle Schedule(JobHandle dependency);
     public virtual void Cleanup() { }
 }

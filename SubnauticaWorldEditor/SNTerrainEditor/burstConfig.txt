@@ -1,0 +1,16 @@
+--platform=Windows
+--target=X64_SSE2
+--target=AVX2
+--generate-job-marshalling-methods
+--root-assembly=C:\Program Files (x86)\Steam\steamapps\common\Subnautica\BepInEx\plugins\SubnauticaWorldEditor\SNTerrainEditor.dll
+--output=C:\Program Files (x86)\Steam\steamapps\common\Subnautica\BepInEx\plugins\SubnauticaWorldEditor\SNTerrainEditor_burst_generated
+--temp-folder=C:\Users\jbeast\Documents\GitHub\SubnauticaWorldEditor\SubnauticaWorldEditor\SNTerrainEditor\Temp\Burst
+--assembly-folder=C:\Program Files (x86)\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed
+--assembly-folder=C:\Program Files (x86)\Steam\steamapps\common\Subnautica\Subnautica_Data\Managed\etc
+--assembly-folder=C:\Program Files (x86)\Steam\steamapps\common\Subnautica\Subnautica_Data\Plugins\x86_64
+--assembly-folder=C:\Program Files (x86)\Steam\steamapps\common\Subnautica\BepInEx\core
+--assembly-folder=C:\Program Files (x86)\Steam\steamapps\common\Subnautica\BepInEx\plugins\SubnauticaWorldEditor
+--assembly-folder=C:\Program Files (x86)\Steam\steamapps\common\Subnautica\BepInEx\plugins\Nautilus
+--opt-level=2
+--fastmath
+--debug=Full

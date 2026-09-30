@@ -3,6 +3,7 @@ using SNTerrainEditor.Core.DataTypes;
 using SNTerrainEditor.Extensions;
 using SNTerrainEditor.FileOperations;
 using Unity.Collections;
+using Unity.Jobs.LowLevel.Unsafe;
 using UnityEngine;
 using WorldStreaming;
 using Math = System.Math;
@@ -71,7 +72,7 @@ internal class EditorBatchManager : MonoBehaviour
         sw.Restart();
         activeSession.DEBUG__Sphere(new(12, 18, 12));
         sw.Stop();
-        Plugin.LogError($"Create Spheres (Rasterize + Modify + Derasterize) Took: {sw.ElapsedMilliseconds}ms");
+        Plugin.LogError($"(Workers: {JobsUtility.JobWorkerCount}) Create Spheres (Rasterize + Modify + Derasterize) Took: {sw.ElapsedMilliseconds}ms");
         
         sw.Restart();
         DEBUG__UploadChangesToWorldStreamer(new(12, 18, 12));

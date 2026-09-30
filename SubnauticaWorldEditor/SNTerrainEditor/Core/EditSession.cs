@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Nautilus.Utility;
 using SNTerrainEditor.Core.Editing;
 using SNTerrainEditor.FileOperations;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.Yoga;
 using WorldStreaming;
 
@@ -38,8 +40,8 @@ internal class EditSession : IDisposable
     
     private readonly WorldStreamer WORLD_STREAMER;
 
-    private const int GRID_POOL_SIZE = 64;
-    private static readonly BlockingCollection<NativeGrid> EDIT_GRID_POOl = new();
+    private const int GRID_POOL_SIZE = 128;
+    private static readonly Stack<NativeGrid> EDIT_GRID_POOl = new();
     
     private readonly Dictionary<Int3, ManagedBatch> managedBatches = new();
     
@@ -47,7 +49,7 @@ internal class EditSession : IDisposable
         WORLD_STREAMER = worldStreamer;
         
         for(int i = 0; i < GRID_POOL_SIZE; i++) {
-            EDIT_GRID_POOl.Add(new NativeGrid());
+            EDIT_GRID_POOl.Push(new NativeGrid());
         }
     }
 
@@ -60,7 +62,7 @@ internal class EditSession : IDisposable
     }
     
     internal void DEBUG__Clear() {
-        NativeGrid grid = EDIT_GRID_POOl.Take();
+        NativeGrid grid = EDIT_GRID_POOl.Pop();
         
         foreach (ManagedBatch batch in managedBatches.Values) {
             foreach (ManagedOctree octree in batch.octrees) {
@@ -71,39 +73,52 @@ internal class EditSession : IDisposable
                 old.Dispose();
             }
         }
+        EDIT_GRID_POOl.Push(grid);
     }
     
     internal void DEBUG__Sphere(Int3 batchIndex) {
-        NativeGrid grid = EDIT_GRID_POOl.Take();
-
-        foreach (ManagedBatch batch in managedBatches.Values) {
-            Int3 batchBlockPos = batchIndex * ManagedBatch.OCTREES_PER_SIDE;
-            
-            foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
-                ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
-                
-                NativeArray<byte> old = octree.octreeBytes;
-                grid.RasterizeOctreeIntoGrid(old);
-
-                Int3 gridBlockPos = batchBlockPos + octreeLocalIndex;
+        ManagedBatch batch = managedBatches[batchIndex];
         
-                SdfSphereEdit edit = new(grid, gridBlockPos + new Int3(16, 16, 16), gridBlockPos);
-                edit.Schedule();
-        
-                edit.jobHandle.Complete();
-        
-                octree.octreeBytes = grid.DerasterizeToOctree();
-                old.Dispose();
-            }
+        System.Diagnostics.Stopwatch sw = new();
+        sw.Start();
+        Dictionary<Int3, NativeGrid> grids = new();
+        foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
+            NativeGrid grid = EDIT_GRID_POOl.Pop();
+            grids.Add(octreeLocalIndex, grid);
+            ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
+            NativeArray<byte> old = octree.octreeBytes;
+            grid.RasterizeOctreeIntoGrid(old);
         }
-    }
+        sw.Stop();
+        Plugin.LogError($"(Spheres) Rasterize Took: {sw.ElapsedMilliseconds}ms");
+        
+        sw.Restart();
+        Int3 batchBlockPos = batchIndex * ManagedBatch.OCTREES_PER_SIDE;
+        JobHandle prev = default;
+        foreach (var kVp in grids) {
+            Int3 gridBlockPos = batchBlockPos + kVp.Key;
+            SdfSphereEdit edit = new(kVp.Value, gridBlockPos + new Int3(16, 16, 16), gridBlockPos);
+            prev = edit.Schedule(prev);
+        }
+        prev.Complete();
+        sw.Stop();
+        Plugin.LogError($"(Spheres) Voxel Opp: {sw.ElapsedMilliseconds}ms");
 
-    internal void EndSession() => Dispose(); 
+        sw.Restart();
+        foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
+            ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
+            NativeArray<byte> old = octree.octreeBytes;
+            NativeGrid grid = grids[octreeLocalIndex];
+            octree.octreeBytes = grid.DerasterizeToOctree();
+            old.Dispose();
+            EDIT_GRID_POOl.Push(grid);
+        }
+        sw.Stop();
+        Plugin.LogError($"(Spheres) Derasterize Took: {sw.ElapsedMilliseconds}ms");
+    }
     
     public void Dispose()
     {
-        managedBatches.Values.ForEach(batchData => 
-            batchData.octrees.ForEach(batch => batch.octreeBytes.Dispose())
-        );
+        
     }
 }

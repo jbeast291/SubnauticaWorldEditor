@@ -62,8 +62,6 @@ internal partial class NativeGrid
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static byte GetAdjustedDensity(Voxel voxel)
-    {
-        return (voxel.density == 0 && voxel.type != 0) ? (byte)252 : voxel.density;
-    }
+    private static byte GetAdjustedDensity(Voxel voxel) 
+        =>(voxel.density == 0 && voxel.type != 0) ? (byte)252 : voxel.density;
 }

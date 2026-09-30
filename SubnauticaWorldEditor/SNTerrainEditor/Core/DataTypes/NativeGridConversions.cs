@@ -67,7 +67,7 @@ internal unsafe partial class NativeGrid {
             .Reinterpret<byte>(UnsafeUtility.SizeOf<OctNode>());
 
     private NativeList<OctNode> ConvertGridToOctree() {
-        NativeList<OctNode> nodes = new(1024, Allocator.Persistent);
+        NativeList<OctNode> nodes = new(4096, Allocator.Persistent);
         
         // Breath First as nodes must be listed top down from the tree
         Queue<(int nodeIdx, uint x, uint y, uint z, uint width)> queue = new(128);
