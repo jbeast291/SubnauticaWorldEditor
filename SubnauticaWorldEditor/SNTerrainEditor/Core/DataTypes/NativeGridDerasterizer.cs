@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Unity.Burst;
+using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -22,8 +23,7 @@ internal static unsafe class NativeGridDerasterizer
     /// <summary>
     /// Schedules the octree derasterization job.
     /// </summary>
-    public static JobHandle Schedule(NativeGrid grid, NativeList<byte> outputBytes, JobHandle dependency = default)
-    {
+    public static JobHandle Schedule(NativeGrid grid, NativeList<byte> outputBytes, JobHandle dependency = default) {
         DerasterizeToOctreeJob job = new() {
             GridPtr = grid.GridPtr,
             bufferPtr = (OctNode*)buffer.GetUnsafePtr(),
@@ -43,22 +43,26 @@ internal static unsafe class NativeGridDerasterizer
         
         public void Execute() {
             bufferPos = MAX_NODES_OCTREE;
-
-            //grid = level0
-            OctNode* level1 = stackalloc OctNode[LEVEL1_NODE_COUNT]; // z order
-            OctNode* level2 = stackalloc OctNode[LEVEL2_NODE_COUNT];    // z order
-            OctNode* level3 = stackalloc OctNode[LEVEL3_NODE_COUNT];    // z order
-            OctNode* level4 = stackalloc OctNode[LEVEL4_NODE_COUNT];    // z order
             
-            //Process level 1 with its nodes
+            //Ping pong buffering system. We only need the layers 1 below the current so only keep that
+            OctNode* LayerBufferPing = stackalloc OctNode[LEVEL1_NODE_COUNT + LEVEL2_NODE_COUNT];
+            OctNode* LayerBufferPong = LayerBufferPing + LEVEL1_NODE_COUNT;
+            
+            //Process Levels
             for (uint src = 0; src < NativeGrid.GridArrayLength; src += 8) {
-                level1[src >> 3] = CreateParentNodeVoxel(GridPtr + src);
+                LayerBufferPing[src >> 3] = CreateParentNodeVoxel(GridPtr + src);
+            }
+            for (uint srcIdx = 0; srcIdx < LEVEL1_NODE_COUNT; srcIdx += 8) {
+                LayerBufferPong[srcIdx >> 3] = CreateParentNode(LayerBufferPing + srcIdx);
+            }
+            for (uint srcIdx = 0; srcIdx < LEVEL2_NODE_COUNT; srcIdx += 8) {
+                LayerBufferPing[srcIdx >> 3] = CreateParentNode(LayerBufferPong + srcIdx);
+            }
+            for (uint srcIdx = 0; srcIdx < LEVEL3_NODE_COUNT; srcIdx += 8) {
+                LayerBufferPong[srcIdx >> 3] = CreateParentNode(LayerBufferPing + srcIdx);
             }
             
-            ProcessIntermediaryLevel(level1, LEVEL1_NODE_COUNT, level2);
-            ProcessIntermediaryLevel(level2, LEVEL2_NODE_COUNT, level3);
-            ProcessIntermediaryLevel(level3, LEVEL3_NODE_COUNT, level4);
-            OctNode root = CreateParentNode(level4);
+            OctNode root = CreateParentNode(LayerBufferPong);
             
             bufferPos -= 1;
             bufferPtr[bufferPos] = root;
@@ -76,13 +80,7 @@ internal static unsafe class NativeGridDerasterizer
             byte* outputPtr = (byte*)OutputBytes.GetUnsafePtr();
             UnsafeUtility.MemCpy(outputPtr, bufferPtr + bufferPos, byteCount);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ProcessIntermediaryLevel(OctNode* source, int sourceCount, OctNode* destination) {
-            for (uint srcIdx = 0; srcIdx < sourceCount; srcIdx += 8) {
-                destination[srcIdx >> 3] = CreateParentNode(source + srcIdx);
-            }
-        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private OctNode CreateParentNodeVoxel(Voxel* children)
         {

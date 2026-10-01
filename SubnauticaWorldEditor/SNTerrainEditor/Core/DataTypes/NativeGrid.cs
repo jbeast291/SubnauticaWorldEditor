@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using SNTerrainEditor.Extensions;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -8,8 +9,10 @@ namespace SNTerrainEditor.Core.DataTypes;
 internal readonly unsafe struct NativeGrid : IDisposable {
     internal const int SideLength = 32;
     internal const int GridArrayLength = SideLength * SideLength * SideLength;
+
+    private readonly NativeArray<Voxel> _grid = 
+        VoxelGridAllocator.WithAlignment(GridArrayLength, Allocator.Persistent);
     
-    private readonly NativeArray<Voxel> _grid = new(GridArrayLength, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
     private readonly Voxel* _gridPtr => (Voxel*) _grid.GetUnsafePtr();
     
     public NativeGrid() { }

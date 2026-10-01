@@ -4,17 +4,17 @@ using System.Runtime.InteropServices;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
-[StructLayout(LayoutKind.Explicit, Size = 2, Pack = 2)]
+[StructLayout(LayoutKind.Sequential, Pack = 2)]
 public struct Voxel : IEquatable<Voxel>
 {
-    [FieldOffset(0)] public byte type;
+    public byte type;
     /// <summary>
     /// 0: (when the material != 0) means voxel is fully solid<br/>
     /// 1-125: above the surface<br/>
     /// 126: at the surface<br/>
     /// 127-252: below the surface
     /// </summary>
-    [FieldOffset(1)] public byte density;
+    public byte density;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Voxel other) 

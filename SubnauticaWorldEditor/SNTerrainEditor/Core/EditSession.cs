@@ -94,7 +94,7 @@ internal class EditSession : IDisposable
             NativeGridRasiterizer.FromOctreeIntoGrid(grid, old);
         }
         sw.Stop();
-        Plugin.LogError($"(Spheres) Rasterize Took: {sw.Elapsed.TotalMilliseconds}ms");
+        Plugin.LogError($"(Spheres) Average Rasterize Took: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
         
         sw.Restart();
         Int3 batchBlockPos = batchIndex * ManagedBatch.OCTREES_PER_SIDE;
@@ -107,21 +107,32 @@ internal class EditSession : IDisposable
         }
         prev.Complete();
         sw.Stop();
-        Plugin.LogError($"(Spheres) Voxel Opp: {sw.Elapsed.TotalMilliseconds}ms");
+        Plugin.LogError($"(Spheres) Average Voxel Opp: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
         
         sw.Restart();
         foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
             ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
             NativeArray<byte> old = octree.octreeBytes;
             NativeGrid grid = grids[octreeLocalIndex];
-            var list = new NativeList<byte>(0, Allocator.Persistent);
-            NativeGridDerasterizer.Schedule(grid, list).Complete();
-            octree.octreeBytes = list;
+
+            
+            /*//Rust
+            NativeArray<byte> octreeBytes;
+            unsafe {
+               NativeArray<OctNode> nodes = liboptoctrees.Derasterize(grid.GridPtr);
+               octreeBytes = nodes.Reinterpret<byte>();
+            }*/
+            
+            //c#
+            NativeList<byte> octreeBytes = new(0, Allocator.Persistent);
+            NativeGridDerasterizer.Schedule(grid, octreeBytes).Complete();
+            
+            octree.octreeBytes = octreeBytes;
             old.Dispose();
             EDIT_GRID_POOl.Push(grid);
         }
         sw.Stop();
-        Plugin.LogError($"(Spheres) Derasterize Took: {sw.Elapsed.TotalMilliseconds}ms");
+        Plugin.LogError($"(Spheres) Average Derasterize Took: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
     }
     
     public void Dispose()
