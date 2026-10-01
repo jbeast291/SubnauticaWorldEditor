@@ -4,6 +4,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
+/*
 internal partial class NativeGrid
 {
     private unsafe void SampleRegion(uint x, uint y, uint z, uint regionWidth,
@@ -64,4 +65,4 @@ internal partial class NativeGrid
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static byte GetAdjustedDensity(Voxel voxel) 
         =>(voxel.density == 0 && voxel.type != 0) ? (byte)252 : voxel.density;
-}
+}*/

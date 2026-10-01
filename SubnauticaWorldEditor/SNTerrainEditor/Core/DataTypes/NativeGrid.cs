@@ -5,17 +5,15 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
-internal unsafe partial class NativeGrid : IDisposable {
+internal readonly unsafe struct NativeGrid : IDisposable {
     internal const int SideLength = 32;
     internal const int GridArrayLength = SideLength * SideLength * SideLength;
     
     private readonly NativeArray<Voxel> _grid = new(GridArrayLength, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-    private readonly Voxel* _gridPtr;
+    private readonly Voxel* _gridPtr => (Voxel*) _grid.GetUnsafePtr();
     
-    internal NativeGrid() {
-        _gridPtr = (Voxel*) _grid.GetUnsafePtr();
-    }
-    
+    public NativeGrid() { }
+
     internal Voxel* GridPtr => _gridPtr;
     
     private const uint layer1Mask = 0b_00001u;

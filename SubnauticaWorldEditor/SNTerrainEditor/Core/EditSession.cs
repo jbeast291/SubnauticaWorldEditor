@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using Nautilus.Utility;
 using SNTerrainEditor.Core.Editing;
 using SNTerrainEditor.FileOperations;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine.Yoga;
 using WorldStreaming;
@@ -69,7 +71,9 @@ internal class EditSession : IDisposable
                 NativeArray<byte> old = octree.octreeBytes;
                 NativeGridRasiterizer.FromOctreeIntoGrid(grid, old);
                 grid.DEBUG__Clear();
-                octree.octreeBytes = NativeGridDerasterizer.ToOctree(grid);
+                var list = new NativeList<byte>(0, Allocator.Persistent);
+                NativeGridDerasterizer.Schedule(grid, list).Complete();
+                octree.octreeBytes = list;
                 old.Dispose();
             }
         }
@@ -103,13 +107,28 @@ internal class EditSession : IDisposable
         prev.Complete();
         sw.Stop();
         Plugin.LogError($"(Spheres) Voxel Opp: {sw.ElapsedMilliseconds}ms");
+
+        NativeGrid grid0 = grids[new(0)];
+        int byteCount = NativeGrid.GridArrayLength * UnsafeUtility.SizeOf<Voxel>();
+        byte[] managedBuffer = new byte[byteCount];
+
+        unsafe {
+            fixed (byte* managedPtr = managedBuffer)
+            {
+                UnsafeUtility.MemCpy(managedPtr, grid0.GridPtr, byteCount);
+            } 
+        }
+        
+        File.WriteAllBytes("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Subnautica\\testGrid.bin", managedBuffer);
         
         sw.Restart();
         foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
             ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
             NativeArray<byte> old = octree.octreeBytes;
             NativeGrid grid = grids[octreeLocalIndex];
-            octree.octreeBytes = NativeGridDerasterizer.ToOctree(grid);
+            var list = new NativeList<byte>(0, Allocator.Persistent);
+            NativeGridDerasterizer.Schedule(grid, list).Complete();;
+            octree.octreeBytes = list;
             old.Dispose();
             EDIT_GRID_POOl.Push(grid);
         }
