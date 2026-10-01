@@ -94,32 +94,20 @@ internal class EditSession : IDisposable
             NativeGridRasiterizer.FromOctreeIntoGrid(grid, old);
         }
         sw.Stop();
-        Plugin.LogError($"(Spheres) Rasterize Took: {sw.ElapsedMilliseconds}ms");
+        Plugin.LogError($"(Spheres) Rasterize Took: {sw.Elapsed.TotalMilliseconds}ms");
         
         sw.Restart();
         Int3 batchBlockPos = batchIndex * ManagedBatch.OCTREES_PER_SIDE;
+        Int3 brushPos = batchBlockPos + new Int3(80);
         JobHandle prev = default;
         foreach (var kVp in grids) {
-            Int3 gridBlockPos = batchBlockPos + kVp.Key;
-            SdfSphereEdit edit = new(kVp.Value, gridBlockPos + new Int3(16, 16, 16), gridBlockPos);
+            Int3 gridBlockPos = batchBlockPos + (kVp.Key * NativeGrid.SideLength);
+            SdfSphereEdit edit = new(kVp.Value, gridBlockPos, brushPos, 80);
             prev = edit.Schedule(prev);
         }
         prev.Complete();
         sw.Stop();
-        Plugin.LogError($"(Spheres) Voxel Opp: {sw.ElapsedMilliseconds}ms");
-
-        NativeGrid grid0 = grids[new(0)];
-        int byteCount = NativeGrid.GridArrayLength * UnsafeUtility.SizeOf<Voxel>();
-        byte[] managedBuffer = new byte[byteCount];
-
-        unsafe {
-            fixed (byte* managedPtr = managedBuffer)
-            {
-                UnsafeUtility.MemCpy(managedPtr, grid0.GridPtr, byteCount);
-            } 
-        }
-        
-        File.WriteAllBytes("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Subnautica\\testGrid.bin", managedBuffer);
+        Plugin.LogError($"(Spheres) Voxel Opp: {sw.Elapsed.TotalMilliseconds}ms");
         
         sw.Restart();
         foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
@@ -127,13 +115,13 @@ internal class EditSession : IDisposable
             NativeArray<byte> old = octree.octreeBytes;
             NativeGrid grid = grids[octreeLocalIndex];
             var list = new NativeList<byte>(0, Allocator.Persistent);
-            NativeGridDerasterizer.Schedule(grid, list).Complete();;
+            NativeGridDerasterizer.Schedule(grid, list).Complete();
             octree.octreeBytes = list;
             old.Dispose();
             EDIT_GRID_POOl.Push(grid);
         }
         sw.Stop();
-        Plugin.LogError($"(Spheres) Derasterize Took: {sw.ElapsedMilliseconds}ms");
+        Plugin.LogError($"(Spheres) Derasterize Took: {sw.Elapsed.TotalMilliseconds}ms");
     }
     
     public void Dispose()

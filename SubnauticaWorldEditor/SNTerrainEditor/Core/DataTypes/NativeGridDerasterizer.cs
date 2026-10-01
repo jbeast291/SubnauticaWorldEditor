@@ -9,11 +9,15 @@ namespace SNTerrainEditor.Core.DataTypes;
 
 internal static unsafe class NativeGridDerasterizer
 {
-    private const ushort MAX_NODES_OCTREE 
-        = (32 * 32 * 32) + (16 * 16 * 16) + (8 * 8 * 8) + (4 * 4 * 4) + (2 * 2 * 2) + 1;
+    private const ushort LEVEL1_NODE_COUNT = (16 * 16 * 16);
+    private const ushort LEVEL2_NODE_COUNT = (8 * 8 * 8);
+    private const ushort LEVEL3_NODE_COUNT = (4 * 4 * 4);
+    private const ushort LEVEL4_NODE_COUNT = (2 * 2 * 2);
+    private const ushort LEVEL5_NODE_COUNT = 1;
+    private const ushort MAX_NODES_OCTREE = NativeGrid.GridArrayLength + LEVEL1_NODE_COUNT + LEVEL2_NODE_COUNT + 
+                                            LEVEL3_NODE_COUNT + LEVEL4_NODE_COUNT + LEVEL5_NODE_COUNT;
 
-    private static readonly NativeArray<OctNode> buffer = new(MAX_NODES_OCTREE, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-    
+    private static readonly NativeArray<OctNode> buffer = new(MAX_NODES_OCTREE, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
     
     /// <summary>
     /// Schedules the octree derasterization job.
@@ -29,7 +33,7 @@ internal static unsafe class NativeGridDerasterizer
         return job.Schedule(dependency);
     }
     
-    [BurstCompile]
+    [BurstCompile(OptimizeFor = OptimizeFor.Performance)]
     private struct DerasterizeToOctreeJob : IJob {
         [NativeDisableUnsafePtrRestriction] public Voxel* GridPtr;
         [NativeDisableUnsafePtrRestriction] public OctNode* bufferPtr;
@@ -41,38 +45,19 @@ internal static unsafe class NativeGridDerasterizer
             bufferPos = MAX_NODES_OCTREE;
 
             //grid = level0
-            OctNode* level1 = stackalloc OctNode[16 * 16 * 16]; // z order
-            OctNode* level2 = stackalloc OctNode[8 * 8 * 8];    // z order
-            OctNode* level3 = stackalloc OctNode[4 * 4 * 4];    // z order
-            OctNode* level4 = stackalloc OctNode[2 * 2 * 2];    // z order
+            OctNode* level1 = stackalloc OctNode[LEVEL1_NODE_COUNT]; // z order
+            OctNode* level2 = stackalloc OctNode[LEVEL2_NODE_COUNT];    // z order
+            OctNode* level3 = stackalloc OctNode[LEVEL3_NODE_COUNT];    // z order
+            OctNode* level4 = stackalloc OctNode[LEVEL4_NODE_COUNT];    // z order
             
-            OctNode* children = stackalloc OctNode[8];
-            for (uint x = 0; x < 16; x++)
-            for (uint y = 0; y < 16; y++)
-            for (uint z = 0; z < 16; z++) {
-                uint vx = x * 2;
-                uint vy = y * 2;
-                uint vz = z * 2;
-                
-                uint voxelIndex = NativeGrid.GetVoxelIndex(vz, vy, vx); 
-
-                for (int i = 0; i < 8; i++) {
-                    Voxel voxel = GridPtr[voxelIndex + i];
-                    children[i] = new OctNode {
-                        type = voxel.type,
-                        density = voxel.density,
-                        childIndex = 0
-                    };
-                }
-
-                uint l1Idx = NativeGrid.GetVoxelIndex(z, y, x);
-                level1[l1Idx] = CreateParentNode(children);
+            //Process level 1 with its nodes
+            for (uint src = 0; src < NativeGrid.GridArrayLength; src += 8) {
+                level1[src >> 3] = CreateParentNodeVoxel(GridPtr + src);
             }
             
-            ProcessIntermediaryLevel(level1, 16, level2, children);
-            ProcessIntermediaryLevel(level2, 8, level3, children);
-            ProcessIntermediaryLevel(level3, 4, level4, children);
-            
+            ProcessIntermediaryLevel(level1, LEVEL1_NODE_COUNT, level2);
+            ProcessIntermediaryLevel(level2, LEVEL2_NODE_COUNT, level3);
+            ProcessIntermediaryLevel(level3, LEVEL3_NODE_COUNT, level4);
             OctNode root = CreateParentNode(level4);
             
             bufferPos -= 1;
@@ -93,20 +78,56 @@ internal static unsafe class NativeGridDerasterizer
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ProcessIntermediaryLevel(OctNode* source, int sourceDimensions, OctNode* destination, OctNode* childBuffer) {
-            for (uint x = 0; x < (uint)sourceDimensions; x+=2)
-            for (uint y = 0; y < (uint)sourceDimensions; y+=2)
-            for (uint z = 0; z < (uint)sourceDimensions; z+=2) {
-                uint voxelIndex = NativeGrid.GetVoxelIndex(z, y, x);
-                for (int i = 0; i < 8; i++) {
-                    childBuffer[i] = source[voxelIndex + i];
-                }
-                
-                uint dstIdx = NativeGrid.GetVoxelIndex(z >> 1, y >> 1, x >> 1);
-                destination[dstIdx] = CreateParentNode(childBuffer);
+        private void ProcessIntermediaryLevel(OctNode* source, int sourceCount, OctNode* destination) {
+            for (uint srcIdx = 0; srcIdx < sourceCount; srcIdx += 8) {
+                destination[srcIdx >> 3] = CreateParentNode(source + srcIdx);
             }
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private OctNode CreateParentNodeVoxel(Voxel* children)
+        {
+            Voxel first = children[0];
+            bool isUniform = children[1].density == first.density && children[1].type == first.type &&
+                             children[2].density == first.density && children[2].type == first.type &&
+                             children[3].density == first.density && children[3].type == first.type &&
+                             children[4].density == first.density && children[4].type == first.type &&
+                             children[5].density == first.density && children[5].type == first.type &&
+                             children[6].density == first.density && children[6].type == first.type &&
+                             children[7].density == first.density && children[7].type == first.type;
+            
+            if (isUniform) return new OctNode {
+                density = first.density,
+                type = first.type,
+                childIndex = 0,
+            };
 
+            ushort densitySum = 0;
+            for (int i = 0; i < 8; i++) {
+                Voxel current = children[i];
+                densitySum += (current.density == 0 && current.type != 0) ? (byte)252 : current.density;
+            }
+
+            byte avgDensity = (byte)(densitySum >> 3);
+            byte dominantType = 0;
+
+            if (avgDensity >= 126) dominantType = GetDominantType(children);
+
+            bufferPos -= 8;
+            for (int i = 0; i < 8; i++) {
+                bufferPtr[bufferPos + i] = new OctNode {
+                    density = children[i].density,
+                    type = children[i].type,
+                    childIndex = 0
+                };
+            }
+
+            return new OctNode {
+                density = avgDensity,
+                type = dominantType,
+                childIndex = bufferPos,
+            };
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private OctNode CreateParentNode(OctNode* children) { 
             bool hasChildren = children[0].childIndex != 0 || children[1].childIndex != 0 ||
@@ -147,26 +168,55 @@ internal static unsafe class NativeGridDerasterizer
                 childIndex = bufferPos,
             };
         }
-
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static byte GetDominantType(OctNode* children) {
-            byte maxType = 0;
-            int maxCount = 0;
+        private static byte GetDominantType(Voxel* children) {
+            byte bestType = 0;
+            int bestCount = 0;
 
             for (int i = 0; i < 8; i++) {
                 byte type = children[i].type;
                 if (type == 0) continue;
 
                 int count = 1;
+
                 for (int j = i + 1; j < 8; j++) {
-                    if (children[j].type == type) count++;
+                    count += children[j].type == type ? 1 : 0;
                 }
-                if (count > maxCount) {
-                    maxCount = count;
-                    maxType = type;
+
+                if (count > bestCount) {
+                    bestCount = count;
+                    bestType = type;
+                    
+                    if (bestCount >= 4) break;
                 }
             }
-            return maxType;
+            return bestType;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static byte GetDominantType(OctNode* children) {
+            byte bestType = 0;
+            int bestCount = 0;
+
+            for (int i = 0; i < 8; i++) {
+                byte type = children[i].type;
+                if (type == 0) continue;
+
+                int count = 1;
+
+                for (int j = i + 1; j < 8; j++) {
+                    count += children[j].type == type ? 1 : 0;
+                }
+
+                if (count > bestCount) {
+                    bestCount = count;
+                    bestType = type;
+                    
+                    if (bestCount >= 4) break;
+                }
+            }
+            return bestType;
         }
     }
 }

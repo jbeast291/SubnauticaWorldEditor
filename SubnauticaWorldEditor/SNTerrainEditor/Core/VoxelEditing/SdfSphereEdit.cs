@@ -9,8 +9,8 @@ namespace SNTerrainEditor.Core.Editing;
 
 internal class SdfSphereEdit : VoxelEdit
 {
-    internal SdfSphereEdit(NativeGrid grid, Int3 brushBlockPos, Int3 gridBlockPos)
-        : base(grid, brushBlockPos, gridBlockPos) {
+    internal SdfSphereEdit(NativeGrid grid, Int3 gridBlockPos, Int3 brushBlockPos, int brushScale) 
+        : base(grid, gridBlockPos, brushBlockPos, brushScale) {
     }
     
     [BurstCompile]
@@ -19,45 +19,30 @@ internal class SdfSphereEdit : VoxelEdit
         [NativeDisableUnsafePtrRestriction] internal Voxel* grid;
         [ReadOnly] internal Int3 brushBlockPos;
         [ReadOnly] internal Int3 gridBlockPos;
-        
-        private const int radius = 16;
-        private const int radiusSqr = radius * radius;
-        private const float invRadiusSqr = 1.0f / radiusSqr;
+        [ReadOnly] internal int radiusSqr;
+        [ReadOnly] internal float invRadiusSqr;
         
         public void Execute(int index) {
-            int z =   (index & 0x0001)
-                    | ((index >> 2) & 0x0002)
-                    | ((index >> 4) & 0x0004)
-                    | ((index >> 6) & 0x0008)
-                    | ((index >> 8) & 0x0010);
-            int y =   ((index >> 1) & 0x0001)
-                    | ((index >> 3) & 0x0002)
-                    | ((index >> 5) & 0x0004)
-                    | ((index >> 7) & 0x0008)
-                    | ((index >> 9) & 0x0010);
-            int x =   ((index >> 2) & 0x0001)
-                    | ((index >> 4) & 0x0002)
-                    | ((index >> 6) & 0x0004)
-                    | ((index >> 8) & 0x0008)
-                    | ((index >> 10) & 0x0010);
-        
-            //int sqrDist = Int3.SquareDistance(brushBlockPos, block);
+            NativeGrid.GetVoxelCoordinates((uint)index, out uint uz, out uint uy, out uint ux);
+            int z = (int)uz;
+            int y = (int)uy;
+            int x = (int)ux;
             
             x = gridBlockPos.x + x;
             y = gridBlockPos.y + y;
             z = gridBlockPos.z + z;
             
-            int num = brushBlockPos.x - x;
-            int num2 = brushBlockPos.y - y;
-            int num3 = brushBlockPos.z - z;
-            int sqrDist = num * num + num2 * num2 + num3 * num3;
+            int xdist = brushBlockPos.x - x;
+            int ydist = brushBlockPos.y - y;
+            int zdist = brushBlockPos.z - z;
+            int sqrDist = xdist * xdist + ydist * ydist + zdist * zdist;
             
             if (sqrDist >= radiusSqr) return;
 
             // Normalize distance between [0.0-1.0]
             // Not a perfect replacement for sqrt but close enough, worth the performance
-            float t = 1.0f - sqrDist * invRadiusSqr;
-
+            float t = 1.0f - 0.5f * sqrDist * invRadiusSqr;
+            
             // Scale to 0-252 density
             byte targetDensity = (byte)(t * 252f);
 
@@ -66,11 +51,6 @@ internal class SdfSphereEdit : VoxelEdit
                 grid[index].type = 4;
             }
         }
-
-        /*private Int3 IndexToBlockPos(int index) {
-            NativeGrid.GetVoxelCoordinates((uint)index, out uint z, out uint y, out uint x);
-            return gridBlockPos + new Int3((int)x, (int)y, (int)z);
-        }*/
     }
 
     public override unsafe JobHandle Schedule(JobHandle dependency)
@@ -78,7 +58,9 @@ internal class SdfSphereEdit : VoxelEdit
         DensityAddSubJob job = new() {
             grid = grid.GridPtr,
             brushBlockPos = BrushBlockPos,
-            gridBlockPos = GridBlockPos
+            gridBlockPos = GridBlockPos,
+            radiusSqr = BrushScale * BrushScale,
+            invRadiusSqr = 1.0f / (BrushScale * BrushScale),
         };
         
         jobHandle = job.Schedule(
