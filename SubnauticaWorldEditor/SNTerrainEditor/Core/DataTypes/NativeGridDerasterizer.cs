@@ -69,9 +69,9 @@ internal static unsafe class NativeGridDerasterizer
                 level1[l1Idx] = CreateParentNode(children);
             }
             
-            ProcessIntermediaryLevel(level1, level2, children, 16);
-            ProcessIntermediaryLevel(level2, level3, children, 8);
-            ProcessIntermediaryLevel(level3, level4, children, 4);
+            ProcessIntermediaryLevel(level1, 16, level2, children);
+            ProcessIntermediaryLevel(level2, 8, level3, children);
+            ProcessIntermediaryLevel(level3, 4, level4, children);
             
             OctNode root = CreateParentNode(level4);
             
@@ -93,7 +93,7 @@ internal static unsafe class NativeGridDerasterizer
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ProcessIntermediaryLevel(OctNode* source, OctNode* destination, OctNode* childBuffer, int sourceDimensions) {
+        private void ProcessIntermediaryLevel(OctNode* source, int sourceDimensions, OctNode* destination, OctNode* childBuffer) {
             for (uint x = 0; x < (uint)sourceDimensions; x+=2)
             for (uint y = 0; y < (uint)sourceDimensions; y+=2)
             for (uint z = 0; z < (uint)sourceDimensions; z+=2) {
@@ -108,8 +108,7 @@ internal static unsafe class NativeGridDerasterizer
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private OctNode CreateParentNode(OctNode* children)
-        { 
+        private OctNode CreateParentNode(OctNode* children) { 
             bool hasChildren = children[0].childIndex != 0 || children[1].childIndex != 0 ||
                                children[2].childIndex != 0 || children[3].childIndex != 0 ||
                                children[4].childIndex != 0 || children[5].childIndex != 0 ||
@@ -150,8 +149,7 @@ internal static unsafe class NativeGridDerasterizer
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static byte GetDominantType(OctNode* children)
-        {
+        private static byte GetDominantType(OctNode* children) {
             byte maxType = 0;
             int maxCount = 0;
 
