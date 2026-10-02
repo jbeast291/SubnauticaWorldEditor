@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using SNTerrainEditor.Extensions;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
@@ -53,34 +54,30 @@ internal readonly unsafe struct NativeGrid : IDisposable {
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void GetVoxelCoordinates(uint index, out uint z, out uint y, out uint x)
-    {
-        z =    (index      & layer1Mask)
-             | (index >> 2 & layer2Mask)
-             | (index >> 4 & layer3Mask)
-             | (index >> 6 & layer4Mask)
-             | (index >> 8 & layer5Mask);
-
-        y =    (index >> 1 & layer1Mask)
-             | (index >> 3 & layer2Mask)
-             | (index >> 5 & layer3Mask)
-             | (index >> 7 & layer4Mask)
-             | (index >> 9 & layer5Mask);
-
-        x =    (index >> 2  & layer1Mask)
-             | (index >> 4  & layer2Mask)
-             | (index >> 6  & layer3Mask)
-             | (index >> 8  & layer4Mask)
-             | (index >> 10 & layer5Mask);
+    internal static int3 GetLocalVoxelIdx(int index) {
+        return new int3(
+            (int)((index >> 2 & layer1Mask) 
+                | (index >> 4 & layer2Mask)
+                | (index >> 6 & layer3Mask)
+                | (index >> 8 & layer4Mask)
+                | (index >> 10 & layer5Mask)),
+            (int)((index >> 1 & layer1Mask)
+                | (index >> 3 & layer2Mask)
+                | (index >> 5 & layer3Mask)
+                | (index >> 7 & layer4Mask)
+                | (index >> 9 & layer5Mask)),
+            (int)((index & layer1Mask)
+                | (index >> 2 & layer2Mask)
+                | (index >> 4 & layer3Mask)
+                | (index >> 6 & layer4Mask)
+                | (index >> 8 & layer5Mask)));
     }
     
     internal void DEBUG__Clear() {
         for (int i = 0; i < _grid.Length; i++) {
             ref Voxel voxel = ref _gridPtr[i];
-            if (voxel.type != 0) {
-                voxel.type = 0;
-                voxel.density = 0;
-            }
+            voxel.type = 0;
+            voxel.density = 0;
         }
     }
 

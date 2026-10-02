@@ -44,7 +44,8 @@ internal static unsafe class NativeGridDerasterizer
         public void Execute() {
             bufferPos = MAX_NODES_OCTREE;
             
-            //Ping pong buffering system. We only need the layers 1 below the current so only keep that
+            // Ping pong buffering system. We only need the layers 1 below the current
+            // it's safe to overwrite after and reuse
             OctNode* LayerBufferPing = stackalloc OctNode[LEVEL1_NODE_COUNT + LEVEL2_NODE_COUNT];
             OctNode* LayerBufferPong = LayerBufferPing + LEVEL1_NODE_COUNT;
             

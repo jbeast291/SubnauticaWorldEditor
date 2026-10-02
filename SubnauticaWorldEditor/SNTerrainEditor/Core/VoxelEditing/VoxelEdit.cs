@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace SNTerrainEditor.Core.Editing;
 
-internal abstract class VoxelEdit(NativeGrid grid, Int3 gridBlockPos, Int3 brushBlockPos, int brushScale)
+internal abstract class VoxelEdit(NativeGrid grid, Int3 gridBlockPos, Int3 brushBlockPos, float brushScale)
 {
     protected readonly NativeGrid grid = grid;
     protected readonly Int3 GridBlockPos = gridBlockPos;
     protected readonly Int3 BrushBlockPos = brushBlockPos;
-    protected readonly int BrushScale = brushScale;
+    protected readonly float BrushScale = brushScale;
 
     public JobHandle jobHandle;
 

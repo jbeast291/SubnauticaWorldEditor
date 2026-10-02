@@ -69,7 +69,7 @@ internal class EditSession : IDisposable
         foreach (ManagedBatch batch in managedBatches.Values) {
             foreach (ManagedOctree octree in batch.octrees) {
                 NativeArray<byte> old = octree.octreeBytes;
-                NativeGridRasiterizer.FromOctreeIntoGrid(grid, old);
+                NativeGridRasiterizer.Schedule(old, grid).Complete();
                 grid.DEBUG__Clear();
                 var list = new NativeList<byte>(0, Allocator.Persistent);
                 NativeGridDerasterizer.Schedule(grid, list).Complete();
@@ -82,7 +82,6 @@ internal class EditSession : IDisposable
     
     internal void DEBUG__Sphere(Int3 batchIndex) {
         ManagedBatch batch = managedBatches[batchIndex];
-        
         System.Diagnostics.Stopwatch sw = new();
         sw.Start();
         Dictionary<Int3, NativeGrid> grids = new();
@@ -91,18 +90,18 @@ internal class EditSession : IDisposable
             grids.Add(octreeLocalIndex, grid);
             ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
             NativeArray<byte> old = octree.octreeBytes;
-            NativeGridRasiterizer.FromOctreeIntoGrid(grid, old);
+            NativeGridRasiterizer.Schedule(old, grid).Complete();
         }
         sw.Stop();
         Plugin.LogError($"(Spheres) Average Rasterize Took: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
         
         sw.Restart();
         Int3 batchBlockPos = batchIndex * ManagedBatch.OCTREES_PER_SIDE;
-        Int3 brushPos = batchBlockPos + new Int3(80);
+        Int3 brushPos = batchBlockPos + new Int3(80, 0, 80);
         JobHandle prev = default;
         foreach (var kVp in grids) {
             Int3 gridBlockPos = batchBlockPos + (kVp.Key * NativeGrid.SideLength);
-            SdfSphereEdit edit = new(kVp.Value, gridBlockPos, brushPos, 80);
+            SdfSphereEdit edit = new(kVp.Value, gridBlockPos, brushPos, 160);
             prev = edit.Schedule(prev);
         }
         prev.Complete();

@@ -1,47 +1,31 @@
 using SNTerrainEditor.Core.DataTypes;
+using SNTerrainEditor.Extensions;
 using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Math = System.Math;
 
 namespace SNTerrainEditor.Core.Editing;
 
 internal class SdfSphereEdit : VoxelEdit
 {
-    internal SdfSphereEdit(NativeGrid grid, Int3 gridBlockPos, Int3 brushBlockPos, int brushScale) 
+    internal SdfSphereEdit(NativeGrid grid, Int3 gridBlockPos, Int3 brushBlockPos, float brushScale) 
         : base(grid, gridBlockPos, brushBlockPos, brushScale) {
     }
     
     [BurstCompile]
-    internal unsafe struct DensityAddSubJob: IJobParallelFor 
+    private unsafe struct DensityAddJob<TDensity>: IJobParallelFor where TDensity : struct, IDensityFunction
     { 
         [NativeDisableUnsafePtrRestriction] internal Voxel* grid;
-        [ReadOnly] internal Int3 brushBlockPos;
-        [ReadOnly] internal Int3 gridBlockPos;
-        [ReadOnly] internal int radiusSqr;
-        [ReadOnly] internal float invRadiusSqr;
+        [ReadOnly] internal int3 shapeCenter;
+        [ReadOnly] internal int3 gridBlockPos;
+        [ReadOnly] internal TDensity densityFunc;
+
         
         public void Execute(int index) {
-            NativeGrid.GetVoxelCoordinates((uint)index, out uint uz, out uint uy, out uint ux);
-            int z = (int)uz;
-            int y = (int)uy;
-            int x = (int)ux;
+            int3 localBlockPos = NativeGrid.GetLocalVoxelIdx(index);
             
-            x = gridBlockPos.x + x;
-            y = gridBlockPos.y + y;
-            z = gridBlockPos.z + z;
-            
-            int xdist = brushBlockPos.x - x;
-            int ydist = brushBlockPos.y - y;
-            int zdist = brushBlockPos.z - z;
-            int sqrDist = xdist * xdist + ydist * ydist + zdist * zdist;
-            
-            if (sqrDist >= radiusSqr) return;
-
-            // Normalize distance between [0.0-1.0]
-            // Not a perfect replacement for sqrt but close enough, worth the performance
-            float t = 1.0f - 0.5f * sqrDist * invRadiusSqr;
+            float t = densityFunc.Evaluate(shapeCenter, gridBlockPos + localBlockPos);
             
             // Scale to 0-252 density
             byte targetDensity = (byte)(t * 252f);
@@ -55,12 +39,29 @@ internal class SdfSphereEdit : VoxelEdit
 
     public override unsafe JobHandle Schedule(JobHandle dependency)
     {
-        DensityAddSubJob job = new() {
+        /*
+        float scale = BrushScale / 2.0f;
+        float sqrScale = scale * scale;
+
+        DensityAddJob<SphereDensityFunction> job = new() {
             grid = grid.GridPtr,
-            brushBlockPos = BrushBlockPos,
-            gridBlockPos = GridBlockPos,
-            radiusSqr = BrushScale * BrushScale,
-            invRadiusSqr = 1.0f / (BrushScale * BrushScale),
+            shapeCenter = BrushBlockPos.ToBurstInt3(),
+            gridBlockPos = GridBlockPos.ToBurstInt3(),
+            densityFunc = new SphereDensityFunction() {
+                sqrScale = sqrScale,
+                invSqrScale = 1.0f / sqrScale
+            },
+        };
+        */
+
+        DensityAddJob<PyramidDensityFunction> job = new() {
+            grid = grid.GridPtr,
+            shapeCenter = BrushBlockPos.ToBurstInt3(),
+            gridBlockPos = GridBlockPos.ToBurstInt3(),
+            densityFunc = new PyramidDensityFunction() {
+                height = BrushScale,
+                baseHalfWidth = BrushScale/4,
+            },
         };
         
         jobHandle = job.Schedule(

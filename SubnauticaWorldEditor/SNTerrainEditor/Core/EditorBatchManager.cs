@@ -64,15 +64,17 @@ internal class EditorBatchManager : MonoBehaviour
         sw.Stop();
         Plugin.LogError($"Reading + Octree Allocations Took {sw.ElapsedMilliseconds}ms");
         
+        
         sw.Restart();
         activeSession.DEBUG__Clear();
         sw.Stop();
-        Plugin.LogError($"CLEAR (Rasterize + Modify + Derasterize) Took: {sw.ElapsedMilliseconds}ms");
-        
+        Plugin.LogError($"(Rasterize + Modify + Derasterize) Took: {sw.ElapsedMilliseconds}ms");
+
         sw.Restart();
         activeSession.DEBUG__Sphere(new(12, 18, 12));
         sw.Stop();
         Plugin.LogError($"(Workers: {JobsUtility.JobWorkerCount}) Create Spheres (Rasterize + Modify + Derasterize) Took: {sw.ElapsedMilliseconds}ms");
+        
         
         sw.Restart();
         DEBUG__UploadChangesToWorldStreamer(new(12, 18, 12));

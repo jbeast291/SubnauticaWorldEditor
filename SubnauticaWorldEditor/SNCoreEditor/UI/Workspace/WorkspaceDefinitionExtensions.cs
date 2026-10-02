@@ -9,7 +9,7 @@ public static class WorkspaceDefinitionExtensions
     {
         public WorkspaceDefinition WithHotBarButton<T>() where T : IHotBarDefinitionProvider
         {
-            IHotBarDefinitionProvider button = FormatterServices.GetUninitializedObject(typeof(T)) as IHotBarDefinitionProvider;
+            IHotBarDefinitionProvider button = (IHotBarDefinitionProvider) FormatterServices.GetUninitializedObject(typeof(T));
             return definition.WithHotBarButton(button!.Definition());
         }
     }
