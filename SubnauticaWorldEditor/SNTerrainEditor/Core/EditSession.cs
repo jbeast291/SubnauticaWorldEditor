@@ -71,9 +71,9 @@ internal class EditSession : IDisposable
                 NativeArray<byte> old = octree.octreeBytes;
                 NativeGridRasiterizer.Schedule(old, grid).Complete();
                 grid.DEBUG__Clear();
-                var list = new NativeList<byte>(0, Allocator.Persistent);
-                NativeGridDerasterizer.Schedule(grid, list).Complete();
-                octree.octreeBytes = list;
+                var octTree = new NativeList<OctNode>(0, Allocator.Persistent);
+                NativeGridDerasterizer.Schedule(grid, octTree).Complete();
+                octree.octreeBytes = octTree.AsArray().Reinterpret<byte>();
                 old.Dispose();
             }
         }
@@ -101,7 +101,7 @@ internal class EditSession : IDisposable
         JobHandle prev = default;
         foreach (var kVp in grids) {
             Int3 gridBlockPos = batchBlockPos + (kVp.Key * NativeGrid.SideLength);
-            SdfSphereEdit edit = new(kVp.Value, gridBlockPos, brushPos, 160);
+            SdfSphereEdit edit = new(kVp.Value, gridBlockPos, gridBlockPos + new Int3(16), 16);
             prev = edit.Schedule(prev);
         }
         prev.Complete();
@@ -123,10 +123,10 @@ internal class EditSession : IDisposable
             }*/
             
             //c#
-            NativeList<byte> octreeBytes = new(0, Allocator.Persistent);
-            NativeGridDerasterizer.Schedule(grid, octreeBytes).Complete();
+            NativeList<OctNode> octTree = new(0, Allocator.Persistent);
+            NativeGridDerasterizer.Schedule(grid, octTree).Complete();
             
-            octree.octreeBytes = octreeBytes;
+            octree.octreeBytes = octTree.AsArray().Reinterpret<byte>();;
             old.Dispose();
             EDIT_GRID_POOl.Push(grid);
         }
