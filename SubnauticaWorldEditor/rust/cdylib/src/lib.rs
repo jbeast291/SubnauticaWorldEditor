@@ -49,10 +49,10 @@ pub unsafe extern "C" fn optoctree_derasterize(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn optoctree_rasterize(
     _: *const ffi::c_void,
-    octree: *const OctnodeArray,
+    octree: OctnodeArray,
     voxels: *mut VoxelGridOutput,
 ) {
-    let octree = unsafe { slice::from_raw_parts((*octree).ptr, (*octree).len) };
+    let octree = unsafe { slice::from_raw_parts(octree.ptr, octree.len) };
     let voxels = unsafe { &mut *voxels };
 
     optoctrees::rasterize(octree, voxels);

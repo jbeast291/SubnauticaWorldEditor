@@ -36,7 +36,10 @@ public static unsafe class LibOptoctrees {
 
     [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
     private static extern OctnodeArray optoctree_derasterize(void* lib, Voxel* voxels);
-    
+
+    [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
+    private static extern void optoctree_rasterize(void* lib, OctnodeArray octree, Voxel* voxels);
+
     internal static NativeArray<OctNode> Derasterize(NativeGrid grid) {
         void* lib = new_liboptoctrees(Alloc, Free);
         try {
