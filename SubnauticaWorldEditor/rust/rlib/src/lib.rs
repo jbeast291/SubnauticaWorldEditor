@@ -322,28 +322,6 @@ mod test {
     use super::*;
 
     #[test]
-    fn derasterize_empty_grid() {
-        let mut buf = ReverseOctreeBuffer::new();
-        let grid = VoxelGrid { array: [Voxel { mat: 0, dist: 0 }; _] };
-        let nodes = derasterize(&mut buf, &grid);
-
-        let expect = &[Octnode { mat: 0, dist: 0, child: 0 }];
-        assert_eq!(nodes, expect);
-    }
-
-    #[test]
-    fn derasterize_sphere_grid() {
-        let mut buf = ReverseOctreeBuffer::new();
-        let grid = const {
-            &VoxelGrid { array: bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")) }
-        };
-        let nodes = derasterize(&mut buf, &grid);
-
-        let expect = bytemuck::cast_slice(include_bytes!("../cases/sphere-octnodes.bin"));
-        assert_eq!(nodes, expect);
-    }
-
-    #[test]
     fn rasterize_empty_grid() {
         let octree = &[Octnode { mat: 0, dist: 0, child: 0 }];
         let mut grid = VoxelGridOutput {
@@ -379,5 +357,27 @@ mod test {
             &VoxelGrid { array: bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")) }
         };
         assert_eq!(grid, expect);
+    }
+
+    #[test]
+    fn derasterize_empty_grid() {
+        let mut buf = ReverseOctreeBuffer::new();
+        let grid = VoxelGrid { array: [Voxel { mat: 0, dist: 0 }; _] };
+        let nodes = derasterize(&mut buf, &grid);
+
+        let expect = &[Octnode { mat: 0, dist: 0, child: 0 }];
+        assert_eq!(nodes, expect);
+    }
+
+    #[test]
+    fn derasterize_sphere_grid() {
+        let mut buf = ReverseOctreeBuffer::new();
+        let grid = const {
+            &VoxelGrid { array: bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")) }
+        };
+        let nodes = derasterize(&mut buf, &grid);
+
+        let expect = bytemuck::cast_slice(include_bytes!("../cases/sphere-octnodes.bin"));
+        assert_eq!(nodes, expect);
     }
 }
