@@ -1,3 +1,4 @@
+using System;
 using SNTerrainEditor.Core.DataTypes;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;

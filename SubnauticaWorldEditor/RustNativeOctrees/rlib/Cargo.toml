@@ -1,0 +1,16 @@
+[package]
+name = "optoctrees"
+version = "0.1.0"
+edition = "2024"
+
+[[bench]]
+name = "bench"
+harness = false
+
+[dependencies]
+bytemuck = { version = "1.25", features = ["derive", "extern_crate_std", "latest_stable_rust"] }
+wide = "1.7"
+
+[dev-dependencies]
+criterion = "0.8"
+rand = "=0.10.3"

@@ -1,0 +1,17 @@
+[package]
+name = "optoctrees-cdylib"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "optoctrees"
+crate-type = ["cdylib"]
+
+[dependencies]
+optoctrees = { path = "../rlib" }
+
+[target.'cfg(any(target_arch = "x86", target_arch = "x86_64"))'.dependencies]
+raw-cpuid = "11.6"
+
+[target.'cfg(target_env = "musl")'.dependencies]
+tikv-jemallocator = "0.7"

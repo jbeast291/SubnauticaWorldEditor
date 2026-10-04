@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using Nautilus.Utility;
 using SNTerrainEditor.Core.Editing;
 using SNTerrainEditor.FileOperations;
@@ -71,9 +72,8 @@ internal class EditSession : IDisposable
                 NativeArray<byte> old = octree.octreeBytes;
                 NativeGridRasiterizer.Schedule(old, grid).Complete();
                 grid.DEBUG__Clear();
-                var octTree = new NativeList<OctNode>(0, Allocator.Persistent);
-                NativeGridDerasterizer.Schedule(grid, octTree).Complete();
-                octree.octreeBytes = octTree.AsArray().Reinterpret<byte>();
+                NativeArray<byte> octreeBytes = LibOptoctrees.Derasterize(grid).Reinterpret<byte>();
+                octree.octreeBytes = octreeBytes;
                 old.Dispose();
             }
         }
@@ -113,25 +113,43 @@ internal class EditSession : IDisposable
             ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
             NativeArray<byte> old = octree.octreeBytes;
             NativeGrid grid = grids[octreeLocalIndex];
+            
+            //Rust
+            NativeArray<OctNode> nodes = LibOptoctrees.Derasterize(grid);
+            NativeArray<byte> octreeBytes = nodes.Reinterpret<byte>();
 
-            
-            /*//Rust
-            NativeArray<byte> octreeBytes;
-            unsafe {
-               NativeArray<OctNode> nodes = liboptoctrees.Derasterize(grid.GridPtr);
-               octreeBytes = nodes.Reinterpret<byte>();
-            }*/
-            
-            //c#
-            NativeList<OctNode> octTree = new(0, Allocator.Persistent);
-            NativeGridDerasterizer.Schedule(grid, octTree).Complete();
-            
-            octree.octreeBytes = octTree.AsArray().Reinterpret<byte>();;
+            octree.octreeBytes = octreeBytes;
             old.Dispose();
             EDIT_GRID_POOl.Push(grid);
         }
         sw.Stop();
         Plugin.LogError($"(Spheres) Average Derasterize Took: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
+
+        DEBUG__dumpTestData(batchIndex);
+    }
+
+    public void DEBUG__dumpTestData(Int3 batchIndex) {
+        NativeGrid grid = EDIT_GRID_POOl.Pop();
+        
+        ManagedBatch batch = managedBatches[batchIndex];
+        ManagedOctree octree = batch.octrees.Get(new(0));
+        
+        NativeArray<byte> old = octree.octreeBytes;
+        NativeGridRasiterizer.Schedule(old, grid).Complete();
+
+        WriteNativeArrayToFile(old, "sphereOctree.bin");
+        WriteNativeArrayToFile(grid.nativeArray, "sphereGrid.bin");
+        
+        EDIT_GRID_POOl.Push(grid);
+    }
+    
+    
+    private static void WriteNativeArrayToFile<T>(NativeArray<T> nativeArray, string fileName) where T : struct {
+        NativeArray<byte> unsafeArray = nativeArray.Reinterpret<byte>(UnsafeUtility.SizeOf<T>());
+        byte[] managedBuffer = new byte[unsafeArray.Length];
+        unsafeArray.CopyTo(managedBuffer);
+        string modFolder = Plugin.GetModDirectory();
+        File.WriteAllBytes(Path.Combine(modFolder, fileName), managedBuffer);
     }
     
     public void Dispose()

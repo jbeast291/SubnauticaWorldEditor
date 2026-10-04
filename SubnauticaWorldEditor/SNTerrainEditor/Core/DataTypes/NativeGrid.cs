@@ -7,18 +7,16 @@ using Unity.Mathematics;
 
 namespace SNTerrainEditor.Core.DataTypes;
 
-internal readonly unsafe struct NativeGrid : IDisposable {
+internal readonly struct NativeGrid : IDisposable {
     internal const int SideLength = 32;
     internal const int GridArrayLength = SideLength * SideLength * SideLength;
 
-    private readonly NativeArray<Voxel> _grid = 
+    public readonly NativeArray<Voxel> nativeArray = 
         VoxelGridAllocator.WithAlignment(GridArrayLength, Allocator.Persistent);
-    
-    private readonly Voxel* _gridPtr => (Voxel*) _grid.GetUnsafePtr();
     
     public NativeGrid() { }
 
-    internal Voxel* GridPtr => _gridPtr;
+    internal unsafe Voxel* GridPtr => (Voxel*) nativeArray.GetUnsafePtr();
     
     private const uint layer1Mask = 0b_00001u;
     private const uint layer2Mask = 0b_00010u;
@@ -31,7 +29,7 @@ internal readonly unsafe struct NativeGrid : IDisposable {
     /// octree layout but in a dense grid
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static uint GetVoxelIndex(uint z, uint y, uint x) {
+    internal static uint GetVoxelIdx(uint z, uint y, uint x) {
         // This only works cause the grid is 32x32x32 with 5 layers on powers of 2.
         // if that changes for some reason, this will need to be updated
         return   (z & layer1Mask)
@@ -73,13 +71,13 @@ internal readonly unsafe struct NativeGrid : IDisposable {
                 | (index >> 8 & layer5Mask)));
     }
     
-    internal void DEBUG__Clear() {
-        for (int i = 0; i < _grid.Length; i++) {
-            ref Voxel voxel = ref _gridPtr[i];
+    internal unsafe void DEBUG__Clear() {
+        for (int i = 0; i < nativeArray.Length; i++) {
+            ref Voxel voxel = ref GridPtr[i];
             voxel.type = 0;
             voxel.density = 0;
         }
     }
 
-    public void Dispose() => _grid.Dispose();
+    public void Dispose() => nativeArray.Dispose();
 }

@@ -13,14 +13,12 @@ internal class SdfSphereEdit : VoxelEdit
         : base(grid, gridBlockPos, brushBlockPos, brushScale) {
     }
     
-    [BurstCompile]
     private unsafe struct DensityAddJob<TDensity>: IJobParallelFor where TDensity : struct, IDensityFunction
     { 
         [NativeDisableUnsafePtrRestriction] internal Voxel* grid;
         [ReadOnly] internal int3 shapeCenter;
         [ReadOnly] internal int3 gridBlockPos;
         [ReadOnly] internal TDensity densityFunc;
-
         
         public void Execute(int index) {
             int3 localBlockPos = NativeGrid.GetLocalVoxelIdx(index);
@@ -39,7 +37,7 @@ internal class SdfSphereEdit : VoxelEdit
 
     public override unsafe JobHandle Schedule(JobHandle dependency)
     {
-        /*
+        
         float scale = BrushScale / 2.0f;
         float sqrScale = scale * scale;
 
@@ -52,9 +50,9 @@ internal class SdfSphereEdit : VoxelEdit
                 invSqrScale = 1.0f / sqrScale
             },
         };
-        */
+        
 
-        DensityAddJob<PyramidDensityFunction> job = new() {
+        /*DensityAddJob<PyramidDensityFunction> job = new() {
             grid = grid.GridPtr,
             shapeCenter = BrushBlockPos.ToBurstInt3(),
             gridBlockPos = GridBlockPos.ToBurstInt3(),
@@ -62,7 +60,7 @@ internal class SdfSphereEdit : VoxelEdit
                 height = BrushScale,
                 baseHalfWidth = BrushScale/4,
             },
-        };
+        };*/
         
         jobHandle = job.Schedule(
             NativeGrid.GridArrayLength, 
