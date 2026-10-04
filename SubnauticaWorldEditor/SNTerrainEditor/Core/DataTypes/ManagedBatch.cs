@@ -15,5 +15,5 @@ internal class ManagedBatch {
 
 
 internal class ManagedOctree {
-    internal NativeArray<byte> octreeBytes;
+    internal NativeArray<OctNode> arr;
 }

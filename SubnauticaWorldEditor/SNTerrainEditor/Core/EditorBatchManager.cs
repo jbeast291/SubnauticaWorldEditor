@@ -93,7 +93,8 @@ internal class EditorBatchManager : MonoBehaviour
         foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
             Octree octree = batchOctrees.octrees.Get(octreeLocalIndex);
             batchOctrees.allocator.Return(octree.data);
-            octree.data = activeSession.GetBatchOctree(batchID, octreeLocalIndex).octreeBytes;
+            NativeArray<OctNode> nodes = activeSession.GetBatchOctree(batchID, octreeLocalIndex).arr;
+            octree.data = nodes.Reinterpret<byte>();
         }
     }
     

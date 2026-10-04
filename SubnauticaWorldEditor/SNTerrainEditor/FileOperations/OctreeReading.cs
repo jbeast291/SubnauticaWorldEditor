@@ -7,11 +7,6 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace SNTerrainEditor.FileOperations;
 
 public static class OctreeReading {
-    
-    internal static readonly NativeArray<byte> empty = new(0, Allocator.Persistent);
-    
-    private static readonly byte[] readBuffer = new byte[65536];
-
     internal static ManagedBatch GetBatchOctrees(Int3 id) {
         string path = OptoctreesDirs.GetBatchPath(id);
         ManagedBatch batchdata = new();
@@ -28,7 +23,7 @@ public static class OctreeReading {
             {
                 throw new InvalidDataException("Cannot overwrite existing batch data with empty");
             }
-            batchdata.octrees.Get(octreeLocalIndex).octreeBytes = empty;
+            batchdata.octrees.Get(octreeLocalIndex).arr = EMPTY.Reinterpret<OctNode>();
         }
     }
     
@@ -44,9 +39,8 @@ public static class OctreeReading {
 
             if (reader.ReadInt32() < 4) return false; // version field
 
-            foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE))
-            {
-                batchdata.octrees.Get(octreeLocalIndex).octreeBytes = ReadOctree(reader);
+            foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
+                batchdata.octrees.Get(octreeLocalIndex).arr = ReadOctreeNodes(reader);
             }
         }
         catch (Exception ex) {
@@ -58,15 +52,21 @@ public static class OctreeReading {
         return true;
     }
 
-    private static unsafe NativeArray<byte> ReadOctree(PooledBinaryReader reader) {
+    private static NativeArray<OctNode> ReadOctreeNodes(PooledBinaryReader reader) {
+        return ReadOctreeBytes(reader).Reinterpret<OctNode>();
+    }
+
+    private static readonly NativeArray<byte> EMPTY = new(0, Allocator.Persistent);
+    private static readonly byte[] READ_BUFFER = new byte[65536];
+    private static unsafe NativeArray<byte> ReadOctreeBytes(PooledBinaryReader reader) {
         int bytesToRead = reader.ReadUInt16() * 4;
-        if (bytesToRead == 0) return empty;
+        if (bytesToRead == 0) return EMPTY;
         NativeArray<byte> data = new(bytesToRead, Allocator.Persistent);
-        lock (readBuffer) {
+        lock (READ_BUFFER) {
             int totalBytesRead = 0;
-            if (bytesToRead <= readBuffer.Length) {
-                totalBytesRead = reader.Read(readBuffer, 0, bytesToRead);
-                fixed (byte* ptr = readBuffer) {
+            if (bytesToRead <= READ_BUFFER.Length) {
+                totalBytesRead = reader.Read(READ_BUFFER, 0, bytesToRead);
+                fixed (byte* ptr = READ_BUFFER) {
                     UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(data), ptr, totalBytesRead);
                 }
                 return data;
@@ -74,9 +74,9 @@ public static class OctreeReading {
             int bytesRemaining = bytesToRead;
             int bytesReadToBuffer;
             do {
-                int count = Math.Min(bytesRemaining, readBuffer.Length);
-                if ((bytesReadToBuffer = reader.Read(readBuffer, 0, count)) <= 0) continue;
-                fixed (byte* ptr = readBuffer) {
+                int count = Math.Min(bytesRemaining, READ_BUFFER.Length);
+                if ((bytesReadToBuffer = reader.Read(READ_BUFFER, 0, count)) <= 0) continue;
+                fixed (byte* ptr = READ_BUFFER) {
                     UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(data.GetSubArray(totalBytesRead, bytesReadToBuffer)), ptr, bytesReadToBuffer);
                 }
                 totalBytesRead += bytesReadToBuffer;

@@ -6,6 +6,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace SNTerrainEditor;
 
+//TODO: write safety guarantees for internal api the C# side MUST follow
 public static unsafe class LibOptoctrees {
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate OctNode* AllocOctNodesDelegate(nuint count);
@@ -24,8 +25,8 @@ public static unsafe class LibOptoctrees {
     
     [StructLayout(LayoutKind.Sequential)]
     private struct OctnodeArray {
-        public OctNode* ptr;
-        public nuint len;
+        internal OctNode* ptr;
+        internal nuint len;
     }
 
     [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
@@ -39,7 +40,21 @@ public static unsafe class LibOptoctrees {
 
     [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
     private static extern void optoctree_rasterize(void* lib, OctnodeArray octree, Voxel* voxels);
-
+    
+    //TODO: pool liboptoctrees objects so we dont reallocate buffer every time
+    //  (pool size should roughly be how many opps we want active at given time)
+    internal static void Rasterize(NativeArray<OctNode> octree, NativeGrid grid) {
+        void* lib = new_liboptoctrees(Alloc, Free);
+        try {
+            OctnodeArray arr = new() {
+                ptr = (OctNode*)octree.GetUnsafePtr(),
+                len = (nuint)octree.Length
+            };
+            optoctree_rasterize(lib, arr, grid.GridPtr);
+        }
+        finally { drop_liboptoctrees(lib); }
+    }
+    
     internal static NativeArray<OctNode> Derasterize(NativeGrid grid) {
         void* lib = new_liboptoctrees(Alloc, Free);
         try {
