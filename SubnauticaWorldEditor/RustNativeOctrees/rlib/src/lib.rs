@@ -10,7 +10,7 @@ compile_error!("big-endian targets are not supported");
 ))]
 compile_error!("sse4.2 is required on x86 targets for performance");
 
-#[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
 #[derive(Copy, Clone, Default, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C, align(2))]
 pub struct Voxel {
@@ -41,13 +41,13 @@ pub struct Octnode {
 
 pub fn rasterize(octree: &[Octnode], voxels: &mut VoxelGridOutput) {
     fn recurse(
-        octree: &[Octnode], 
+        octree: &[Octnode],
         voxels: &mut [MaybeUninit<Voxel>; 32 * 32 * 32],
         grid_offset: usize,
         node_index: usize,
         depth: impl Depth,
     ) {
-        let layer= 5 - depth.remaining();
+        let layer = 5 - depth.remaining();
         depth.descend(
             voxels,
             |voxels, depth| {
@@ -74,7 +74,7 @@ pub fn rasterize(octree: &[Octnode], voxels: &mut VoxelGridOutput) {
                     );
                 }
             },
-            |voxels| { 
+            |voxels| {
                 let node = octree[node_index];
                 voxels[grid_offset].write(Voxel { mat: node.mat, dist: node.dist });
             },
@@ -86,7 +86,6 @@ pub fn rasterize(octree: &[Octnode], voxels: &mut VoxelGridOutput) {
     }
 
     if octree.is_empty() { return }
-
     recurse(octree, &mut voxels.array, 0, 0, MaxDepth::<5>);
 }
 
@@ -347,8 +346,10 @@ mod test {
     #[test]
     fn rasterize_empty_grid() {
         let octree = &[Octnode { mat: 0, dist: 0, child: 0 }];
-        let mut grid = VoxelGridOutput { array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _] };
-  
+        let mut grid = VoxelGridOutput {
+            array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _],
+        };
+
         rasterize(octree, &mut grid);
 
         // SAFETY: `rasterize` never unitializes any of the values in `grid`.
@@ -363,7 +364,9 @@ mod test {
     #[test]
     fn rasterize_sphere_grid() {
         let octree = bytemuck::cast_slice(include_bytes!("../cases/sphere-octnodes.bin"));
-        let mut grid = VoxelGridOutput { array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _] };
+        let mut grid = VoxelGridOutput {
+            array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _],
+        };
 
         rasterize(octree, &mut grid);
 
@@ -372,7 +375,9 @@ mod test {
             &*((&mut grid as *mut VoxelGridOutput).cast_const().cast::<VoxelGrid>())
         };
 
-        let expect = const { &VoxelGrid { array: bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")) } };
+        let expect = const {
+            &VoxelGrid { array: bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")) }
+        };
         assert_eq!(grid, expect);
     }
 }

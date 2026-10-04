@@ -17,10 +17,14 @@ criterion_group! {
 fn rasterize(c: &mut Criterion) {
     bench(c, "rasterize_empty_octree", &[Octnode { mat: 0, dist: 0, child: 0 }]);
 
-    bench(c, "rasterize_sphere_octree", bytemuck::cast_slice(include_bytes!("../cases/sphere-octnodes.bin")));
+    bench(c, "rasterize_sphere_octree", {
+        bytemuck::cast_slice(include_bytes!("../cases/sphere-octnodes.bin"))
+    });
 
     fn bench(c: &mut Criterion, name: &str, voxels: &[Octnode]) {
-        let mut grid = VoxelGridOutput { array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _] };
+        let mut grid = VoxelGridOutput {
+            array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _],
+        };
         c.bench_function(name, |b| b.iter(|| {
             black_box(optoctrees::rasterize(black_box(voxels), black_box(&mut grid)))
         }));

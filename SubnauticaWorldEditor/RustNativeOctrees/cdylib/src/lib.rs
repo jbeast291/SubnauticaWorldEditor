@@ -54,7 +54,7 @@ pub unsafe extern "C" fn optoctree_rasterize(
 ) {
     let octree = unsafe { slice::from_raw_parts((*octree).ptr, (*octree).len) };
     let voxels = unsafe { &mut *voxels };
-    
+
     optoctrees::rasterize(octree, voxels);
 }
 
