@@ -1,20 +1,24 @@
 use std::array;
 use glam::{ISizeVec3, Vec3};
-use wide::{u8x16, i16x16, u16x8, u16x16};
+use wide::{u8x16, u16x16};
 use crate::{Voxel, VoxelGrid};
 
-pub trait VoxelOperation { 
+pub trait VoxelOperation {
     type Func: DistanceFunction;
     fn compile(self) -> Self::Func;
 }
 
-pub trait DistanceFunction: Sync { 
+pub trait DistanceFunction: Sync {
     fn evaluate(&self, center: ISizeVec3, block: ISizeVec3) -> u8;
+
     fn evaluate_simd(&self, center: ISizeVec3, block: [u8x16; 3]) -> u8x16 {
         let block = block.map(|item| item.to_array());
-
         u8x16::new(array::from_fn(|i| {
-            let block = ISizeVec3::new(block[0][i] as isize, block[1][i] as isize, block[2][i] as isize);
+            let block = ISizeVec3::new(
+                block[0][i] as isize,
+                block[1][i] as isize,
+                block[2][i] as isize,
+            );
             self.evaluate(center, block)
         }))
     }
@@ -68,7 +72,7 @@ pub struct AddPyramidFunc {
 impl VoxelOperation for AddPyramid {
     type Func = AddPyramidFunc;
     fn compile(self) -> AddPyramidFunc {
-        let AddPyramid { height, base_halfwidth} = self;
+        let AddPyramid { height, base_halfwidth } = self;
         AddPyramidFunc { height, base_halfwidth }
     }
 }
@@ -80,14 +84,13 @@ impl DistanceFunction for AddPyramidFunc {
 }
 
 pub fn voxel_op(
-    voxels: &mut VoxelGrid, 
-    center: [isize; 3], 
+    voxels: &mut VoxelGrid,
+    center: [isize; 3],
     op: impl VoxelOperation,
 ) {
     let voxels = bytemuck::cast_slice_mut::<Voxel, u16x16>(&mut voxels.array);
     let center = ISizeVec3 { x: center[0], y: center[1], z: center[2] };
     let op = op.compile();
-
 
     voxels.iter_mut().enumerate().for_each(|(i, voxel)| {
         let block = voxel_grid_coords_simd(i);
@@ -100,13 +103,12 @@ pub fn voxel_op(
 // FIXME: make this simd
 fn voxel_grid_coords_simd(idx: usize) -> [u8x16; 3] {
     let idx = idx * 16;
-    
-    let array = array::from_fn(|i|voxel_grid_coords(idx + i));
 
+    let arr = array::from_fn(|i| voxel_grid_coords(idx + i));
     [
-        u8x16::new(array.map(|v| v.x as u8)),
-        u8x16::new(array.map(|v| v.y as u8)),
-        u8x16::new(array.map(|v| v.z as u8)),
+        u8x16::new(arr.map(|v| v.x as u8)),
+        u8x16::new(arr.map(|v| v.y as u8)),
+        u8x16::new(arr.map(|v| v.z as u8)),
     ]
 }
 
@@ -126,7 +128,7 @@ fn voxel_grid_coords(idx: usize) -> ISizeVec3 {
         (idx >> 0 & 0b00001) |
         (idx >> 2 & 0b00010) |
         (idx >> 4 & 0b00100) |
-        (idx >> 6 & 0b01000) | 
+        (idx >> 6 & 0b01000) |
         (idx >> 8 & 0b10000),
     )
 }
@@ -156,15 +158,5 @@ fn voxel_grid_index([x, y, z]: [usize; 3]) -> usize {
     (x & 0b00100) << 6 |
     (x & 0b01000) << 8 |
     (x & 0b10000) << 10
-}
-*/
-
-/*
-internal interface IDensityFunction {
-    /// <summary>
-    /// Returns the signed distance/density at position p with the given scale
-    /// </summary>
-    /// <returns>[0.0-1.0] The value 0.0 being fully outside, the value 1.0 fully inside. 0.5 being at the bountry </returns>
-    internal float Evaluate(int3 shapeCenter, int3 block);
 }
 */

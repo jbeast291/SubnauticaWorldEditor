@@ -13,6 +13,15 @@ mod derasterize;
 
 #[cfg_attr(test, derive(Debug, Eq, PartialEq))]
 #[derive(Copy, Clone, Default, bytemuck::Pod, bytemuck::Zeroable)]
+#[repr(C, packed)]
+pub struct Octnode {
+    pub mat: u8,
+    pub dist: u8,
+    pub child: u16,
+}
+
+#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
+#[derive(Copy, Clone, Default, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C, align(2))]
 pub struct Voxel {
     pub mat: u8,
@@ -26,18 +35,9 @@ pub struct VoxelGrid {
     pub array: [Voxel; 32 * 32 * 32],
 }
 
-#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
-#[derive(Copy, Clone, Default, bytemuck::Pod, bytemuck::Zeroable)]
-#[repr(C, packed)]
-pub struct Octnode {
-    pub mat: u8,
-    pub dist: u8,
-    pub child: u16,
-}
-
-pub use rasterize::{rasterize, VoxelGridOutput};
-pub use voxel_op::{voxel_op, VoxelOperation, AddSphere, AddPyramid};
-pub use derasterize::{derasterize, ReverseOctreeBuffer};
+pub use rasterize::{VoxelGridOutput, rasterize};
+pub use voxel_op::{VoxelOperation, AddSphere, AddPyramid, voxel_op};
+pub use derasterize::{ReverseOctreeBuffer, derasterize};
 
 trait Depth: Copy {
     type Descend: Depth;
