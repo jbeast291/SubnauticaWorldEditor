@@ -36,6 +36,10 @@ internal class EditSession : IDisposable
             NeedsNeighbors: Bool // load surrounding octrees when acting. This is also a hard limitation for performance,
                                     an edit *cannot* need neighbors greater than 32 voxels away (this is VERY reasonable)
             Center: Int3 // block location of center
+    
+    TODO: determine BF or DF is faster (or neither????)
+    TODO: 100 line vs code
+    TOD0: remove inlay hints and trailing spaces highlight
      */
     
     internal const int BatchSideLength = 160;

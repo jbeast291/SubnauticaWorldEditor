@@ -3,29 +3,13 @@ using Unity.Mathematics;
 
 namespace SNTerrainEditor.Core.Editing;
 
-[BurstCompile]
-internal struct SphereDensityFunction : IDensityFunction {
-    internal required float sqrScale;
-    internal required float invSqrScale;
-    
-    [BurstCompile]
-    public float Evaluate(int3 shapeCenter, int3 block) {
-        float3 delta = block - shapeCenter;
-        float sqrDist = math.lengthsq(delta);
-
-        if (sqrDist >= sqrScale) return 0.0f;
-        return 1.0f - (sqrDist * invSqrScale);
-    }
-}
-
-[BurstCompile]
-internal struct PyramidDensityFunction : IDensityFunction {
+//TODO: migrate to rust :)
+internal struct PyramidDensityFunction {
     internal required float height;
     internal required float baseHalfWidth;
     
     const float smoothingWidth = 1;//1 voxel wide
     
-    [BurstCompile]
     public float Evaluate(int3 shapeCenter, int3 block) {
         float3 localPos = block - shapeCenter;
         float distance = EvaluateSdf(localPos, height, baseHalfWidth);
@@ -62,12 +46,4 @@ internal struct PyramidDensityFunction : IDensityFunction {
 
         return math.sqrt((d2 + qz * qz) / m2) * math.sign(math.max(qz, -py));
     }
-}
-
-internal interface IDensityFunction {
-    /// <summary>
-    /// Returns the signed distance/density at position p with the given scale
-    /// </summary>
-    /// <returns>[0.0-1.0] The value 0.0 being fully outside, the value 1.0 fully inside. 0.5 being at the bountry </returns>
-    internal float Evaluate(int3 shapeCenter, int3 block);
 }

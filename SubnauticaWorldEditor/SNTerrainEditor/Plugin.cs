@@ -48,8 +48,6 @@ public class Plugin : BaseUnityPlugin
 
         WaitScreenHandler.RegisterLoadTask(PluginInfo.PLUGIN_NAME, InitializeEditor,
             "Initialize Editor");
-
-        BurstConfirm.Run();
     }
 
 
@@ -80,28 +78,4 @@ public class Plugin : BaseUnityPlugin
 
     public static string GetModDirectory()
         => Path.GetDirectoryName(Assembly.Location)!;
-}
-
-[BurstCompile]
-public class BurstConfirm
-{
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int TestDelegate(int x);
-    
-    [BurstCompile(FloatMode = FloatMode.Fast, FloatPrecision = FloatPrecision.Standard, CompileSynchronously = true)]
-    public static int Test(int x)
-    {
-        return x * 1234567 + 42;
-    }
-
-    public static void Run()
-    {
-        var ptr = BurstCompiler.CompileFunctionPointer<TestDelegate>(Test);
-
-        Plugin.LogInfo($"Function pointer: 0x{ptr.Value.ToInt64():X}");
-
-        TestDelegate? fn = ptr.Invoke;
-        Plugin.LogInfo($"Result: {fn(10)}");
-    }
-
 }

@@ -103,7 +103,7 @@ public static unsafe class LibOptoctrees {
         };
         AddSphere sphere = new() { scale = radius };
         
-        optoctree_voxel_op(LIB, grid.GridPtr, relativeBlock, VoxelOperation.AddSphere, &sphere);
+        optoctree_voxel_op(LIB, grid.GridPtr, relativeCenter, VoxelOperation.AddSphere, &sphere);
     }
     
     /// <summary>Derasterizes a dense voxel grid into a a sparse voxel octree.</summary>
