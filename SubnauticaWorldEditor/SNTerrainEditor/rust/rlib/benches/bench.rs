@@ -10,6 +10,7 @@ criterion_group! {
         .warm_up_time(Duration::from_secs(5))
         .measurement_time(Duration::from_secs(10))
         .sample_size(1000)
+        .noise_threshold(0.05)
         .significance_level(0.01);
     targets = rasterize, voxel_op, derasterize
 }
