@@ -8,13 +8,13 @@ pub trait VoxelOperation {
 }
 
 pub trait DistanceFunction: Sync {
-    fn evaluate(&self, center: Vec3<isize>, block: Vec3<isize>) -> u8;
+    fn evaluate(&self, center: Vec3<i16>, block: Vec3<u8>) -> u8;
 
-    fn evaluate_simd(&self, center: Vec3<isize>, block: Vec3<u8x16>) -> u8x16 {
+    fn evaluate_simd(&self, center: Vec3<i16>, block: Vec3<u8x16>) -> u8x16 {
         u8x16::new(array::from_fn(|i| self.evaluate(center, Vec3::new(
-            block.x.as_array()[i] as isize,
-            block.y.as_array()[i] as isize,
-            block.z.as_array()[i] as isize,
+            block.x.as_array()[i],
+            block.y.as_array()[i],
+            block.z.as_array()[i],
         ))))
     }
 }
@@ -39,13 +39,11 @@ impl VoxelOperation for AddSphere {
 }
 
 impl DistanceFunction for AddSphereFunc {
-    fn evaluate(&self, center: Vec3<isize>, block: Vec3<isize>) -> u8 {
-        let delta = (block - center).map(|n| n as f32);
+    fn evaluate(&self, center: Vec3<i16>, block: Vec3<u8>) -> u8 {
+        let delta = (block.map(|n| n as i16) - center).map(|n| n as f32);
         let sq_dist = delta.length_squared();
 
-        if sq_dist >= self.sq_scale {
-            0
-        } else {
+        if sq_dist >= self.sq_scale { 0 } else {
             ((1.0 - (sq_dist * self.rsq_scale)) * 252.0).round() as u8
         }
     }
@@ -71,14 +69,14 @@ impl VoxelOperation for AddPyramid {
 }
 
 impl DistanceFunction for AddPyramidFunc {
-    fn evaluate(&self, center: Vec3<isize>, block: Vec3<isize>) -> u8 {
+    fn evaluate(&self, center: Vec3<i16>, block: Vec3<u8>) -> u8 {
         todo!()
     }
 }
 
 pub fn voxel_op(
     voxels: &mut VoxelGrid,
-    center: [isize; 3],
+    center: [i16; 3],
     op: impl VoxelOperation,
 ) {
     let voxels = bytemuck::cast_slice_mut::<Voxel, u16x16>(&mut voxels.array);

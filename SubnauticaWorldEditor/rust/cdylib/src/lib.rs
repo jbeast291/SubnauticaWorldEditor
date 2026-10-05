@@ -59,10 +59,10 @@ pub unsafe extern "C" fn optoctree_derasterize(
 }
 
 #[repr(C)]
-pub struct RelativeBlock {
-    x: isize,
-    y: isize,
-    z: isize,
+pub struct RelativeCenter {
+    pub x: i16,
+    pub y: i16,
+    pub z: i16,
 }
 
 #[repr(i32)]
@@ -75,7 +75,7 @@ pub enum VoxelOperation {
 pub unsafe extern "C" fn optoctree_voxel_op(
     _: *const ffi::c_void,
     voxels: *mut VoxelGrid,
-    center: RelativeBlock,
+    center: RelativeCenter,
     op: VoxelOperation,
     op_data: *const ffi::c_void,
 ) {

@@ -13,7 +13,7 @@ namespace SNTerrainEditor;
 /// Required struct alignments:<br/>
 /// <see cref="Voxel"/> must be aligned to ushort (pack = 2)<br/>
 /// <see cref="OctNode"/> must be aligned to bytes (pack = 1)<br/>
-/// <see cref="NativeGrid"/> must have its internal array's aligned to long (pack = 16)<br/>
+/// <see cref="NativeGrid"/> must have its internal array's aligned to 32 (pack = 32)<br/>
 /// </SAFTEY>
 public static unsafe class LibOptoctrees {
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -38,10 +38,10 @@ public static unsafe class LibOptoctrees {
     }
     
     [StructLayout(LayoutKind.Sequential)]
-    private struct RelativeBlock {
-        internal nint x;
-        internal nint y;
-        internal nint z;
+    private struct RelativeCenter {
+        internal short x;
+        internal short y;
+        internal short z;
     }
     
     private enum VoxelOperation {
@@ -67,7 +67,7 @@ public static unsafe class LibOptoctrees {
     private static extern void optoctree_voxel_op(
         void* lib, 
         Voxel* voxels, 
-        RelativeBlock center, 
+        RelativeCenter center, 
         VoxelOperation op, 
         void* op_data
     );
@@ -94,12 +94,12 @@ public static unsafe class LibOptoctrees {
     }
 
     internal static unsafe void VoxelOpAddSphere(NativeGrid grid, Int3 gridBlock, Int3 center, int radius) {
-        Int3 relativeCenter = center - gridBlock;
+        Int3 relativeBlock = center - gridBlock;
 
-        RelativeBlock relativeBlock = new() { 
-            x = relativeCenter.x,
-            y = relativeCenter.y,
-            z = relativeCenter.z
+        RelativeCenter relativeCenter = new() { 
+            x = Convert.ToInt16(relativeBlock.x), // throws if the conversion fails
+            y = Convert.ToInt16(relativeBlock.y),
+            z = Convert.ToInt16(relativeBlock.z)
         };
         AddSphere sphere = new() { scale = radius };
         
