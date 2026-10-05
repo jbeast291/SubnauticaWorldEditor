@@ -1,6 +1,6 @@
 ## License
 
-Copyright © 2021–2026 Esper Thomson, Jbeast291
+Copyright © 2026 Jbeast291, Esper Thomson, Kallie23
 
 This program is free software: you can redistribute it and/or modify it under the terms of version
 3 of the GNU Affero General Public License as published by the Free Software Foundation.
