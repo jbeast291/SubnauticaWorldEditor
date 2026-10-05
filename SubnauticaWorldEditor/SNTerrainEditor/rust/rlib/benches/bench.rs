@@ -10,6 +10,7 @@ criterion_group! {
         .warm_up_time(Duration::from_secs(5))
         .measurement_time(Duration::from_secs(10))
         .sample_size(1000)
+        .noise_threshold(0.05)
         .significance_level(0.01);
     targets = rasterize, voxel_op, derasterize
 }
@@ -39,7 +40,7 @@ fn voxel_op(c: &mut Criterion) {
         c.bench_function(name, |b| b.iter(|| {
             black_box(optoctrees::voxel_op(
                 black_box(&mut grid),
-                black_box([16, 16, 16]),
+                black_box([16.0, 16.0, 16.0]),
                 black_box(op),
             ))
         }));
