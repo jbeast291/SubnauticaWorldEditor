@@ -76,7 +76,7 @@ impl VoxelOperation for AddPyramid {
 
 impl DistanceFunction for AddPyramidFunc {
     fn evaluate(&self, at: Vec3<i16>) -> u8 {
-        todo!()
+        todo!("pyramid sdf")
     }
 }
 
@@ -97,10 +97,10 @@ pub fn voxel_op(
     })
 }
 
-// FIXME: make this simd
 fn voxel_grid_coords_simd(idx: usize) -> Vec3<i16x8> {
-    let idx = idx * 8;
+    // FIXME: make this simd and do less math overall
 
+    let idx = idx * 8;
     let arr = array::from_fn(|i| voxel_grid_coords(idx + i));
     Vec3::new(
         i16x8::new(arr.map(|v| v.x as i16)),
@@ -157,3 +157,5 @@ fn voxel_grid_index([x, y, z]: [usize; 3]) -> usize {
     (x & 0b10000) << 10
 }
 */
+
+// TODO: add tests
