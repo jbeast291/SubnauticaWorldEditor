@@ -37,7 +37,6 @@ internal class SdfSphereEdit : VoxelEdit
 
     public override unsafe JobHandle Schedule(JobHandle dependency)
     {
-        
         float scale = BrushScale / 2.0f;
         float sqrScale = scale * scale;
 

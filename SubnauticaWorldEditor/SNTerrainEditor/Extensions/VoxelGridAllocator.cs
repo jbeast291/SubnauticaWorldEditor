@@ -7,7 +7,7 @@ namespace SNTerrainEditor.Extensions;
 
 #pragma warning disable Publicizer001
 public static class VoxelGridAllocator {
-    private const int VoxelGridAlignment = 16;
+    private const int VoxelGridAlignment = 32;
     public static unsafe NativeArray<Voxel> WithAlignment(int length, Allocator allocator)
     {
         long size = (long)UnsafeUtility.SizeOf<Voxel>() * length;

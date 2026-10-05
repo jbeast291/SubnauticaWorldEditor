@@ -97,14 +97,10 @@ internal class EditSession : IDisposable
         
         sw.Restart();
         Int3 batchBlockPos = batchIndex * ManagedBatch.OCTREES_PER_SIDE;
-        Int3 brushPos = batchBlockPos + new Int3(80, 0, 80);
-        JobHandle prev = default;
         foreach (var kVp in grids) {
             Int3 gridBlockPos = batchBlockPos + (kVp.Key * NativeGrid.SideLength);
-            SdfSphereEdit edit = new(kVp.Value, gridBlockPos, gridBlockPos + new Int3(16), 16);
-            prev = edit.Schedule(prev);
+            LibOptoctrees.VoxelOpAddSphere(kVp.Value, gridBlockPos, gridBlockPos + new Int3(16), 16);
         }
-        prev.Complete();
         sw.Stop();
         Plugin.LogError($"(Spheres) Average Voxel Opp: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
         

@@ -9,6 +9,8 @@ harness = false
 
 [dependencies]
 bytemuck = { version = "1.25", features = ["derive", "extern_crate_std", "latest_stable_rust"] }
+glam = "0.34"
+rayon = "1.12"
 wide = "1.7"
 
 [dev-dependencies]
