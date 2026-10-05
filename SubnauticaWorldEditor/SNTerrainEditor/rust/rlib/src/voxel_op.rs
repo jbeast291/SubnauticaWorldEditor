@@ -3,6 +3,8 @@ use ggmath::Vec3;
 use wide::{u16x8, i16x8, f32x8};
 use crate::{Voxel, VoxelGrid};
 
+// TODO: aabb optimizations
+
 pub trait VoxelOperation {
     fn compile(self) -> impl DistanceFunction;
 }
@@ -79,6 +81,8 @@ impl DistanceFunction for AddPyramidFunc {
         todo!("pyramid sdf")
     }
 }
+
+// TODO: move `center` into `op`
 
 pub fn voxel_op(
     voxels: &mut VoxelGrid,
