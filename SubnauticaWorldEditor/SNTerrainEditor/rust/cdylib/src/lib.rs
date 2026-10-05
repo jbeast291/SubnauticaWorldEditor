@@ -59,10 +59,10 @@ pub unsafe extern "C" fn optoctree_derasterize(
 }
 
 #[repr(C)]
-pub struct Vec3Int32 {
-    pub x: i32,
-    pub y: i32,
-    pub z: i32,
+pub struct Vector3Float32 {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 #[repr(i32)]
@@ -75,7 +75,7 @@ pub enum VoxelOperation {
 pub unsafe extern "C" fn optoctree_voxel_op(
     _: *const ffi::c_void,
     voxels: *mut VoxelGrid,
-    center: Vec3Int32,
+    center: Vector3Float32,
     discrim: VoxelOperation,
     op: *const ffi::c_void,
 ) {

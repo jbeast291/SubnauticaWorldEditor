@@ -39,7 +39,7 @@ fn voxel_op(c: &mut Criterion) {
         c.bench_function(name, |b| b.iter(|| {
             black_box(optoctrees::voxel_op(
                 black_box(&mut grid),
-                black_box([16, 16, 16]),
+                black_box([16.0, 16.0, 16.0]),
                 black_box(op),
             ))
         }));

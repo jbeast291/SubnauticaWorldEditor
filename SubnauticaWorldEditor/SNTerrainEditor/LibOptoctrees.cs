@@ -38,7 +38,7 @@ public static unsafe class LibOptoctrees {
     }
     
     [StructLayout(LayoutKind.Sequential)]
-    private struct Vec3Int32 {
+    private struct Vector3Float32 {
         internal int x;
         internal int y;
         internal int z;
@@ -67,7 +67,7 @@ public static unsafe class LibOptoctrees {
     private static extern void optoctree_voxel_op(
         void* lib, 
         Voxel* voxels, 
-        Vec3Int32 center, 
+        Vector3Float32 center, 
         VoxelOperation discrim, 
         void* op
     );
@@ -96,7 +96,7 @@ public static unsafe class LibOptoctrees {
     internal static unsafe void VoxelOpAddSphere(NativeGrid grid, Int3 gridBlock, Int3 center, int radius) {
         Int3 relativeBlock = center - gridBlock;
 
-        Vec3Int32 relativeCenter = new() { 
+        Vector3Float32 relativeCenter = new() { 
             x = relativeBlock.x,
             y = relativeBlock.y,
             z = relativeBlock.z
