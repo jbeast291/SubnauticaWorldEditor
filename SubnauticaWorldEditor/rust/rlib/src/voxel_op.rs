@@ -1,7 +1,7 @@
 use std::array;
 use ggmath::Vec3;
-use wide::{u8x16, u16x16};
-use crate::{Voxel, VoxelGrid};
+use wide::{u8x16, u16x16, i16x16, i32x16, f32x16};
+use crate::{Voxel, VoxelGrid, i32x16_to_u8x16};
 
 pub trait VoxelOperation {
     fn compile(self) -> impl DistanceFunction;
@@ -44,8 +44,20 @@ impl DistanceFunction for AddSphereFunc {
         let sq_dist = delta.length_squared();
 
         if sq_dist >= self.sq_scale { 0 } else {
-            ((1.0 - (sq_dist * self.rsq_scale)) * 252.0).round() as u8
+            ((1.0 - sq_dist * self.rsq_scale) * 252.0).round_ties_even() as u8
         }
+    }
+
+    fn evaluate_simd(&self, center: Vec3<i16>, block: Vec3<u8x16>) -> u8x16 {
+        let delta = block.map(|n| i16x16::from(n)) - center.map(|n| i16x16::splat(n));
+        let delta = delta.map(|n| f32x16::from_i32x16(i32x16::from_i16x16(n)));
+        let sq_dist = delta.length_squared();
+
+        let dist = (f32x16::ONE - sq_dist * self.rsq_scale) * f32x16::splat(252.0);
+        let dist = sq_dist.simd_ge(self.sq_scale).select(f32x16::ZERO, dist);
+        let dist = dist.round_ties_even().fast_trunc_int();
+
+        i32x16_to_u8x16(dist)
     }
 }
 

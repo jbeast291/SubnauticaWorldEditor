@@ -1,3 +1,5 @@
+use wide::{u8x16, i16x8, i32x16};
+
 #[cfg(not(target_endian = "little"))]
 compile_error!("big-endian targets are not supported");
 
@@ -94,4 +96,10 @@ impl Depth for AtDepth {
         match self { }
     }
     fn remaining(&self) -> usize { match *self { } }
+}
+
+fn i32x16_to_u8x16(n: i32x16) -> u8x16 {
+    let [lo, hi] = bytemuck::cast(n);
+    let [lo, hi] = [i16x8::from_i32x8_saturate(lo), i16x8::from_i32x8_saturate(hi)];
+    u8x16::narrow_i16x8(lo, hi)
 }
