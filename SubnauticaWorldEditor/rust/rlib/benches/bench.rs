@@ -1,7 +1,7 @@
 use std::{hint::black_box, mem::MaybeUninit, time::Duration};
 use criterion::{criterion_main, criterion_group, Criterion};
 use rand::{prelude::*, rngs};
-use optoctrees::{Octnode, Voxel, VoxelGrid, VoxelGridOutput};
+use optoctrees::{Octnode, Voxel, VoxelGrid, VoxelGridOutput, VoxelOperation};
 
 criterion_main!(benches);
 criterion_group! {
@@ -11,7 +11,7 @@ criterion_group! {
         .measurement_time(Duration::from_secs(10))
         .sample_size(1000)
         .significance_level(0.01);
-    targets = rasterize, derasterize
+    targets = rasterize, voxel_op, derasterize
 }
 
 fn rasterize(c: &mut Criterion) {
@@ -27,6 +27,21 @@ fn rasterize(c: &mut Criterion) {
         };
         c.bench_function(name, |b| b.iter(|| {
             black_box(optoctrees::rasterize(black_box(voxels), black_box(&mut grid)))
+        }));
+    }
+}
+
+fn voxel_op(c: &mut Criterion) {
+    bench(c, "voxel_op_add_sphere", optoctrees::AddSphere { scale: 5.75 });
+
+    fn bench(c: &mut Criterion, name: &str, op: impl VoxelOperation + Copy) {
+        let mut grid = bytemuck::zeroed();
+        c.bench_function(name, |b| b.iter(|| {
+            black_box(optoctrees::voxel_op(
+                black_box(&mut grid),
+                black_box([16, 16, 16]),
+                black_box(op),
+            ))
         }));
     }
 }
