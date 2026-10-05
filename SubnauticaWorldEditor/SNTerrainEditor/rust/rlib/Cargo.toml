@@ -13,6 +13,9 @@ ggmath = { version = "0.18", features = ["bytemuck", "wide"] }
 rayon = "1.12"
 wide = "1.7"
 
+[build-dependencies]
+build-rs = "0.3"
+
 [dev-dependencies]
 criterion = "0.8"
 rand = "=0.10.3"

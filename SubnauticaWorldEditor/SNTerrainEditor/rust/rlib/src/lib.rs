@@ -1,12 +1,6 @@
 #[cfg(not(target_endian = "little"))]
 compile_error!("big-endian targets are not supported");
 
-#[cfg(all(
-    any(target_arch = "x86", target_arch = "x86_64"),
-    not(any(doc, target_feature = "sse4.2")),
-))]
-compile_error!("sse4.2 is required on x86 targets for performance");
-
 mod rasterize;
 mod voxel_op;
 mod derasterize;

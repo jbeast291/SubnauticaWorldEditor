@@ -11,11 +11,6 @@ pub unsafe extern "C" fn new_liboptoctrees(
     alloc_octnode_array: extern "C" fn(usize) -> *mut Octnode,
     free_octnode_array: extern "C" fn(*mut Octnode, usize),
 ) -> *mut ffi::c_void {
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    if !raw_cpuid::CpuId::new().get_feature_info().map_or(false, |f| f.has_sse42()) {
-        panic!("processor does not support the required instructions")
-    }
-
     let lib = LibOptoctrees { alloc_octnode_array, free_octnode_array };
     Box::into_raw(Box::new(lib)).cast()
 }
