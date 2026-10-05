@@ -59,10 +59,10 @@ pub unsafe extern "C" fn optoctree_derasterize(
 }
 
 #[repr(C)]
-pub struct RelativeCenter {
-    pub x: i16,
-    pub y: i16,
-    pub z: i16,
+pub struct Vec3Int32 {
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
 }
 
 #[repr(i32)]
@@ -75,14 +75,14 @@ pub enum VoxelOperation {
 pub unsafe extern "C" fn optoctree_voxel_op(
     _: *const ffi::c_void,
     voxels: *mut VoxelGrid,
-    center: RelativeCenter,
-    op: VoxelOperation,
-    op_data: *const ffi::c_void,
+    center: Vec3Int32,
+    discrim: VoxelOperation,
+    op: *const ffi::c_void,
 ) {
     let voxels = unsafe { &mut *voxels };
-    match op {
+    match discrim {
         VoxelOperation::AddSphere => {
-            let op = unsafe { *op_data.cast::<optoctrees::AddSphere>() };
+            let op = unsafe { *op.cast::<optoctrees::AddSphere>() };
             optoctrees::voxel_op(
                 voxels,
                 [center.x, center.y, center.z],
@@ -90,7 +90,7 @@ pub unsafe extern "C" fn optoctree_voxel_op(
             );
         },
         VoxelOperation::AddPyramid => {
-            let op = unsafe { *op_data.cast::<optoctrees::AddPyramid>() };
+            let op = unsafe { *op.cast::<optoctrees::AddPyramid>() };
             optoctrees::voxel_op(
                 voxels,
                 [center.x, center.y, center.z],

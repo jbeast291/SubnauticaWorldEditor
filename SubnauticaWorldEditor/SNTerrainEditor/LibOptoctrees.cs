@@ -38,10 +38,10 @@ public static unsafe class LibOptoctrees {
     }
     
     [StructLayout(LayoutKind.Sequential)]
-    private struct RelativeCenter {
-        internal short x;
-        internal short y;
-        internal short z;
+    private struct Vec3Int32 {
+        internal int x;
+        internal int y;
+        internal int z;
     }
     
     private enum VoxelOperation {
@@ -67,9 +67,9 @@ public static unsafe class LibOptoctrees {
     private static extern void optoctree_voxel_op(
         void* lib, 
         Voxel* voxels, 
-        RelativeCenter center, 
-        VoxelOperation op, 
-        void* op_data
+        Vec3Int32 center, 
+        VoxelOperation discrim, 
+        void* op
     );
     
     [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
@@ -96,10 +96,10 @@ public static unsafe class LibOptoctrees {
     internal static unsafe void VoxelOpAddSphere(NativeGrid grid, Int3 gridBlock, Int3 center, int radius) {
         Int3 relativeBlock = center - gridBlock;
 
-        RelativeCenter relativeCenter = new() { 
-            x = Convert.ToInt16(relativeBlock.x), // throws if the conversion fails
-            y = Convert.ToInt16(relativeBlock.y),
-            z = Convert.ToInt16(relativeBlock.z)
+        Vec3Int32 relativeCenter = new() { 
+            x = relativeBlock.x,
+            y = relativeBlock.y,
+            z = relativeBlock.z
         };
         AddSphere sphere = new() { scale = radius };
         

@@ -8,8 +8,8 @@ pub trait VoxelOperation {
 }
 
 pub trait DistanceFunction: Sync {
-    fn evaluate(&self, at: Vec3<i16>) -> u8;
-    fn evaluate_simd(&self, at: Vec3<i16x8>) -> u16x8 {
+    fn evaluate(&self, at: Vec3<i32>) -> u8;
+    fn evaluate_simd(&self, at: Vec3<i32x8>) -> u16x8 {
         u16x8::new(array::from_fn(|i| self.evaluate(at.map(|n| n.as_array()[i])) as u16))
     }
 }
@@ -37,15 +37,15 @@ impl VoxelOperation for AddSphere {
 }
 
 impl DistanceFunction for AddSphereFunc {
-    fn evaluate(&self, at: Vec3<i16>) -> u8 {
+    fn evaluate(&self, at: Vec3<i32>) -> u8 {
         let sq_dist = at.map(|n| n as f32).length_squared();
         if sq_dist >= self.sq_scale.as_array()[0] { 0 } else {
             ((1.0 - sq_dist * self.rsq_scale.as_array()[0]) * 252.0).round_ties_even() as u8
         }
     }
 
-    fn evaluate_simd(&self, at: Vec3<i16x8>) -> u16x8 {
-        let sq_dist = at.map(|n| f32x8::from_i32x8(i32x8::from_i16x8(n))).length_squared();
+    fn evaluate_simd(&self, at: Vec3<i32x8>) -> u16x8 {
+        let sq_dist = at.map(|n| f32x8::from_i32x8(n)).length_squared();
 
         let dist = (f32x8::ONE - sq_dist * self.rsq_scale) * f32x8::splat(252.0);
         let dist = sq_dist.simd_ge(self.sq_scale).select(f32x8::ZERO, dist);
@@ -75,37 +75,37 @@ impl VoxelOperation for AddPyramid {
 }
 
 impl DistanceFunction for AddPyramidFunc {
-    fn evaluate(&self, at: Vec3<i16>) -> u8 {
+    fn evaluate(&self, at: Vec3<i32>) -> u8 {
         todo!("pyramid sdf")
     }
 }
 
 pub fn voxel_op(
     voxels: &mut VoxelGrid,
-    center: [i16; 3],
+    center: [i32; 3],
     op: impl VoxelOperation,
 ) {
     let voxels = bytemuck::cast_slice_mut::<Voxel, u16x8>(&mut voxels.array);
-    let center = Vec3::new(center[0], center[1], center[2]).map(|n| i16x8::splat(n));
+    let center = Vec3::new(center[0], center[1], center[2]).map(|n| i32x8::splat(n));
     let op = op.compile();
 
     voxels.iter_mut().enumerate().for_each(|(i, voxel)| {
         let at = voxel_grid_coords_simd(i) - center;
-        let dist = op.evaluate_simd(at);
+        let dist = op.evaluate_simd(at) & 0xFF;
 
         *voxel = dist.simd_gt(0).select((dist << 8) | u16x8::splat(4), *voxel);
     })
 }
 
-fn voxel_grid_coords_simd(idx: usize) -> Vec3<i16x8> {
+fn voxel_grid_coords_simd(idx: usize) -> Vec3<i32x8> {
     // FIXME: make this simd and do less math overall
 
     let idx = idx * 8;
     let arr = array::from_fn(|i| voxel_grid_coords(idx + i));
     Vec3::new(
-        i16x8::new(arr.map(|v| v.x as i16)),
-        i16x8::new(arr.map(|v| v.y as i16)),
-        i16x8::new(arr.map(|v| v.z as i16)),
+        i32x8::new(arr.map(|v| v.x as i32)),
+        i32x8::new(arr.map(|v| v.y as i32)),
+        i32x8::new(arr.map(|v| v.z as i32)),
     )
 }
 
