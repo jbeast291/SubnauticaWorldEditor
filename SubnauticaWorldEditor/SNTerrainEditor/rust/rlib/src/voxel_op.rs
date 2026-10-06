@@ -94,7 +94,7 @@ pub fn voxel_op(
     let op = op.compile();
 
     voxels.iter_mut().enumerate().for_each(|(i, voxel)| {
-        let at = voxel_grid_coords_simd(i) - center;
+        let at = center - voxel_grid_coords_simd(i);
         let dist = op.evaluate_simd(at) & 0xFF;
 
         *voxel = dist.simd_gt(0).select((dist << 8) | u16x8::splat(4), *voxel);
@@ -102,14 +102,13 @@ pub fn voxel_op(
 }
 
 fn voxel_grid_coords_simd(idx: usize) -> Vec3<f32x8> {
-    // FIXME: make this simd and do less math overall
-
     let idx = idx * 8;
-    let arr = array::from_fn(|i| voxel_grid_coords(idx + i));
+    let first = voxel_grid_coords(idx);
+
     Vec3::new(
-        f32x8::new(arr.map(|v| v.x as f32)),
-        f32x8::new(arr.map(|v| v.y as f32)),
-        f32x8::new(arr.map(|v| v.z as f32)),
+        f32x8::splat(first.x as f32) + f32x8::from([0., 0., 0., 0., 1., 1., 1., 1.]),
+        f32x8::splat(first.y as f32) + f32x8::from([0., 0., 1., 1., 0., 0., 1., 1.]),
+        f32x8::splat(first.z as f32) + f32x8::from([0., 1., 0., 1., 0., 1., 0., 1.]),
     )
 }
 
