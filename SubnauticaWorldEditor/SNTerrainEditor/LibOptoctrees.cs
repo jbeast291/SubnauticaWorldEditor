@@ -39,9 +39,9 @@ public static unsafe class LibOptoctrees {
     
     [StructLayout(LayoutKind.Sequential)]
     private struct Vector3Float32 {
-        internal int x;
-        internal int y;
-        internal int z;
+        internal float x;
+        internal float y;
+        internal float z;
     }
     
     private enum VoxelOperation {
