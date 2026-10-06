@@ -38,12 +38,7 @@ internal class EditSession : IDisposable
             Center: Int3 // block location of center
     
     TODO: determine BF or DF is faster (or neither????)
-    TODO: 100 line vs code
-    TOD0: remove inlay hints and trailing spaces highlight
      */
-    
-    internal const int BatchSideLength = 160;
-    internal const int GridsPerBatch = 5;
     
     private readonly WorldStreamer WORLD_STREAMER;
 
@@ -100,7 +95,7 @@ internal class EditSession : IDisposable
         Plugin.LogError($"(Spheres) Average Rasterize Took: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
         
         sw.Restart();
-        Int3 batchBlockPos = batchIndex * ManagedBatch.OCTREES_PER_SIDE;
+        Int3 batchBlockPos = batchIndex * ManagedBatch.BATCH_BLOCK_LENGTH;
         foreach (var kVp in grids) {
             Int3 gridBlockPos = batchBlockPos + (kVp.Key * NativeGrid.SideLength);
             LibOptoctrees.VoxelOpAddSphere(kVp.Value, gridBlockPos, gridBlockPos + new Int3(16), 16);
@@ -114,7 +109,7 @@ internal class EditSession : IDisposable
             NativeArray<OctNode> old = octree.arr;
             NativeGrid grid = grids[octreeLocalIndex];
             
-            octree.arr =  LibOptoctrees.Derasterize(grid);
+            octree.arr = LibOptoctrees.Derasterize(grid);
             old.Dispose();
             EDIT_GRID_POOl.Push(grid);
         }

@@ -3,6 +3,7 @@ using Unity.Collections;
 namespace SNTerrainEditor.Core.DataTypes;
 
 internal class ManagedBatch {
+    internal const int BATCH_BLOCK_LENGTH = 160;
     public const int OCTREES_PER_SIDE = 5;
     
     internal readonly Array3<ManagedOctree> octrees = new(5);

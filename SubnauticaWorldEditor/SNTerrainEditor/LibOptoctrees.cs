@@ -93,8 +93,8 @@ public static unsafe class LibOptoctrees {
         optoctree_rasterize(LIB, arr, grid.GridPtr);
     }
 
-    internal static unsafe void VoxelOpAddSphere(NativeGrid grid, Int3 gridBlock, Int3 center, int radius) {
-        Int3 relativeBlock = center - gridBlock;
+    internal static unsafe void VoxelOpAddSphere(NativeGrid grid, Int3 gridBlock, Int3 opBlockCenter, int radius) {
+        Int3 relativeBlock = opBlockCenter - gridBlock;
 
         Vector3Float32 relativeCenter = new() { 
             x = relativeBlock.x,
