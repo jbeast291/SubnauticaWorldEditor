@@ -12,7 +12,6 @@ internal sealed class ScrollbarThemeDefinition : ComponentThemeDefinition
     [SerializeField] private Sprite selectedSprite;
     [SerializeField] private Sprite disabledSprite;
     
-    [UninitializedContext]
     public override string GraphicKey() => "Scrollbar";
     
     public override void AssignToComponent(GameObject gameObject)

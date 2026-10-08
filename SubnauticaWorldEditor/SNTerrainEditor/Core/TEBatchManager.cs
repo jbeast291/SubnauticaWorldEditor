@@ -10,9 +10,9 @@ using Math = System.Math;
 
 namespace SNTerrainEditor.Core;
 
-internal class EditorBatchManager : MonoBehaviour
+internal class TEBatchManager : MonoBehaviour
 {
-    internal static EditorBatchManager main { get; private set;}
+    internal static TEBatchManager main { get; private set;}
     
     private WorldStreamer worldStreamer;
     

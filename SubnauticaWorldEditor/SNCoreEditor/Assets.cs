@@ -16,7 +16,9 @@ internal static class Assets
     {
         if (CoreBundle != null) yield break;
         
-        AssetBundleCreateRequest assetBundleRequest = AssetBundle.LoadFromFileAsync(Path.Combine(Path.GetDirectoryName(Plugin.Assembly.Location)!, "Assets", BundleName));
+        AssetBundleCreateRequest assetBundleRequest = 
+            AssetBundle.LoadFromFileAsync(Path.Combine(Path.GetDirectoryName(
+                Plugin.Assembly.Location)!, "Assets", BundleName));
         yield return assetBundleRequest;
         if(assetBundleRequest.assetBundle == null) throw new Exception("Failed to load core asset bundle!");
         CoreBundle = assetBundleRequest.assetBundle;

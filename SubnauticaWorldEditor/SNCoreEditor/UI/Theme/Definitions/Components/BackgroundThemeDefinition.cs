@@ -8,7 +8,6 @@ public class BackgroundThemeDefinition : ComponentThemeDefinition
 {
     [SerializeField] private Sprite backgroundSprite;
     
-    [UninitializedContext]
     public override string GraphicKey() => "BackgroundSprite";
 
     public override void AssignToComponent(GameObject gameObject)

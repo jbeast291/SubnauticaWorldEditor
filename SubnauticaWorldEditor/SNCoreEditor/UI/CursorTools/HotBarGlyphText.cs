@@ -6,12 +6,12 @@ using UnityEngine;
 namespace SNCoreEditor.UI.HotBar;
 
 
-public class HotBarInputGlyphText : MonoBehaviour
+public class HotBarGlyphText : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI ButtonHoverText;
     [SerializeField] private ThemeAssigner themeAssigner;
     
-    internal HotBarButtonDefinition definition { private get; set; }
+    internal CursorToolDefinition definition { private get; set; }
     
     private void Awake() => themeAssigner.RegisterForOnChange(OnThemeChange);
     
@@ -22,7 +22,7 @@ public class HotBarInputGlyphText : MonoBehaviour
         ButtonHoverText.text = SetGlyphColors(text, textDefinition);
     }
     
-    private static string GenerateHotKeyText(HotBarButtonDefinition definition)
+    private static string GenerateHotKeyText(CursorToolDefinition definition)
     {
         string text = "";
         for (int i = 0; i < definition.buttons.Count; i++)

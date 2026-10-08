@@ -10,7 +10,7 @@ public class HotBarManager : MonoBehaviour
     [SerializeField] private GameObject HotBarButtonPrefab;
     [SerializeField] private Transform HotBarContent;
     
-    private readonly Dictionary<HotBarButtonDefinition, HotBarButton> buttonMap = new();
+    private readonly Dictionary<CursorToolDefinition, HotBarButton> buttonMap = new();
 
     private void Start()
     {
@@ -19,40 +19,37 @@ public class HotBarManager : MonoBehaviour
 
     private void Update()
     {
-        foreach (KeyValuePair<HotBarButtonDefinition, HotBarButton> button in buttonMap)
+        foreach (KeyValuePair<CursorToolDefinition, HotBarButton> button in buttonMap)
         {
             if(GameInput.GetHotKeyComboDown(button.Key.buttons)) button.Value.OnButtonPressed();
         }
     }
-
-    internal void DeactivateIncompatibleWith(IHotBarToggleAction toggleAction)
-    {
-        List<string> disableIDs = toggleAction.incompatibleWith;
-        foreach (KeyValuePair<HotBarButtonDefinition, HotBarButton> button in buttonMap)
-        {
-            if(disableIDs.Contains(button.Key.ID)) button.Value.SetDeActive(false);
+    
+    internal void DeactivateOthers(HotBarButton activeButton) {
+        foreach (var otherButton in buttonMap.Values) {
+            if(otherButton != activeButton) otherButton.SetDeActive(false);
         }
     }
+
 
     private void ConstructWorkspaces()
     {
         List<WorkspaceDefinition> workspaces = WorkspaceRegistration.GetAllWorkspaces();
         foreach (WorkspaceDefinition workspace in workspaces)
         {
-            foreach (HotBarButtonDefinition button in workspace.HotbarButtons)
+            foreach (CursorToolDefinition button in workspace.CursorTools)
             {
                 CreateHotBarButton(button);
             }
         }
     }
 
-    private void CreateHotBarButton(HotBarButtonDefinition button)
+    private void CreateHotBarButton(CursorToolDefinition button)
     {
         GameObject buttonObj = Instantiate(HotBarButtonPrefab, HotBarContent);
         HotBarButton hotbarButton = buttonObj.GetComponent<HotBarButton>();
-        hotbarButton.definition = button;
-        hotbarButton.manager = this;
-        HotBarInputGlyphText hotbarText = buttonObj.GetComponentInChildren<HotBarInputGlyphText>();
+        hotbarButton.Init(button, this);
+        HotBarGlyphText hotbarText = buttonObj.GetComponentInChildren<HotBarGlyphText>();
         hotbarText.definition = button;
         buttonMap.Add(button, hotbarButton);
     }

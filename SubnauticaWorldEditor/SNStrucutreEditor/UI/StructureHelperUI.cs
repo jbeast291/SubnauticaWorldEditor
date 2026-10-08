@@ -1,5 +1,4 @@
 ﻿using ModStructureHelperPlugin.Editing.Managers;
-using ModStructureHelperPlugin.Editing.Tools;
 using UnityEngine;
 using ModStructureHelperPlugin.UI.Menus;
 using SNStructureEditor;

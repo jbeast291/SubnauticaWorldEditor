@@ -5,8 +5,9 @@ using UnityEngine;
 namespace SNCoreEditor.UI.HotBar;
 
 
-public sealed record HotBarButtonDefinition(
+public sealed record CursorToolDefinition(
     string ID,
     Sprite Icon, 
     List<GameInput.Button> buttons,
-    Func<IHotBarAction> HotBarButtonFactory);
+    Func<ICursorTool> HotBarButtonFactory
+);

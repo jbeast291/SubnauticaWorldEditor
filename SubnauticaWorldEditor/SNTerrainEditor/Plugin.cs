@@ -41,12 +41,14 @@ public class Plugin : BaseUnityPlugin
         Harmony.CreateAndPatchAll(Assembly, $"{PluginInfo.PLUGIN_GUID}");
 
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+
         WaitScreenHandler.RegisterEarlyAsyncLoadTask(PluginInfo.PLUGIN_NAME, Assets.LoadAssetBundle,
             "Loading Bundle");
-        WaitScreenHandler.RegisterEarlyLoadTask(PluginInfo.PLUGIN_NAME, RegisterTerrainWorkspace,
-            "Registering Core Workspace");
 
-        WaitScreenHandler.RegisterLoadTask(PluginInfo.PLUGIN_NAME, InitializeEditor,
+        WaitScreenHandler.RegisterEarlyLoadTask(PluginInfo.PLUGIN_NAME, RegisterTerrainWorkspace,
+            "Registering Terrain Workspace");
+
+        WaitScreenHandler.RegisterLoadTask(PluginInfo.PLUGIN_NAME, InitTerrainEditor,
             "Initialize Editor");
     }
 
@@ -58,9 +60,9 @@ public class Plugin : BaseUnityPlugin
     internal static void LogError(string message) => LOGGER?.LogError(message);
     internal static void LogFatal(string message) => LOGGER?.LogFatal(message);
 
-    private void InitializeEditor(WaitScreenHandler.WaitScreenTask task)
+    private void InitTerrainEditor(WaitScreenHandler.WaitScreenTask task)
     {
-        LargeWorldStreamer.main.gameObject.EnsureComponent<EditorBatchManager>();
+        LargeWorldStreamer.main.gameObject.EnsureComponent<TEBatchManager>();
     }
 
     public void RegisterTerrainWorkspace(WaitScreenHandler.WaitScreenTask task)
@@ -70,7 +72,8 @@ public class Plugin : BaseUnityPlugin
         WorkspaceDefinition definition =
             new WorkspaceDefinition("Terrain", null, WorkspaceMode.Exclusive,
                     () => new TerrainWorkspace())
-                .WithHotBarButton<CheckMarkButton>();
+                .WithCursorTool<AddTool>()
+                .WithCursorTool<RemoveTool>();
 
         WorkspaceRegistration.Register<TerrainWorkspace>(definition);
         WorkspaceRegistered = true;

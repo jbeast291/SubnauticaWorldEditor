@@ -4,7 +4,6 @@ using BepInEx.Logging;
 using HarmonyLib;
 using Nautilus.Handlers;
 using SNCoreEditor.CoreWorkspaceStuff;
-using SNCoreEditor.CoreWorkspaceStuff.Buttons;
 using SNCoreEditor.Input;
 using SNCoreEditor.UI.Theme;
 using SNCoreEditor.UI.Workspace;
@@ -27,7 +26,7 @@ internal class Plugin : BaseUnityPlugin
         Instance = this;
         
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
-        InputRegistration.RegisterLocalization();
+        CoreInput.RegisterLocalization();
         LanguageHandler.RegisterLocalizationFolder();
 
         Harmony.CreateAndPatchAll(Assembly, $"{PluginInfo.PLUGIN_GUID}");
@@ -41,14 +40,12 @@ internal class Plugin : BaseUnityPlugin
         WaitScreenHandler.RegisterLateLoadTask(PluginInfo.PLUGIN_NAME, InputHandler.CreateInputHandler, "Create Input Handler");
     }
 
-    public void RegisterCoreWorkspace(WaitScreenHandler.WaitScreenTask task)
+    private void RegisterCoreWorkspace(WaitScreenHandler.WaitScreenTask task)
     {
         if (CoreRegistered) return;
 
-        WorkspaceDefinition definition = new WorkspaceDefinition("Core", null, WorkspaceMode.Persistent, () => new CoreWorkspace())
-            .WithHotBarButton<UndoButton>()
-            .WithHotBarButton<UndoButtonToggle>()
-            .WithHotBarButton<UndoButtonToggleTwo>();
+        WorkspaceDefinition definition = new WorkspaceDefinition("Core", null,
+            WorkspaceMode.Persistent, () => new CoreWorkspace());
 
         WorkspaceRegistration.Register<CoreWorkspace>(definition);
         CoreRegistered = true;

@@ -11,19 +11,18 @@ public sealed record WorkspaceDefinition(
     string ID,
     Sprite Icon,
     WorkspaceMode Mode,
-    Func<IWorkspace> WorkspaceFactory)
-{
-    internal List<HotBarButtonDefinition> HotbarButtons { get; } = new();
+    Func<IWorkspace> WorkspaceFactory
+) {
+    internal List<CursorToolDefinition> CursorTools { get; } = new();
 
-    public WorkspaceDefinition WithHotBarButton(HotBarButtonDefinition definition)
+    public WorkspaceDefinition WithCursorTool(CursorToolDefinition definition)
     {
-        HotbarButtons.Add(definition);
+        CursorTools.Add(definition);
         return this;
     }
 }
 
-public enum WorkspaceMode
-{
+public enum WorkspaceMode {
     Persistent,
     Exclusive
 }

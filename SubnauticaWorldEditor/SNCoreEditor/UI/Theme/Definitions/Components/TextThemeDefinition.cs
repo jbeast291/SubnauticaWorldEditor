@@ -11,7 +11,6 @@ internal sealed class TextThemeDefinition : ComponentThemeDefinition
     [Tooltip("Changes the color of input glyph icons/text. If this region does not have input glyphs this can be ignored")]
     [SerializeField] private Color inputGlyphColor = new Color32(173, 248, 255, 255);
     
-    [UninitializedContext]
     public override string GraphicKey() => "Text";
     
     public override void AssignToComponent(GameObject gameObject)

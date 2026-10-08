@@ -4,7 +4,7 @@ using Nautilus.Handlers;
 
 namespace SNCoreEditor.Input;
 
-public static class InputRegistration
+public static class CoreInput
 {
     public const string GeneralCategory = "WorldEditorGeneral";
     public const string ToolsCategory = "WorldEditorTools";
@@ -13,7 +13,7 @@ public static class InputRegistration
 
     internal static void RegisterLocalization()
     {
-        FieldInfo[] fields = typeof(InputRegistration).GetFields();
+        FieldInfo[] fields = typeof(CoreInput).GetFields();
         foreach (FieldInfo field in fields)
         {
             field.GetValue(null);

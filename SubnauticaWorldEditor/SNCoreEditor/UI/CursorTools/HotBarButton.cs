@@ -1,31 +1,36 @@
-using System.Collections;
+using System;
 using SNCoreEditor.UI.HotBar.Interfaces;
 using SNCoreEditor.UI.Theme;
 using SNCoreEditor.UI.ToolTips;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 namespace SNCoreEditor.UI.HotBar;
 
-internal class HotBarButton : MonoBehaviour
-{
+//TODO: move to unity toggle and not bs sprite swapping,
+//  will need to edit themes for this as well
+internal class HotBarButton : MonoBehaviour {
     [SerializeField] private Button Button;
     [SerializeField] private ThemeAssigner themeAssigner;
     [SerializeField] private Image ButtonIcon;
     [SerializeField] private TooltipTarget tooltipTarget;
 
-    internal HotBarButtonDefinition definition { private get; set; }
-    internal HotBarManager manager { private get; set; }
+    private CursorToolDefinition _definition;
+    private HotBarManager _manager;
 
-    //Action mode
-    private IHotBarAction actionListener;
-    //Toggle mode
-    private IHotBarToggleAction toggleListener;
-    private bool buttonIsToggleAction => toggleListener != null;
+    private ICursorTool actionListener;
     private bool toggled = false;
     private Sprite buttonDefaultSprite;
     private Sprite buttonActiveSprite;
 
+    internal void Init(CursorToolDefinition definition, HotBarManager manager) {
+        if (_definition != null) {
+            throw new Exception($"Cannot initialize cursor tool {definition.ID}!" +
+                                $"button already initialized to {_definition.ID}");
+        }
+        _definition = definition;
+        _manager = manager;
+    }
+    
     private void Awake()
     {
         themeAssigner.RegisterForOnChange(OnThemeChange);
@@ -34,22 +39,12 @@ internal class HotBarButton : MonoBehaviour
     private void Start()
     {
         Button.onClick.AddListener(() => OnButtonPressed());
-        ButtonIcon.sprite = definition.Icon;
+        ButtonIcon.sprite = _definition.Icon;
         
-        actionListener = definition.HotBarButtonFactory.Invoke();
-        if (actionListener is IHotBarToggleAction toggleAction)
-        {
-            toggleListener = toggleAction;
-        }
-
-        tooltipTarget.SetToolTipText(Language.main.Get(definition.ID));
+        actionListener = _definition.HotBarButtonFactory.Invoke();
+        tooltipTarget.SetToolTipText(Language.main.Get(_definition.ID));
     }
-
-    private void Update()
-    {
-        if(toggled) toggleListener.OnUpdate();
-    }
-
+    
     private void OnThemeChange()
     {
         buttonDefaultSprite = Button.image.sprite;
@@ -60,21 +55,15 @@ internal class HotBarButton : MonoBehaviour
 
     internal void OnButtonPressed(bool sendEvents = true)
     {
-        if (buttonIsToggleAction)
-        {
-            ToggleOnActivated(sendEvents);
-            return;
-        }
-        ActionOnActivated(sendEvents);
+        ToggleOnActivated(sendEvents);
     }
     
     internal void SetActive(bool sendEvents)
     {
         Button.image.sprite = buttonActiveSprite;
         toggled = true;
-        
-        if(sendEvents) actionListener.OnActivated();//inherited by toggle as well
-        if(buttonIsToggleAction) manager.DeactivateIncompatibleWith(toggleListener);
+        _manager.DeactivateOthers(this);
+        if(sendEvents) actionListener.OnActivated();
     }
     
     internal void SetDeActive(bool sendEvents)
@@ -82,22 +71,9 @@ internal class HotBarButton : MonoBehaviour
         Button.image.sprite = buttonDefaultSprite;
         toggled = false;
         
-        if(sendEvents) toggleListener?.OnDeactivated();
+        if(sendEvents) actionListener?.OnDeactivated();
     }
-    
-    private void ActionOnActivated(bool sendEvents)
-    {
-        SetActive(sendEvents);
-        StartCoroutine(SwapSpriteBack());
-        return;
-        
-        IEnumerator SwapSpriteBack()
-        {
-            yield return new WaitForSecondsRealtime(0.1f);
-            SetDeActive(sendEvents);
-        }
-    }
-    
+
     private void ToggleOnActivated(bool sendEvents)
     {
         if (toggled)

@@ -12,7 +12,6 @@ internal sealed class ButtonThemeDefinition : ComponentThemeDefinition
     [SerializeField] private Sprite selectedSprite;
     [SerializeField] private Sprite disabledSprite;
 
-    [UninitializedContext]
     public override string GraphicKey() => "Button";
     
     public override void AssignToComponent(GameObject gameObject)

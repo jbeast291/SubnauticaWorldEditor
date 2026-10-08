@@ -7,10 +7,10 @@ public static class WorkspaceDefinitionExtensions
 {
     extension(WorkspaceDefinition definition)
     {
-        public WorkspaceDefinition WithHotBarButton<T>() where T : IHotBarDefinitionProvider
+        public WorkspaceDefinition WithCursorTool<T>() where T : ICursorToolDefinitionProvider
         {
-            IHotBarDefinitionProvider button = (IHotBarDefinitionProvider) FormatterServices.GetUninitializedObject(typeof(T));
-            return definition.WithHotBarButton(button!.Definition());
+            ICursorToolDefinitionProvider button = (ICursorToolDefinitionProvider) FormatterServices.GetUninitializedObject(typeof(T));
+            return definition.WithCursorTool(button!.Definition());
         }
     }
 }

@@ -21,20 +21,20 @@ public class EditorCanvasManager : uGUI_InputGroup
 
     private new void Update()
     {
-        if (GameInput.GetButtonDown(InputRegistration.ControlCamera))
+        if (GameInput.GetButtonDown(CoreInput.ControlCamera))
         {
             if(selected) Deselect();// allow the camera to be moved by mouse
             else Select();// show mouse
         }
         
-        if (GameInput.GetButtonHeld(InputRegistration.SaveHotkeyModifier) && GameInput.GetButtonDown(InputRegistration.SaveKeyBind))
+        if (GameInput.GetButtonHeld(CoreInput.SaveHotkeyModifier) && GameInput.GetButtonDown(CoreInput.SaveKeyBind))
         {
             Plugin.Logger.LogError("SAVE KEYBIND");
             //CoreEditorCanvasManager.TrySave();
         }
     }
-    
-    internal bool IsEditorVisible() => gameObject.activeSelf; 
+
+    private bool IsEditorVisible() => gameObject.activeSelf; 
     
     internal void ToggleEditorVisibility() => gameObject.SetActive(!IsEditorVisible());
 

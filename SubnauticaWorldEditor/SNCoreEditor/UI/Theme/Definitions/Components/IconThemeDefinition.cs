@@ -9,7 +9,6 @@ internal sealed class IconThemeDefinition : ComponentThemeDefinition
     [Tooltip("Changes the color of the icon.")]
     [SerializeField] private Color color  = Color.white;
     
-    [UninitializedContext]
     public override string GraphicKey() => "Icon";
     
     public override void AssignToComponent(GameObject gameObject)
