@@ -44,8 +44,7 @@ internal class Plugin : BaseUnityPlugin
     {
         if (CoreRegistered) return;
 
-        WorkspaceDefinition definition = new WorkspaceDefinition("Core", null,
-            WorkspaceMode.Persistent, () => new CoreWorkspace());
+        WorkspaceDefinition definition = new("Core", null, () => new CoreWorkspace());
 
         WorkspaceRegistration.Register<CoreWorkspace>(definition);
         CoreRegistered = true;

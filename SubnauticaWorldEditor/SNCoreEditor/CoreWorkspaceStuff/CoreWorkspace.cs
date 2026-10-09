@@ -2,7 +2,7 @@ using SNCoreEditor.UI.Workspace;
 using UnityEngine;
 namespace SNCoreEditor.CoreWorkspaceStuff;
 
-internal class CoreWorkspace : IWorkspace
+internal class CoreWorkspace : ICoreWorkspace
 {
     public void Initialize()
     {
@@ -16,6 +16,6 @@ internal class CoreWorkspace : IWorkspace
 
     public void OnDisableWorkspace()
     {
-        
+        Plugin.Logger.LogError("Disabled CoreWorkspace");
     }
 }

@@ -41,6 +41,7 @@ public class HotBarGlyphText : MonoBehaviour
         return Regex.Replace(
             text,
             @"color=#?[0-9A-Fa-f]{6,8}",
-            $"color=#{newColorHex}");
+            $"color=#{newColorHex}"
+        );
     }
 }

@@ -70,8 +70,7 @@ public class Plugin : BaseUnityPlugin
         if (WorkspaceRegistered) return;
 
         WorkspaceDefinition definition =
-            new WorkspaceDefinition("Terrain", null, WorkspaceMode.Exclusive,
-                    () => new TerrainWorkspace())
+            new WorkspaceDefinition("Terrain", null, () => new TerrainWorkspace())
                 .WithCursorTool<AddTool>()
                 .WithCursorTool<RemoveTool>();
 

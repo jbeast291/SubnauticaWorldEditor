@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using SNCoreEditor.Input;
-using SNCoreEditor.UI.HotBar.Interfaces;
 using SNCoreEditor.UI.Workspace;
 using UnityEngine;
 namespace SNCoreEditor.UI.HotBar;
@@ -8,7 +7,7 @@ namespace SNCoreEditor.UI.HotBar;
 public class HotBarManager : MonoBehaviour
 {
     [SerializeField] private GameObject HotBarButtonPrefab;
-    [SerializeField] private Transform HotBarContent;
+    [SerializeField] private Transform HotBarContent; 
     
     private readonly Dictionary<CursorToolDefinition, HotBarButton> buttonMap = new();
 
@@ -32,10 +31,8 @@ public class HotBarManager : MonoBehaviour
     }
 
 
-    private void ConstructWorkspaces()
-    {
-        List<WorkspaceDefinition> workspaces = WorkspaceRegistration.GetAllWorkspaces();
-        foreach (WorkspaceDefinition workspace in workspaces)
+    private void ConstructWorkspaces() {
+        foreach (WorkspaceDefinition workspace in WorkspaceRegistration.GetExclusiveWorkspaces())
         {
             foreach (CursorToolDefinition button in workspace.CursorTools)
             {
