@@ -2,55 +2,44 @@ use std::{ffi, ptr, slice};
 use optoctrees::{Octnode, VoxelGrid, VoxelGridOutput};
 
 struct LibOptoctrees {
-    alloc_octnode_array: extern "C" fn(usize) -> *mut Octnode,
-    #[expect(dead_code)] free_octnode_array: extern "C" fn(*mut Octnode, usize),
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn new_liboptoctrees(
-    alloc_octnode_array: extern "C" fn(usize) -> *mut Octnode,
-    free_octnode_array: extern "C" fn(*mut Octnode, usize),
-) -> *mut ffi::c_void {
-    let lib = LibOptoctrees { alloc_octnode_array, free_octnode_array };
-    Box::into_raw(Box::new(lib)).cast()
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn drop_liboptoctrees(lib: *mut ffi::c_void) {
-    drop(unsafe { Box::from_raw(lib.cast::<LibOptoctrees>()) });
+    table: InitTable,
 }
 
 #[repr(C)]
-pub struct OctnodeArray { pub ptr: *mut Octnode, pub len: usize }
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn optoctree_rasterize(
-    _: *const ffi::c_void,
-    octree: OctnodeArray,
-    voxels: *mut VoxelGridOutput,
-) {
-    let octree = unsafe { slice::from_raw_parts(octree.ptr, octree.len) };
-    let voxels = unsafe { &mut *voxels };
-
-    optoctrees::rasterize(octree, voxels);
+pub struct InitTable {
+    pub alloc_octree: extern "C" fn(len: usize) -> *mut Octnode,
+    pub free_octree: unsafe extern "C" fn(ptr: *mut Octnode, len: usize),
 }
 
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn optoctree_derasterize(
-    lib: *const ffi::c_void,
-    voxels: *const VoxelGrid,
-) -> OctnodeArray {
-    let lib = unsafe { &*lib.cast::<LibOptoctrees>() };
-    let voxels = unsafe { &*voxels };
+#[repr(C)]
+pub struct LibTable {
+    pub lib: *mut ffi::c_void,
+    pub drop: unsafe extern "C" fn(table: *mut LibTable),
 
-    let mut buf = optoctrees::ReverseOctreeBuffer::new();
-    let nodes = optoctrees::derasterize(&mut buf, voxels);
+    pub rasterize_octree: unsafe extern "C" fn(
+        lib: *const ffi::c_void,
+        octree: OctnodeArray,
+        voxels: *mut VoxelGridOutput,
+    ),
 
-    let ptr = (lib.alloc_octnode_array)(nodes.len());
-    if ptr.is_null() { panic!("failed to allocate octnode array") }
+    pub voxel_op: unsafe extern "C" fn(
+        lib: *const ffi::c_void,
+        voxels: *mut VoxelGrid,
+        center: Vector3Float32,
+        discrim: VoxelOperation,
+        op: *const ffi::c_void,
+    ),
 
-    unsafe { ptr::copy_nonoverlapping(nodes.as_ptr(), ptr, nodes.len()) }
-    OctnodeArray { ptr, len: nodes.len() }
+    pub derasterize_octree: unsafe extern "C" fn(
+        lib: *const ffi::c_void,
+        voxels: *const VoxelGrid,
+    ) -> OctnodeArray,
+}
+
+#[repr(C)]
+pub struct OctnodeArray {
+    pub ptr: *mut Octnode,
+    pub len: usize,
 }
 
 #[repr(C)]
@@ -67,7 +56,40 @@ pub enum VoxelOperation {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn optoctree_voxel_op(
+pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibTable {
+    let init = unsafe { ptr::read(init) };
+    let lib = LibOptoctrees { table: init };
+    let lib = Box::into_raw(Box::new(lib)).cast::<ffi::c_void>();
+
+    let table = LibTable {
+        lib, drop: drop_lib,
+        rasterize_octree,
+        voxel_op,
+        derasterize_octree,
+    };
+
+    Box::into_raw(Box::new(table))
+}
+
+unsafe extern "C" fn drop_lib(table: *mut LibTable) {
+    let table = unsafe { Box::from_raw(table) };
+    let lib = unsafe { Box::from_raw(table.lib.cast::<LibOptoctrees>()) };
+    drop(lib);
+    drop(table);
+}
+
+unsafe extern "C" fn rasterize_octree(
+    _: *const ffi::c_void,
+    octree: OctnodeArray,
+    voxels: *mut VoxelGridOutput,
+) {
+    let octree = unsafe { slice::from_raw_parts(octree.ptr, octree.len) };
+    let voxels = unsafe { &mut *voxels };
+
+    optoctrees::rasterize(octree, voxels);
+}
+
+unsafe extern "C" fn voxel_op(
     _: *const ffi::c_void,
     voxels: *mut VoxelGrid,
     center: Vector3Float32,
@@ -93,6 +115,23 @@ pub unsafe extern "C" fn optoctree_voxel_op(
             );
         },
     }
+}
+
+unsafe extern "C" fn derasterize_octree(
+    lib: *const ffi::c_void,
+    voxels: *const VoxelGrid,
+) -> OctnodeArray {
+    let lib = unsafe { &*lib.cast::<LibOptoctrees>() };
+    let voxels = unsafe { &*voxels };
+
+    let mut buf = optoctrees::ReverseOctreeBuffer::new();
+    let nodes = optoctrees::derasterize(&mut buf, voxels);
+
+    let ptr = (lib.table.alloc_octree)(nodes.len());
+    if ptr.is_null() { panic!("failed to allocate octnode array") }
+
+    unsafe { ptr::copy_nonoverlapping(nodes.as_ptr(), ptr, nodes.len()) }
+    OctnodeArray { ptr, len: nodes.len() }
 }
 
 #[cfg(target_env = "musl")]

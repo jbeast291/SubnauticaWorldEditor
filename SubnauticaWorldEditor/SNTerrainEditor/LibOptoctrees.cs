@@ -16,72 +16,107 @@ namespace SNTerrainEditor;
 /// <see cref="NativeGrid"/> must have its internal array's aligned to 32 (pack = 32)<br/>
 /// </SAFTEY>
 public static unsafe class LibOptoctrees {
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate OctNode* AllocOctNodesDelegate(nuint count);
+    // TODO: switch to a non-static class to better support fallible initialization and drop
 
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] 
-    private delegate void FreeOctNodesDelegate(OctNode* ptr, nuint count);
-
-    private static OctNode* AllocOctNodes(nuint count) {
-        long size = checked((long)count * UnsafeUtility.SizeOf<OctNode>());
-        return (OctNode*)UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<OctNode>(), Allocator.Persistent);
+    [StructLayout(LayoutKind.Sequential)]
+    private struct InitTable {
+        internal delegate* unmanaged[Cdecl]<nuint, OctNode*> alloc_octree;
+        internal delegate* unmanaged[Cdecl]<OctNode*, nuint, void> free_octree;
     }
-    private static void FreeOctNodes(OctNode* ptr, nuint count) => UnsafeUtility.Free(ptr, Allocator.Persistent);
 
-    private static readonly AllocOctNodesDelegate Alloc = AllocOctNodes;
-    private static readonly FreeOctNodesDelegate Free = FreeOctNodes;
-    
+    [StructLayout(LayoutKind.Sequential)]
+    private struct LibTable {
+        internal void* lib;
+        internal delegate* unmanaged[Cdecl]<LibTable*, void> drop;
+
+        internal delegate* unmanaged[Cdecl]<
+            void*, // lib
+            OctnodeArray, // octree
+            Voxel*, // voxels
+        void> rasterize_octree;
+
+        internal delegate* unmanaged[Cdecl]<
+            void*, // lib
+            Voxel*, // voxels
+            Vector3Float32, // center
+            VoxelOperation, // discrim
+            void*, // op
+        void> voxel_op;
+
+        internal delegate* unmanaged[Cdecl]<
+            void*, // lib
+            Voxel*, // voxels
+        OctnodeArray> derasterize_octree;
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     private struct OctnodeArray {
         internal OctNode* ptr;
         internal nuint len;
     }
-    
+
     [StructLayout(LayoutKind.Sequential)]
     private struct Vector3Float32 {
         internal float x;
         internal float y;
         internal float z;
     }
-    
+
     private enum VoxelOperation {
         AddSphere = 0,
         AddPyramid = 1,
     }
-    
+
     [StructLayout(LayoutKind.Sequential)]
     private struct AddSphere {
         internal float scale;
     }
-    
-    [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
-    private static extern void* new_liboptoctrees(AllocOctNodesDelegate alloc, FreeOctNodesDelegate free);
 
     [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
-    private static extern void drop_liboptoctrees(void* lib);
+    private static extern LibTable* init_liboptoctrees(InitTable* init);
 
-    [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
-    private static extern void optoctree_rasterize(void* lib, OctnodeArray octree, Voxel* voxels);
-    
-    [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
-    private static extern void optoctree_voxel_op(
-        void* lib, 
-        Voxel* voxels, 
-        Vector3Float32 center, 
-        VoxelOperation discrim, 
-        void* op
+    private static readonly LibTable* TABLE;
+
+    static LibOptoctrees() {
+        var allocOctree = (delegate* unmanaged[Cdecl]<nuint, OctNode*>)
+            Marshal.GetFunctionPointerForDelegate(ALLOC_OCTREE);
+
+        var freeOctree = (delegate* unmanaged[Cdecl]<OctNode*, nuint, void>)
+            Marshal.GetFunctionPointerForDelegate(FREE_OCTREE);
+
+        InitTable init = new() {
+            alloc_octree = allocOctree,
+            free_octree = freeOctree,
+        };
+        TABLE = init_liboptoctrees(&init);
+    }
+
+    private static OctNode* AllocOctree(nuint len) => (OctNode*)UnsafeUtility.Malloc(
+        size: checked((long)len * UnsafeUtility.SizeOf<OctNode>()),
+        alignment: UnsafeUtility.AlignOf<OctNode>(),
+        allocator: Allocator.Persistent
     );
-    
-    [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
-    private static extern OctnodeArray optoctree_derasterize(void* lib, Voxel* voxels);
-    
-    private static readonly void* LIB = new_liboptoctrees(Alloc, Free);
+
+    private static void FreeOctree(OctNode* ptr, nuint len) => UnsafeUtility.Free(
+        memory: ptr,
+        allocator: Allocator.Persistent
+    );
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate OctNode* AllocOctreeDelegate(nuint count);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void FreeOctreeDelegate(OctNode* ptr, nuint count);
+
+    private static readonly AllocOctreeDelegate ALLOC_OCTREE = AllocOctree;
+    private static readonly FreeOctreeDelegate FREE_OCTREE = FreeOctree;
 
     /// <summary>Rasterizes a sparse voxel octree into a given dense voxel grid.</summary>
     /// <param name="octree">A sequential unmanaged array of <see cref="OctNode"/>s following
     /// the games format</param>
     /// <param name="grid">32x32x32 grid of points</param>
-    /// <SAFTEY>See <see cref="LibOptoctrees"/>' SAFTEY documentation for struct alignment requirements.<br/>
+    /// <SAFTEY>See <see cref="LibOptoctrees"/>' SAFTEY documentation for struct alignment
+    /// requirements.<br/>
     /// Both the <paramref name="octree"/> and <paramref name="grid"/> must stay allocated for the
     /// duration of the function call. The <paramref name="octree"/> must be of a valid structure
     /// so that the grid will be fully initialized after.</SAFTEY>
@@ -90,22 +125,25 @@ public static unsafe class LibOptoctrees {
             ptr = (OctNode*)octree.GetUnsafePtr(),
             len = (nuint)octree.Length
         };
-        optoctree_rasterize(LIB, arr, grid.GridPtr);
+        TABLE->rasterize_octree(TABLE->lib, arr, grid.GridPtr);
     }
 
-    internal static unsafe void VoxelOpAddSphere(NativeGrid grid, Int3 gridBlock, Int3 opBlockCenter, int radius) {
+    internal static unsafe void VoxelOpAddSphere(
+        NativeGrid grid, Int3 gridBlock, Int3 opBlockCenter, int radius
+    ) {
         Int3 relativeBlock = opBlockCenter - gridBlock;
 
-        Vector3Float32 relativeCenter = new() { 
+        Vector3Float32 relativeCenter = new() {
             x = relativeBlock.x,
             y = relativeBlock.y,
             z = relativeBlock.z
         };
         AddSphere sphere = new() { scale = radius };
-        
-        optoctree_voxel_op(LIB, grid.GridPtr, relativeCenter, VoxelOperation.AddSphere, &sphere);
+        TABLE->voxel_op(
+            TABLE->lib, grid.GridPtr, relativeCenter, VoxelOperation.AddSphere, &sphere
+        );
     }
-    
+
     /// <summary>Derasterizes a dense voxel grid into a a sparse voxel octree.</summary>
     /// <param name="grid">32x32x32 grid of voxels</param>
     /// <returns>A unmanaged array allocated by unity's allocator of <see cref="OctNode"/>s</returns>
@@ -113,7 +151,9 @@ public static unsafe class LibOptoctrees {
     /// The <paramref name="grid"/> must be already initialized and remain allocated for the duration
     /// of the function call</SAFTEY>
     internal static unsafe NativeArray<OctNode> Derasterize(NativeGrid grid) {
-        OctnodeArray result = optoctree_derasterize(LIB, grid.GridPtr);
-        return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<OctNode>(result.ptr, (int)result.len, Allocator.Persistent);
+        OctnodeArray result = TABLE->derasterize_octree(TABLE->lib, grid.GridPtr);
+        return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<OctNode>(
+            result.ptr, (int)result.len, Allocator.Persistent
+        );
     }
 }
