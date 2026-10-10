@@ -65,8 +65,8 @@ pub struct AddPyramid {
 }
 
 struct AddPyramidFunc {
-    height: f32,
-    base_halfwidth: f32,
+    #[expect(unused)] height: f32,
+    #[expect(unused)] base_halfwidth: f32,
 }
 
 impl VoxelOperation for AddPyramid {
@@ -77,7 +77,7 @@ impl VoxelOperation for AddPyramid {
 }
 
 impl DistanceFunction for AddPyramidFunc {
-    fn evaluate(&self, at: Vec3<f32>) -> u8 {
+    fn evaluate(&self, #[expect(unused)] at: Vec3<f32>) -> u8 {
         todo!("pyramid sdf")
     }
 }
