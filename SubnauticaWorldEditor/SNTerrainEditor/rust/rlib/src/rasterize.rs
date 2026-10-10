@@ -1,7 +1,7 @@
 use std::mem::MaybeUninit;
 use crate::{Octnode, Voxel, Depth, MaxDepth};
 
-#[repr(C, align(16))]
+#[repr(C, align(32))]
 pub struct VoxelGridOutput {
     pub array: [MaybeUninit<Voxel>; 32 * 32 * 32],
 }
