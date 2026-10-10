@@ -1,6 +1,6 @@
 use std::array;
 use ggmath::Vec3;
-use wide::{u16x8, i16x8, f32x8};
+use wide::{u16x8, i16x8, i32x8, f32x8};
 use crate::{Voxel, VoxelGrid};
 
 // TODO: aabb optimizations
@@ -94,26 +94,35 @@ pub fn voxel_op(
     let op = op.compile();
 
     voxels.iter_mut().enumerate().for_each(|(i, voxel)| {
-        let at = center - voxel_grid_coords_simd(i);
+        let at = center - voxel_grid_coords_simd(i).map(|n| f32x8::from_i32x8(n));
         let dist = op.evaluate_simd(at) & 0xFF;
 
         *voxel = dist.simd_gt(0).select((dist << 8) | u16x8::splat(4), *voxel);
     })
 }
 
-fn voxel_grid_coords_simd(idx: usize) -> Vec3<f32x8> {
+fn voxel_grid_coords_simd(idx: usize) -> Vec3<i32x8> {
     let idx = idx * 8;
     let first = voxel_grid_coords(idx);
 
     Vec3::new(
-        f32x8::splat(first.x as f32) + f32x8::from([0., 0., 0., 0., 1., 1., 1., 1.]),
-        f32x8::splat(first.y as f32) + f32x8::from([0., 0., 1., 1., 0., 0., 1., 1.]),
-        f32x8::splat(first.z as f32) + f32x8::from([0., 1., 0., 1., 0., 1., 0., 1.]),
+        i32x8::splat(first.x) + i32x8::new([0, 0, 0, 0, 1, 1, 1, 1]),
+        i32x8::splat(first.y) + i32x8::new([0, 0, 1, 1, 0, 0, 1, 1]),
+        i32x8::splat(first.z) + i32x8::new([0, 1, 0, 1, 0, 1, 0, 1]),
     )
 }
 
-fn voxel_grid_coords(idx: usize) -> Vec3<isize> {
-    let idx = idx as isize;
+fn voxel_grid_coords(idx: usize) -> Vec3<i32> {
+    // FIXME: use `extract_bits` when it's stabilized
+    /*
+    Vec3::new(
+        idx.extract_bits(0b100_100_100_100_100) as i32,
+        idx.extract_bits(0b010_010_010_010_010) as i32,
+        idx.extract_bits(0b001_001_001_001_001) as i32,
+    )
+    */
+
+    let idx = idx as i32;
     Vec3::new(
         (idx >> 2 & 0b00001) |
         (idx >> 4 & 0b00010) |
@@ -133,7 +142,7 @@ fn voxel_grid_coords(idx: usize) -> Vec3<isize> {
     )
 }
 
-/*
+#[expect(unused)]
 fn voxel_grid_index([x, y, z]: [usize; 3]) -> usize {
     // FIXME: use `deposit_bits` when it's stabilized
     /*
@@ -141,6 +150,7 @@ fn voxel_grid_index([x, y, z]: [usize; 3]) -> usize {
     y.deposit_bits(0b010_010_010_010_010) |
     x.deposit_bits(0b100_100_100_100_100)
     */
+
     (z & 0b00001) << 0 |
     (z & 0b00010) << 2 |
     (z & 0b00100) << 4 |
@@ -159,6 +169,5 @@ fn voxel_grid_index([x, y, z]: [usize; 3]) -> usize {
     (x & 0b01000) << 8 |
     (x & 0b10000) << 10
 }
-*/
 
 // TODO: add tests
