@@ -1,7 +1,9 @@
 use std::{hint::black_box, mem::MaybeUninit, time::Duration};
-use criterion::{criterion_main, criterion_group, Criterion};
+use criterion::{Criterion, criterion_main, criterion_group};
 use rand::{prelude::*, rngs};
 use optoctrees::{Octnode, Voxel, VoxelGrid, VoxelGridOutput, VoxelOperation};
+
+type Group<'c> = criterion::BenchmarkGroup<'c, criterion::measurement::WallTime>;
 
 criterion_main!(benches);
 criterion_group! {
@@ -16,28 +18,32 @@ criterion_group! {
 }
 
 fn rasterize(c: &mut Criterion) {
-    bench(c, "rasterize_empty_octree", &[Octnode { mat: 0, dist: 0, child: 0 }]);
+    let mut g = c.benchmark_group("rasterize");
 
-    bench(c, "rasterize_sphere_octree", {
+    bench(&mut g, "empty_octree", &[Octnode { mat: 0, dist: 0, child: 0 }]);
+
+    bench(&mut g, "sphere_octree", {
         bytemuck::cast_slice(include_bytes!("../cases/sphere-octnodes.bin"))
     });
 
-    fn bench(c: &mut Criterion, name: &str, voxels: &[Octnode]) {
+    fn bench(g: &mut Group, name: &str, voxels: &[Octnode]) {
         let mut grid = VoxelGridOutput {
             array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _],
         };
-        c.bench_function(name, |b| b.iter(|| {
+        g.bench_function(name, |b| b.iter(|| {
             black_box(optoctrees::rasterize(black_box(voxels), black_box(&mut grid)))
         }));
     }
 }
 
 fn voxel_op(c: &mut Criterion) {
-    bench(c, "voxel_op_add_sphere", optoctrees::AddSphere { scale: 5.75 });
+    let mut g = c.benchmark_group("voxel_op");
 
-    fn bench(c: &mut Criterion, name: &str, op: impl VoxelOperation + Copy) {
+    bench(&mut g, "add_sphere", optoctrees::AddSphere { scale: 5.75 });
+
+    fn bench(g: &mut Group, name: &str, op: impl VoxelOperation + Copy) {
         let mut grid = bytemuck::zeroed();
-        c.bench_function(name, |b| b.iter(|| {
+        g.bench_function(name, |b| b.iter(|| {
             black_box(optoctrees::voxel_op(
                 black_box(&mut grid),
                 black_box([16.0, 16.0, 16.0]),
@@ -48,9 +54,11 @@ fn voxel_op(c: &mut Criterion) {
 }
 
 fn derasterize(c: &mut Criterion) {
-    bench(c, "derasterize_empty_grid", &bytemuck::zeroed());
+    let mut g = c.benchmark_group("derasterize");
 
-    bench(c, "derasterize_sphere_grid", const {
+    bench(&mut g, "empty_grid", &bytemuck::zeroed());
+
+    bench(&mut g, "sphere_grid", const {
         &VoxelGrid { array: bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")) }
     });
 
@@ -58,17 +66,17 @@ fn derasterize(c: &mut Criterion) {
     rngs::Xoshiro256PlusPlus::seed_from_u64(204).fill({
         bytemuck::must_cast_slice_mut::<Voxel, u16>(&mut random_grid.array)
     });
-    bench(c, "derasterize_random_grid", &random_grid);
+    bench(&mut g, "random_grid", &random_grid);
 
-    fn bench(c: &mut Criterion, name: &str, voxels: &VoxelGrid) {
-        c.bench_function(name, |b| b.iter(|| {
+    fn bench(g: &mut Group, name: &str, voxels: &VoxelGrid) {
+        g.bench_function(name, |b| b.iter(|| {
             let mut buf = optoctrees::ReverseOctreeBuffer::new();
             let nodes = optoctrees::derasterize(&mut buf, black_box(voxels));
-            let nodes = alloc_node_array(nodes);
+            let nodes = alloc_octree(nodes);
             black_box(nodes)
         }));
 
-        fn alloc_node_array(nodes: &[Octnode]) -> Box<[Octnode]> {
+        fn alloc_octree(nodes: &[Octnode]) -> Box<[Octnode]> {
             use std::{alloc, ptr};
 
             let len = nodes.len();
