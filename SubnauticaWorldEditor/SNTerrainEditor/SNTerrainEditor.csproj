@@ -34,8 +34,9 @@
         <PropertyGroup>
             <CargoCmd>cargo +stable run</CargoCmd>
             <CargoCmd Condition="'$(CI)' == 'true'">$(CargoCmd) --locked</CargoCmd>
-            <CargoCmd>$(CargoCmd) --package optoctrees-builder -- build</CargoCmd>
+            <CargoCmd>$(CargoCmd) --package optoctrees-builder --</CargoCmd>
             <CargoCmd Condition="'$(CI)' == 'true'">$(CargoCmd) --ci</CargoCmd>
+            <CargoCmd>$(CargoCmd) build</CargoCmd>
             <CargoCmd Condition="'$(Configuration)' == 'Debug'">$(CargoCmd) --dev</CargoCmd>
         </PropertyGroup>
         <Exec WorkingDirectory="$(MSBuildProjectDirectory)/rust" Command="$(CargoCmd)"/>
