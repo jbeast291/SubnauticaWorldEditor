@@ -426,7 +426,10 @@ impl Target {
         match self {
             Target::Host => CargoTool::Build,
             Target::Linux => CargoTool::Zigbuild,
-            Target::Windows => CargoTool::Build,
+            Target::Windows => cfg_select! {
+                target_os = "windows" => CargoTool::Build,
+                _ => CargoTool::XwinBuild,
+            },
             Target::Macos => cfg_select! {
                 target_os = "macos" => CargoTool::Build,
                 _ => CargoTool::Zigbuild,
@@ -478,7 +481,7 @@ impl Target {
         match self {
             Target::Host => None,
             Target::Linux => Some("x86_64-unknown-linux-gnu"),
-            Target::Windows => Some("x86_64-pc-windows-gnullvm"),
+            Target::Windows => Some("x86_64-pc-windows-msvc"),
             Target::Macos => Some("x86_64-apple-darwin"),
         }
     }
@@ -487,7 +490,7 @@ impl Target {
         match self {
             Target::Host | Target::Linux => None,
             Target::Windows => Some(
-                "https://doc.rust-lang.org/rustc/platform-support/windows-gnullvm.html",
+                "https://doc.rust-lang.org/rustc/platform-support/windows-msvc.html",
             ),
             Target::Macos => Some(
                 "https://doc.rust-lang.org/rustc/platform-support/apple-darwin.html",
@@ -499,7 +502,7 @@ impl Target {
         match self {
             Target::Host => "host-tuple",
             Target::Linux => "x86_64-unknown-linux-gnu.2.17",
-            Target::Windows => "x86_64-pc-windows-gnullvm",
+            Target::Windows => "x86_64-pc-windows-msvc",
             Target::Macos => "x86_64-apple-darwin",
         }
     }
@@ -508,7 +511,7 @@ impl Target {
         match self {
             Target::Host => current_platform::CURRENT_PLATFORM,
             Target::Linux => "x86_64-unknown-linux-gnu",
-            Target::Windows => "x86_64-pc-windows-gnullvm",
+            Target::Windows => "x86_64-pc-windows-msvc",
             Target::Macos => "x86_64-apple-darwin",
         }
     }
@@ -599,13 +602,14 @@ impl fmt::Display for Cpu {
 }
 
 #[derive(Copy, Clone)]
-enum CargoTool { Build, Zigbuild }
+enum CargoTool { Build, Zigbuild, #[cfg_attr(target_os = "windows", expect(unused))] XwinBuild }
 
 impl CargoTool {
     fn args(self) -> &'static [&'static str] {
         match self {
             CargoTool::Build => &["build"],
             CargoTool::Zigbuild => &["zigbuild"],
+            CargoTool::XwinBuild => &["xwin", "build"],
         }
     }
 
@@ -634,6 +638,24 @@ impl CargoTool {
                             "https://ziglang.org/",
                         ])?;
                 }
+
+                Ok(())
+            },
+
+            CargoTool::XwinBuild => {
+                process::Command::new("cargo").args(["xwin", "--version"])
+                    .quiet().run()
+                    .err_missing_dep("cargo-xwin", [
+                        "cargo install --locked cargo-xwin",
+                        "https://github.com/rust-cross/cargo-xwin",
+                    ])?;
+
+                process::Command::new("clang").arg("--version")
+                    .quiet().run()
+                    .err_missing_dep("the clang compiler", [
+                        "install llvm and clang with your package manager",
+                        "https://clang.llvm.org/",
+                    ])?;
 
                 Ok(())
             },
