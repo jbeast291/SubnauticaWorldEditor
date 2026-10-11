@@ -407,8 +407,8 @@ impl Target {
     fn current() -> anyhow::Result<Self> {
         cfg_select! {
             target_os = "linux" => Ok(Target::Windows),
-            target_os = "windows" => Ok(Target::Windows),
-            target_os = "macos" => Ok(Target::Macos),
+            target_os = "windows" => Ok(Target::Host),
+            target_os = "macos" => Ok(Target::Host),
             _ => bail!("unrecognized host operating system"),
         }
     }
