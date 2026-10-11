@@ -439,7 +439,6 @@ impl Target {
 
     fn check(self) {
         self.ensure_rustup_installed().handle_missing_dep();
-        self.ensure_deps_installed().handle_missing_dep();
         self.cargo_build_tool().ensure_installed().handle_missing_dep();
     }
 
@@ -466,15 +465,6 @@ impl Target {
         }
 
         Err(map_err(anyhow!("target not found in rustc output")))
-    }
-
-    fn ensure_deps_installed(self) -> Result<(), MissingDependency> {
-        match self {
-            Target::Host | Target::Linux | Target::Macos => Ok(()),
-            Target::Windows => process::Command::new("x86_64-w64-mingw32-clang").arg("--version")
-                .quiet().run()
-                .err_missing_dep("llvm-mingw", ["https://github.com/mstorsjo/llvm-mingw"]),
-        }
     }
 
     fn rustup_tuple(self) -> Option<&'static str> {
