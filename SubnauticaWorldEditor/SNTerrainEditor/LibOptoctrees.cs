@@ -20,33 +20,29 @@ public static unsafe class LibOptoctrees {
 
     [StructLayout(LayoutKind.Sequential)]
     private struct InitTable {
-        internal delegate* unmanaged[Cdecl]<nuint, OctNode*> alloc_octree;
-        internal delegate* unmanaged[Cdecl]<OctNode*, nuint, void> free_octree;
+        internal nint alloc_octree;
+        internal nint free_octree;
     }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void drop(LibTable libTable);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void rasterize_octree(void* lib, OctnodeArray octrees, Voxel* voxels);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void voxel_op(void* lib, Voxel* voxels, Vector3Float32 center, VoxelOperation discrim, void* op);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate OctnodeArray derasterize_octree(void* lib, Voxel* voxels);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct LibTable {
         internal void* lib;
-        internal delegate* unmanaged[Cdecl]<LibTable*, void> drop;
-
-        internal delegate* unmanaged[Cdecl]<
-            void*, // lib
-            OctnodeArray, // octree
-            Voxel*, // voxels
-        void> rasterize_octree;
-
-        internal delegate* unmanaged[Cdecl]<
-            void*, // lib
-            Voxel*, // voxels
-            Vector3Float32, // center
-            VoxelOperation, // discrim
-            void*, // op
-        void> voxel_op;
-
-        internal delegate* unmanaged[Cdecl]<
-            void*, // lib
-            Voxel*, // voxels
-        OctnodeArray> derasterize_octree;
+        internal nint drop;
+        internal nint rasterize_octree;
+        internal nint voxel_op;
+        internal nint derasterize_octree;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -78,11 +74,9 @@ public static unsafe class LibOptoctrees {
     private static readonly LibTable* TABLE;
 
     static LibOptoctrees() {
-        var allocOctree = (delegate* unmanaged[Cdecl]<nuint, OctNode*>)
-            Marshal.GetFunctionPointerForDelegate(ALLOC_OCTREE);
+        var allocOctree = Marshal.GetFunctionPointerForDelegate(ALLOC_OCTREE);
 
-        var freeOctree = (delegate* unmanaged[Cdecl]<OctNode*, nuint, void>)
-            Marshal.GetFunctionPointerForDelegate(FREE_OCTREE);
+        var freeOctree = Marshal.GetFunctionPointerForDelegate(FREE_OCTREE);
 
         InitTable init = new() {
             alloc_octree = allocOctree,
@@ -125,7 +119,11 @@ public static unsafe class LibOptoctrees {
             ptr = (OctNode*)octree.GetUnsafePtr(),
             len = (nuint)octree.Length
         };
-        TABLE->rasterize_octree(TABLE->lib, arr, grid.GridPtr);
+
+        var rasterize_octree = Marshal.GetDelegateForFunctionPointer<rasterize_octree>(
+            TABLE->rasterize_octree
+        );
+        rasterize_octree(TABLE->lib, arr, grid.GridPtr);
     }
 
     internal static unsafe void VoxelOpAddSphere(
@@ -139,9 +137,9 @@ public static unsafe class LibOptoctrees {
             z = relativeBlock.z
         };
         AddSphere sphere = new() { scale = radius };
-        TABLE->voxel_op(
-            TABLE->lib, grid.GridPtr, relativeCenter, VoxelOperation.AddSphere, &sphere
-        );
+
+        var voxel_op = Marshal.GetDelegateForFunctionPointer<voxel_op>(TABLE->voxel_op);
+        voxel_op(TABLE->lib, grid.GridPtr, relativeCenter, VoxelOperation.AddSphere, &sphere);
     }
 
     /// <summary>Derasterizes a dense voxel grid into a a sparse voxel octree.</summary>
@@ -151,7 +149,12 @@ public static unsafe class LibOptoctrees {
     /// The <paramref name="grid"/> must be already initialized and remain allocated for the duration
     /// of the function call</SAFTEY>
     internal static unsafe NativeArray<OctNode> Derasterize(NativeGrid grid) {
-        OctnodeArray result = TABLE->derasterize_octree(TABLE->lib, grid.GridPtr);
+        var derasterize_octree = Marshal.GetDelegateForFunctionPointer<derasterize_octree>(
+            TABLE->derasterize_octree
+        );
+
+        OctnodeArray result = derasterize_octree(TABLE->lib, grid.GridPtr);
+
         return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<OctNode>(
             result.ptr, (int)result.len, Allocator.Persistent
         );
