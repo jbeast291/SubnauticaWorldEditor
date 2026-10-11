@@ -89,3 +89,9 @@ impl Depth for AtDepth {
     }
     fn remaining(&self) -> usize { match *self { } }
 }
+
+#[cfg(feature = "__bench")]
+#[doc(hidden)]
+pub mod __bench {
+    pub use crate::{rasterize, voxel_op, derasterize};
+}

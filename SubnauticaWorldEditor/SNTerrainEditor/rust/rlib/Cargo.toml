@@ -9,6 +9,9 @@ bench = false
 name = "bench"
 harness = false
 
+[features]
+__bench = []
+
 [dependencies]
 bytemuck = { version = "1.25", features = ["derive", "extern_crate_std", "latest_stable_rust"] }
 ggmath = { version = "0.18", features = ["bytemuck", "wide"] }
@@ -20,4 +23,5 @@ build-rs = "0.3"
 
 [dev-dependencies]
 criterion = "0.8"
+optoctrees = { path = ".", features = ["__bench"] }
 rand = "=0.10.3"

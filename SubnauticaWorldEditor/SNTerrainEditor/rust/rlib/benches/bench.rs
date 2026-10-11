@@ -31,7 +31,7 @@ fn rasterize(c: &mut Criterion) {
             array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _],
         };
         g.bench_function(name, |b| b.iter(|| {
-            black_box(optoctrees::rasterize(black_box(voxels), black_box(&mut grid)))
+            black_box(optoctrees::__bench::rasterize(black_box(voxels), black_box(&mut grid)))
         }));
     }
 }
@@ -44,7 +44,7 @@ fn voxel_op(c: &mut Criterion) {
     fn bench(g: &mut Group, name: &str, op: impl VoxelOperation + Copy) {
         let mut grid = bytemuck::zeroed();
         g.bench_function(name, |b| b.iter(|| {
-            black_box(optoctrees::voxel_op(
+            black_box(optoctrees::__bench::voxel_op(
                 black_box(&mut grid),
                 black_box([16.0, 16.0, 16.0]),
                 black_box(op),
@@ -71,7 +71,7 @@ fn derasterize(c: &mut Criterion) {
     fn bench(g: &mut Group, name: &str, voxels: &VoxelGrid) {
         g.bench_function(name, |b| b.iter(|| {
             let mut buf = optoctrees::ReverseOctreeBuffer::new();
-            let nodes = optoctrees::derasterize(&mut buf, black_box(voxels));
+            let nodes = optoctrees::__bench::derasterize(&mut buf, black_box(voxels));
             let nodes = alloc_octree(nodes);
             black_box(nodes)
         }));

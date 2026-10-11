@@ -483,6 +483,7 @@ dependencies = [
  "bytemuck",
  "criterion",
  "ggmath",
+ "optoctrees",
  "rand",
  "rayon",
  "wide",
