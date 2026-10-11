@@ -133,7 +133,3 @@ unsafe extern "C" fn derasterize_octree(
     unsafe { ptr::copy_nonoverlapping(nodes.as_ptr(), ptr, nodes.len()) }
     OctnodeArray { ptr, len: nodes.len() }
 }
-
-#[cfg(target_env = "musl")]
-#[global_allocator]
-static ALLOC: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;

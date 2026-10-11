@@ -30,6 +30,33 @@
         <PackageReference Include="Subnautica.Nautilus" Version="1.*-*" PrivateAssets="all"/>
     </ItemGroup>
 
+    <Target Name="BuildRust" AfterTargets="Build">
+        <PropertyGroup>
+            <CargoCmd>cargo +stable run</CargoCmd>
+            <CargoCmd Condition="'$(CI)' == 'true'">$(CargoCmd) --locked</CargoCmd>
+            <CargoCmd>$(CargoCmd) --package optoctrees-builder -- build</CargoCmd>
+            <CargoCmd Condition="'$(CI)' == 'true'">$(CargoCmd) --ci</CargoCmd>
+            <CargoCmd Condition="'$(Configuration)' == 'Debug'">$(CargoCmd) --dev</CargoCmd>
+        </PropertyGroup>
+        <Exec WorkingDirectory="$(MSBuildProjectDirectory)/rust" Command="$(CargoCmd)"/>
+        <ItemGroup>
+            <CargoBuilderOutput Include="$(MSBuildProjectDirectory)/rust/target/builder/**/*"/>
+        </ItemGroup>
+        <Copy
+            SourceFiles="@(CargoBuilderOutput)"
+            DestinationFiles=
+                "@(CargoBuilderOutput->'$(TargetDir)%(RecursiveDir)%(Filename)%(Extension)')"
+            SkipUnchangedFiles="true"
+        />
+        <Copy
+            Condition="'$(ModDir)' != ''"
+            SourceFiles="@(CargoBuilderOutput)"
+            DestinationFiles=
+                "@(CargoBuilderOutput->'$(ModDir)/%(RecursiveDir)%(Filename)%(Extension)')"
+            SkipUnchangedFiles="true"
+        />
+    </Target>
+
     <!-- custom postbuild copy -->
     <Import Project="..\PostBuild.targets"/>
         
