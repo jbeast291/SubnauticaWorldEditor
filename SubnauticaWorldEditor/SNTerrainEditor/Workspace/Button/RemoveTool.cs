@@ -11,8 +11,9 @@ internal class RemoveTool : ICursorTool, ICursorToolDefinitionProvider
         "RemoveTool",
         Assets.TerrainBundle.LoadAsset<Sprite>("Checkmark"),
         [CoreInput.BrushDecreaseScale],
-        () => new AddTool());
-    
+        () => new RemoveTool()
+    );
+
     public void OnActivated()
     {
         Plugin.LogError("Remove Enabled");

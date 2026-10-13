@@ -13,13 +13,13 @@ public class InputHandler : MonoBehaviour {
 
     private IEnumerator Start() {
         enabled = false;
-        yield return new WaitUntil(() => EditorCanvasManager.main != null);
+        yield return new WaitUntil(() => EditorCanvasManager.INSTANCE != null);
         enabled = true;
     }
     
     private void Update() {
         if (GameInput.GetButtonDown(CoreInput.ToggleEditorKeyBind)) {
-            EditorCanvasManager.main.ToggleEditorVisibility();
+            EditorCanvasManager.INSTANCE.ToggleEditorVisibility();
         }
     }
 }

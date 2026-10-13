@@ -26,7 +26,7 @@ public class HotBarManager : MonoBehaviour
     
     internal void DeactivateOthers(HotBarButton activeButton) {
         foreach (var otherButton in buttonMap.Values) {
-            if(otherButton != activeButton) otherButton.SetDeActive(false);
+            if(otherButton != activeButton) otherButton.SetDeActive(true);
         }
     }
 

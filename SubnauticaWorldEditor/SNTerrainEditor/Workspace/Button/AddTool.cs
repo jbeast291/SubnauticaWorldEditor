@@ -12,8 +12,9 @@ internal class AddTool : ICursorTool, ICursorToolDefinitionProvider
         "AddTool",
         Assets.TerrainBundle.LoadAsset<Sprite>("Checkmark"),
         [CoreInput.UndoBind],
-        () => new AddTool());
-    
+        () => new AddTool()
+    );
+
     public void OnActivated()
     {
         Plugin.LogError("Add Enabled");

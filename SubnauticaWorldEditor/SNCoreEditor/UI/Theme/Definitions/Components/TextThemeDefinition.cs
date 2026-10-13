@@ -1,4 +1,5 @@
 using System;
+using Nautilus.Utility;
 using TMPro;
 using UnityEngine;
 
@@ -17,7 +18,9 @@ internal sealed class TextThemeDefinition : ComponentThemeDefinition
     {
         if (!gameObject.TryGetComponent(out TextMeshProUGUI text)) throw new Exception("Failed to get TextMeshProUGUI component while assigning theme!");
         text.color = color;
+
+        text.font = text.fontStyle.HasFlag(TMPro.FontStyles.Bold) ? FontUtils.Aller_W_Bd : FontUtils.Aller_Rg;
     }
-    
+
     public Color GetInputGlyphColor() => inputGlyphColor;
 }
