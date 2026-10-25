@@ -25,7 +25,7 @@ public static unsafe class LibOptoctrees {
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate void drop(LibTable libTable);
+    private delegate void drop(LibTable* libTable);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void rasterize_octree(void* lib, OctnodeArray octrees, Voxel* voxels);
