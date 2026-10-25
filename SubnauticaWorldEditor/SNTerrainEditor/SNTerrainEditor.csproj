@@ -39,9 +39,11 @@
             <CargoCmd>$(CargoCmd) build</CargoCmd>
             <CargoCmd Condition="'$(Configuration)' == 'Debug'">$(CargoCmd) --dev</CargoCmd>
         </PropertyGroup>
-        <Exec WorkingDirectory="$(MSBuildProjectDirectory)/rust" Command="$(CargoCmd)"/>
+        <Exec WorkingDirectory="$(MSBuildProjectDirectory)/liboptoctrees" Command="$(CargoCmd)"/>
         <ItemGroup>
-            <CargoBuilderOutput Include="$(MSBuildProjectDirectory)/rust/target/builder/**/*"/>
+            <CargoBuilderOutput
+                Include="$(MSBuildProjectDirectory)/liboptoctrees/target/builder/**/*"
+            />
         </ItemGroup>
         <Copy
             SourceFiles="@(CargoBuilderOutput)"
