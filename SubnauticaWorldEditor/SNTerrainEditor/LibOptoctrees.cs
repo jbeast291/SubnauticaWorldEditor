@@ -20,8 +20,8 @@ public static unsafe class LibOptoctrees {
 
     [StructLayout(LayoutKind.Sequential)]
     private struct InitTable {
-        internal nint alloc_octree;
-        internal nint free_octree;
+        internal nint alloc;
+        internal nint free;
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -74,36 +74,36 @@ public static unsafe class LibOptoctrees {
     private static readonly LibTable* TABLE;
 
     static LibOptoctrees() {
-        var allocOctree = Marshal.GetFunctionPointerForDelegate(ALLOC_OCTREE);
+        var unityAlloc = Marshal.GetFunctionPointerForDelegate(UNITY_ALLOC);
 
-        var freeOctree = Marshal.GetFunctionPointerForDelegate(FREE_OCTREE);
+        var unityFree = Marshal.GetFunctionPointerForDelegate(UNITY_FREE);
 
         InitTable init = new() {
-            alloc_octree = allocOctree,
-            free_octree = freeOctree,
+            alloc = unityAlloc,
+            free = unityFree,
         };
         TABLE = init_liboptoctrees(&init);
     }
 
-    private static OctNode* AllocOctree(nuint len) => (OctNode*)UnsafeUtility.Malloc(
-        size: checked((long)len * UnsafeUtility.SizeOf<OctNode>()),
-        alignment: UnsafeUtility.AlignOf<OctNode>(),
+    private static void* UnityAlloc(nuint size, nuint align) => UnsafeUtility.Malloc(
+        size: checked((long)size),
+        alignment: checked((int)align),
         allocator: Allocator.Persistent
     );
 
-    private static void FreeOctree(OctNode* ptr, nuint len) => UnsafeUtility.Free(
+    private static void UnityFree(void* ptr) => UnsafeUtility.Free(
         memory: ptr,
         allocator: Allocator.Persistent
     );
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate OctNode* AllocOctreeDelegate(nuint count);
+    private delegate void* UnityAllocDelegate(nuint size, nuint align);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate void FreeOctreeDelegate(OctNode* ptr, nuint count);
+    private delegate void UnityFreeDelegate(void* ptr);
 
-    private static readonly AllocOctreeDelegate ALLOC_OCTREE = AllocOctree;
-    private static readonly FreeOctreeDelegate FREE_OCTREE = FreeOctree;
+    private static readonly UnityAllocDelegate UNITY_ALLOC = UnityAlloc;
+    private static readonly UnityFreeDelegate UNITY_FREE = UnityFree;
 
     /// <summary>Rasterizes a sparse voxel octree into a given dense voxel grid.</summary>
     /// <param name="octree">A sequential unmanaged array of <see cref="OctNode"/>s following

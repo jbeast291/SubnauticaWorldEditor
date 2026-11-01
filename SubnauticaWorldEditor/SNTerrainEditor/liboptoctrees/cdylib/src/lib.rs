@@ -1,4 +1,4 @@
-use std::{ffi, ptr, slice};
+use std::{alloc, ffi, ptr, slice};
 use optoctrees::{Octnode, VoxelGrid, VoxelGridOutput};
 
 struct LibOptoctrees {
@@ -7,8 +7,8 @@ struct LibOptoctrees {
 
 #[repr(C)]
 pub struct InitTable {
-    pub alloc_octree: extern "C" fn(len: usize) -> *mut Octnode,
-    pub free_octree: unsafe extern "C" fn(ptr: *mut Octnode, len: usize),
+    pub alloc: extern "C" fn(size: usize, align: usize) -> *mut ffi::c_void,
+    pub free: unsafe extern "C" fn(ptr: *mut ffi::c_void),
 }
 
 #[repr(C)]
@@ -127,7 +127,8 @@ unsafe extern "C" fn derasterize_octree(
     let mut buf = optoctrees::ReverseOctreeBuffer::new();
     let nodes = optoctrees::derasterize(&mut buf, voxels);
 
-    let ptr = (lib.table.alloc_octree)(nodes.len());
+    let layout = alloc::Layout::for_value(nodes);
+    let ptr = (lib.table.alloc)(layout.size(), layout.align()).cast::<Octnode>();
     if ptr.is_null() { panic!("failed to allocate octnode array") }
 
     unsafe { ptr::copy_nonoverlapping(nodes.as_ptr(), ptr, nodes.len()) }
