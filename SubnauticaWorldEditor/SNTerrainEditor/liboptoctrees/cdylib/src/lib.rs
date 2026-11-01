@@ -1,13 +1,9 @@
-use std::{alloc, ffi, ptr, slice};
+use std::{alloc::{self, Allocator}, ffi, num, ptr, slice};
 use optoctrees::{Octnode, VoxelGrid, VoxelGridOutput};
-
-struct LibOptoctrees {
-    table: InitTable,
-}
 
 #[repr(C)]
 pub struct InitTable {
-    pub alloc: extern "C" fn(size: usize, align: usize) -> *mut ffi::c_void,
+    pub alloc: unsafe extern "C" fn(size: usize, align: usize) -> *mut ffi::c_void,
     pub free: unsafe extern "C" fn(ptr: *mut ffi::c_void),
 }
 
@@ -58,7 +54,8 @@ pub enum VoxelOperation {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibTable {
     let init = unsafe { ptr::read(init) };
-    let lib = LibOptoctrees { table: init };
+    let alloc = LibAlloc { alloc: init.alloc, free: init.free };
+    let lib = LibOptoctrees { table: init, alloc };
     let lib = Box::into_raw(Box::new(lib)).cast::<ffi::c_void>();
 
     let table = LibTable {
@@ -69,6 +66,11 @@ pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibT
     };
 
     Box::into_raw(Box::new(table))
+}
+
+struct LibOptoctrees {
+    table: InitTable,
+    alloc: LibAlloc,
 }
 
 unsafe extern "C" fn drop_lib(table: *mut LibTable) {
@@ -128,9 +130,36 @@ unsafe extern "C" fn derasterize_octree(
     let nodes = optoctrees::derasterize(&mut buf, voxels);
 
     let layout = alloc::Layout::for_value(nodes);
-    let ptr = (lib.table.alloc)(layout.size(), layout.align()).cast::<Octnode>();
-    if ptr.is_null() { panic!("failed to allocate octnode array") }
+    let Ok(ptr) = lib.alloc.allocate(layout) else { panic!("failed to allocate octnode array") };
+    let ptr = ptr.as_ptr().cast::<Octnode>();
 
     unsafe { ptr::copy_nonoverlapping(nodes.as_ptr(), ptr, nodes.len()) }
     OctnodeArray { ptr, len: nodes.len() }
+}
+
+#[derive(Copy, Clone)]
+struct LibAlloc {
+    alloc: unsafe extern "C" fn(size: usize, align: usize) -> *mut ffi::c_void,
+    free: unsafe extern "C" fn(ptr: *mut ffi::c_void),
+}
+
+unsafe impl Allocator for LibAlloc {
+    fn allocate(&self, layout: alloc::Layout) -> Result<ptr::NonNull<[u8]>, alloc::AllocError> {
+        let align = num::NonZero::new(layout.align()).unwrap_or(num::NonZero::<usize>::MIN);
+
+        if layout.size() == 0 {
+            let dangling = ptr::NonNull::without_provenance(align);
+            Ok(ptr::NonNull::slice_from_raw_parts(dangling, 0))
+        } else {
+            let ptr = unsafe { (self.alloc)(layout.size(), align.get()) }.cast::<u8>();
+            let ptr = ptr::NonNull::new(ptr).ok_or(alloc::AllocError)?;
+            Ok(ptr::NonNull::slice_from_raw_parts(ptr, layout.size()))
+        }
+    }
+
+    unsafe fn deallocate(&self, ptr: ptr::NonNull<u8>, layout: alloc::Layout) {
+        if layout.size() != 0 {
+            unsafe { (self.free)(ptr.as_ptr().cast::<ffi::c_void>()) }
+        }
+    }
 }
