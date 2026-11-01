@@ -3,7 +3,7 @@ use optoctrees::{Octnode, VoxelGrid, VoxelGridOutput};
 
 #[repr(C)]
 pub struct InitTable {
-    pub alloc: unsafe extern "C" fn(size: usize, align: usize) -> *mut ffi::c_void,
+    pub alloc: unsafe extern "C" fn(size: i64, align: i32) -> *mut ffi::c_void,
     pub free: unsafe extern "C" fn(ptr: *mut ffi::c_void),
 }
 
@@ -139,7 +139,7 @@ unsafe extern "C" fn derasterize_octree(
 
 #[derive(Copy, Clone)]
 struct LibAlloc {
-    alloc: unsafe extern "C" fn(size: usize, align: usize) -> *mut ffi::c_void,
+    alloc: unsafe extern "C" fn(size: i64, align: i32) -> *mut ffi::c_void,
     free: unsafe extern "C" fn(ptr: *mut ffi::c_void),
 }
 
@@ -151,7 +151,10 @@ unsafe impl Allocator for LibAlloc {
             let dangling = ptr::NonNull::without_provenance(align);
             Ok(ptr::NonNull::slice_from_raw_parts(dangling, 0))
         } else {
-            let ptr = unsafe { (self.alloc)(layout.size(), align.get()) }.cast::<u8>();
+            let size = layout.size().try_into().map_err(|_| alloc::AllocError)?;
+            let align = align.get().try_into().map_err(|_| alloc::AllocError)?;
+
+            let ptr = unsafe { (self.alloc)(size, align) }.cast::<u8>();
             let ptr = ptr::NonNull::new(ptr).ok_or(alloc::AllocError)?;
             Ok(ptr::NonNull::slice_from_raw_parts(ptr, layout.size()))
         }

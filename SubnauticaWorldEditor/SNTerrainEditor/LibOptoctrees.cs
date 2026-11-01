@@ -85,9 +85,9 @@ public static unsafe class LibOptoctrees {
         TABLE = init_liboptoctrees(&init);
     }
 
-    private static void* UnityAlloc(nuint size, nuint align) => UnsafeUtility.Malloc(
-        size: checked((long)size),
-        alignment: checked((int)align),
+    private static void* UnityAlloc(long size, int align) => UnsafeUtility.Malloc(
+        size: size,
+        alignment: align,
         allocator: Allocator.Persistent
     );
 
@@ -97,7 +97,7 @@ public static unsafe class LibOptoctrees {
     );
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate void* UnityAllocDelegate(nuint size, nuint align);
+    private delegate void* UnityAllocDelegate(long size, int align);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void UnityFreeDelegate(void* ptr);
