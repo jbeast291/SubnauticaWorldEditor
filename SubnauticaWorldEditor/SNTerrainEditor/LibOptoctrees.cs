@@ -13,7 +13,7 @@ namespace SNTerrainEditor;
 /// Required struct alignments:<br/>
 /// <see cref="Voxel"/> must be aligned to ushort (pack = 2)<br/>
 /// <see cref="OctNode"/> must be aligned to bytes (pack = 1)<br/>
-/// <see cref="NativeGrid"/> must have its internal array's aligned to 32 (pack = 32)<br/>
+/// <see cref="NativeGrid"/> must have its internal array's aligned to 64 (pack = 64)<br/>
 /// </SAFTEY>
 public static unsafe class LibOptoctrees {
     // TODO: switch to a non-static class to better support fallible initialization and drop

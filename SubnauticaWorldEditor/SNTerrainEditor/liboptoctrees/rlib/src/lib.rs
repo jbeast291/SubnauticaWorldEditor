@@ -1,6 +1,8 @@
 #[cfg(not(target_endian = "little"))]
 compile_error!("big-endian targets are not supported");
 
+mod transpose;
+
 mod rasterize;
 mod voxel_op;
 mod derasterize;
@@ -24,14 +26,34 @@ pub struct Voxel {
 
 #[cfg_attr(test, derive(Debug, Eq, PartialEq))]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-#[repr(C, align(32))]
+#[repr(C, align(64))]
 pub struct VoxelGrid {
     pub array: [Voxel; 32 * 32 * 32],
 }
 
 pub use rasterize::{VoxelGridOutput, rasterize};
 pub use voxel_op::{VoxelOperation, AddSphere, AddPyramid, voxel_op};
-pub use derasterize::{ReverseOctreeBuffer, derasterize};
+pub use derasterize::derasterize;
+
+#[expect(nonstandard_style)]
+type u8xN = cfg_select! {
+    cpu = "x86-64-v4" => wide::u8x64,
+    cpu = "x86-64-v3" => wide::u8x32,
+    _ => wide::u8x16,
+};
+
+#[expect(nonstandard_style)]
+type u16xN = cfg_select! {
+    cpu = "x86-64-v4" => wide::u16x32,
+    cpu = "x86-64-v3" => wide::u16x16,
+    _ => wide::u16x8,
+};
+
+const NATIVE_SIMD_WIDTH: usize = cfg_select! {
+    cpu = "x86-64-v4" => 64,
+    cpu = "x86-64-v3" => 32,
+    _  => 16,
+};
 
 trait Depth: Copy {
     type Descend: Depth;

@@ -1,4 +1,4 @@
-use std::{hint::black_box, mem::MaybeUninit, time::Duration};
+use std::{alloc, hint::black_box, mem::MaybeUninit, time::Duration};
 use criterion::{Criterion, criterion_main, criterion_group};
 use rand::{prelude::*, rngs};
 use optoctrees::{Octnode, Voxel, VoxelGrid, VoxelGridOutput, VoxelOperation};
@@ -70,29 +70,8 @@ fn derasterize(c: &mut Criterion) {
 
     fn bench(g: &mut Group, name: &str, voxels: &VoxelGrid) {
         g.bench_function(name, |b| b.iter(|| {
-            let mut buf = optoctrees::ReverseOctreeBuffer::new();
-            let nodes = optoctrees::__bench::derasterize(&mut buf, black_box(voxels));
-            let nodes = alloc_octree(nodes);
+            let nodes = optoctrees::__bench::derasterize(black_box(voxels), alloc::Global);
             black_box(nodes)
         }));
-
-        fn alloc_octree(nodes: &[Octnode]) -> Box<[Octnode]> {
-            use std::{alloc, ptr};
-
-            let len = nodes.len();
-            if len == 0 { Box::new([]) } else {
-                let layout = alloc::Layout::array::<u32>(len)
-                    .expect("octnode array len should be in bounds");
-
-                // SAFETY: `layout` does not have a size of zero. The allocated pointer is not null
-                // if we use it. `dst` is fully initialized before it becomes a `Box`.
-                unsafe {
-                    let dst = alloc::alloc(layout).cast::<Octnode>();
-                    if dst.is_null() { alloc::handle_alloc_error(layout) }
-                    ptr::copy_nonoverlapping(nodes.as_ptr(), dst, len);
-                    Box::from_raw(ptr::slice_from_raw_parts_mut(dst, len))
-                }
-            }
-        }
     }
 }

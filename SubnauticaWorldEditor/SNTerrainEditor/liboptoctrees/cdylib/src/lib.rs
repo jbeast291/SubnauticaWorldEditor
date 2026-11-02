@@ -126,15 +126,10 @@ unsafe extern "C" fn derasterize_octree(
     let lib = unsafe { &*lib.cast::<LibOptoctrees>() };
     let voxels = unsafe { &*voxels };
 
-    let mut buf = optoctrees::ReverseOctreeBuffer::new();
-    let nodes = optoctrees::derasterize(&mut buf, voxels);
+    let nodes = optoctrees::derasterize(voxels, lib.alloc);
+    let (nodes, _) = Box::into_raw_with_allocator(nodes);
 
-    let layout = alloc::Layout::for_value(nodes);
-    let Ok(ptr) = lib.alloc.allocate(layout) else { panic!("failed to allocate octnode array") };
-    let ptr = ptr.as_ptr().cast::<Octnode>();
-
-    unsafe { ptr::copy_nonoverlapping(nodes.as_ptr(), ptr, nodes.len()) }
-    OctnodeArray { ptr, len: nodes.len() }
+    OctnodeArray { ptr: nodes.cast::<Octnode>(), len: nodes.len() }
 }
 
 #[derive(Copy, Clone)]
