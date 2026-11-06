@@ -11,10 +11,18 @@ internal readonly struct NativeGrid : IDisposable {
     internal const int SideLength = 32;
     internal const int GridArrayLength = SideLength * SideLength * SideLength;
 
-    public readonly NativeArray<Voxel> nativeArray = 
-        VoxelGridAllocator.WithAlignment(GridArrayLength, Allocator.Persistent);
-    
-    public NativeGrid() { }
+    public readonly NativeArray<Voxel> nativeArray;
+
+    private NativeGrid(NativeArray<Voxel> nativeArray) {
+        this.nativeArray = nativeArray;
+    }
+
+    /// <SAFETY>The <paramref name="ptr"/> must point to 32768 consecutive valid and initialized
+    /// instances of <see cref="Voxel"/>.</SAFETY>
+    public static unsafe NativeGrid FromPtr(Voxel* ptr)
+        => new(NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<Voxel>(
+            ptr, GridArrayLength, Allocator.Persistent
+        ));
 
     internal unsafe Voxel* GridPtr => (Voxel*) nativeArray.GetUnsafePtr();
     

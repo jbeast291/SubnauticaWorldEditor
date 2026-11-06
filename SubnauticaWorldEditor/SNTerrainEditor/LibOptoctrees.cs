@@ -28,7 +28,7 @@ public static unsafe class LibOptoctrees {
     private delegate void drop(LibTable* libTable);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate void rasterize_octree(void* lib, OctnodeArray octrees, Voxel* voxels);
+    private delegate Voxel* rasterize_octree(void* lib, OctnodeArray octrees);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void voxel_op(void* lib, Voxel* voxels, Vector3Float32 center, VoxelOperation discrim, void* op);
@@ -108,13 +108,12 @@ public static unsafe class LibOptoctrees {
     /// <summary>Rasterizes a sparse voxel octree into a given dense voxel grid.</summary>
     /// <param name="octree">A sequential unmanaged array of <see cref="OctNode"/>s following
     /// the games format</param>
-    /// <param name="grid">32x32x32 grid of points</param>
     /// <SAFTEY>See <see cref="LibOptoctrees"/>' SAFTEY documentation for struct alignment
     /// requirements.<br/>
     /// Both the <paramref name="octree"/> and <paramref name="grid"/> must stay allocated for the
     /// duration of the function call. The <paramref name="octree"/> must be of a valid structure
     /// so that the grid will be fully initialized after.</SAFTEY>
-    internal static unsafe void Rasterize(NativeArray<OctNode> octree, NativeGrid grid) {
+    internal static unsafe NativeGrid Rasterize(NativeArray<OctNode> octree) {
         OctnodeArray arr = new() {
             ptr = (OctNode*)octree.GetUnsafePtr(),
             len = (nuint)octree.Length
@@ -123,7 +122,7 @@ public static unsafe class LibOptoctrees {
         var rasterize_octree = Marshal.GetDelegateForFunctionPointer<rasterize_octree>(
             TABLE->rasterize_octree
         );
-        rasterize_octree(TABLE->lib, arr, grid.GridPtr);
+        return NativeGrid.FromPtr(rasterize_octree(TABLE->lib, arr));
     }
 
     internal static unsafe void VoxelOpAddSphere(

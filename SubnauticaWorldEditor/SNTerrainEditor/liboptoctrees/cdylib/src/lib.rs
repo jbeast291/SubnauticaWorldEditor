@@ -1,5 +1,5 @@
 use std::{alloc::{self, Allocator}, ffi, num, ptr, slice};
-use optoctrees::{Octnode, VoxelGrid, VoxelGridOutput};
+use optoctrees::{Octnode, VoxelGrid};
 
 #[repr(C)]
 pub struct InitTable {
@@ -15,8 +15,7 @@ pub struct LibTable {
     pub rasterize_octree: unsafe extern "C" fn(
         lib: *const ffi::c_void,
         octree: OctnodeArray,
-        voxels: *mut VoxelGridOutput,
-    ),
+    ) -> *mut VoxelGrid,
 
     pub voxel_op: unsafe extern "C" fn(
         lib: *const ffi::c_void,
@@ -81,14 +80,16 @@ unsafe extern "C" fn drop_lib(table: *mut LibTable) {
 }
 
 unsafe extern "C" fn rasterize_octree(
-    _: *const ffi::c_void,
+    lib: *const ffi::c_void,
     octree: OctnodeArray,
-    voxels: *mut VoxelGridOutput,
-) {
+) -> *mut VoxelGrid {
+    let lib = unsafe { &*lib.cast::<LibOptoctrees>() };
     let octree = unsafe { slice::from_raw_parts(octree.ptr, octree.len) };
-    let voxels = unsafe { &mut *voxels };
 
-    optoctrees::rasterize(octree, voxels);
+    let voxels = optoctrees::rasterize(octree, lib.alloc);
+    let (voxels, _) = Box::into_raw_with_allocator(voxels);
+
+    voxels
 }
 
 unsafe extern "C" fn voxel_op(

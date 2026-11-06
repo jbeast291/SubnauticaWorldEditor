@@ -31,7 +31,7 @@ pub struct VoxelGrid {
     pub array: [Voxel; 32 * 32 * 32],
 }
 
-pub use rasterize::{VoxelGridOutput, rasterize};
+pub use rasterize::rasterize;
 pub use voxel_op::{VoxelOperation, AddSphere, AddPyramid, voxel_op};
 pub use derasterize::derasterize;
 

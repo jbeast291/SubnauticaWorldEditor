@@ -1,7 +1,7 @@
-use std::{alloc, hint::black_box, mem::MaybeUninit, time::Duration};
+use std::{alloc, hint::black_box, time::Duration};
 use criterion::{Criterion, criterion_main, criterion_group};
 use rand::{prelude::*, rngs};
-use optoctrees::{Octnode, Voxel, VoxelGrid, VoxelGridOutput, VoxelOperation};
+use optoctrees::{Octnode, Voxel, VoxelGrid, VoxelOperation};
 
 type Group<'c> = criterion::BenchmarkGroup<'c, criterion::measurement::WallTime>;
 
@@ -26,12 +26,9 @@ fn rasterize(c: &mut Criterion) {
         bytemuck::cast_slice(include_bytes!("../cases/sphere-octnodes.bin"))
     });
 
-    fn bench(g: &mut Group, name: &str, voxels: &[Octnode]) {
-        let mut grid = VoxelGridOutput {
-            array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _],
-        };
+    fn bench(g: &mut Group, name: &str, octree: &[Octnode]) {
         g.bench_function(name, |b| b.iter(|| {
-            black_box(optoctrees::__bench::rasterize(black_box(voxels), black_box(&mut grid)))
+            black_box(optoctrees::__bench::rasterize(black_box(octree), alloc::Global))
         }));
     }
 }

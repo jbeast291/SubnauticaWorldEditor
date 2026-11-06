@@ -41,18 +41,11 @@ internal class EditSession : IDisposable
      */
     
     private readonly WorldStreamer WORLD_STREAMER;
-
-    private const int GRID_POOL_SIZE = 128;
-    private static readonly Stack<NativeGrid> EDIT_GRID_POOl = new();
     
     private readonly Dictionary<Int3, ManagedBatch> managedBatches = new();
     
     internal EditSession(WorldStreamer worldStreamer) {
         WORLD_STREAMER = worldStreamer;
-        
-        for(int i = 0; i < GRID_POOL_SIZE; i++) {
-            EDIT_GRID_POOl.Push(new NativeGrid());
-        }
     }
 
     internal void AddBatch(Int3 batchIndex) {
@@ -64,19 +57,17 @@ internal class EditSession : IDisposable
     }
     
     internal void DEBUG__Clear() {
-        NativeGrid grid = EDIT_GRID_POOl.Pop();
-        
         foreach (ManagedBatch batch in managedBatches.Values) {
             foreach (ManagedOctree octree in batch.octrees) {
                 NativeArray<OctNode> old = octree.arr;
-                LibOptoctrees.Rasterize(old, grid);
+                NativeGrid grid = LibOptoctrees.Rasterize(old);
                 grid.DEBUG__Clear();
                 NativeArray<OctNode> octreeBytes = LibOptoctrees.Derasterize(grid);
                 octree.arr = octreeBytes;
                 old.Dispose();
+                grid.Dispose();
             }
         }
-        EDIT_GRID_POOl.Push(grid);
     }
     
     internal void DEBUG__Sphere(Int3 batchIndex) {
@@ -85,11 +76,10 @@ internal class EditSession : IDisposable
         sw.Start();
         Dictionary<Int3, NativeGrid> grids = new();
         foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
-            NativeGrid grid = EDIT_GRID_POOl.Pop();
-            grids.Add(octreeLocalIndex, grid);
             ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
             NativeArray<OctNode> old = octree.arr;
-            LibOptoctrees.Rasterize(old, grid);
+            NativeGrid grid = LibOptoctrees.Rasterize(old);
+            grids.Add(octreeLocalIndex, grid);
         }
         sw.Stop();
         Plugin.LogError($"(Spheres) Average Rasterize Took: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
@@ -111,25 +101,23 @@ internal class EditSession : IDisposable
             
             octree.arr = LibOptoctrees.Derasterize(grid);
             old.Dispose();
-            EDIT_GRID_POOl.Push(grid);
+            grid.Dispose();
         }
         sw.Stop();
         Plugin.LogError($"(Spheres) Average Derasterize Took: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
     }
 
     public void DEBUG__dumpTestData(Int3 batchIndex) {
-        NativeGrid grid = EDIT_GRID_POOl.Pop();
-        
         ManagedBatch batch = managedBatches[batchIndex];
         ManagedOctree octree = batch.octrees.Get(new(0));
         
         NativeArray<OctNode> old = octree.arr;
-        LibOptoctrees.Rasterize(old, grid);
+        NativeGrid grid = LibOptoctrees.Rasterize(old);
 
         WriteNativeArrayToFile(old, "sphereOctree.bin");
         WriteNativeArrayToFile(grid.nativeArray, "sphereGrid.bin");
         
-        EDIT_GRID_POOl.Push(grid);
+        grid.Dispose();
     }
     
     

@@ -1,15 +1,10 @@
-use std::mem::MaybeUninit;
-use crate::{Octnode, Voxel, Depth, MaxDepth};
+use std::alloc;
+use crate::{Octnode, Voxel, VoxelGrid, Depth, MaxDepth};
 
-#[repr(C, align(32))]
-pub struct VoxelGridOutput {
-    pub array: [MaybeUninit<Voxel>; 32 * 32 * 32],
-}
-
-pub fn rasterize(octree: &[Octnode], voxels: &mut VoxelGridOutput) {
+pub fn rasterize<A: alloc::Allocator>(octree: &[Octnode], alloc: A) -> Box<VoxelGrid, A> {
     fn recurse(
         octree: &[Octnode],
-        voxels: &mut [MaybeUninit<Voxel>; 32 * 32 * 32],
+        voxels: &mut [Voxel; 32 * 32 * 32],
         grid_offset: usize,
         node_index: usize,
         depth: impl Depth,
@@ -24,7 +19,7 @@ pub fn rasterize(octree: &[Octnode], voxels: &mut VoxelGridOutput) {
                 if child_index == 0 {
                     let voxel = Voxel { mat: node.mat, dist: node.dist };
                     for i in 0..get_volume_for_layer(layer) {
-                        voxels[grid_offset + i].write(voxel);
+                        voxels[grid_offset + i] = voxel;
                     }
                     return
                 }
@@ -43,59 +38,56 @@ pub fn rasterize(octree: &[Octnode], voxels: &mut VoxelGridOutput) {
             },
             |voxels| {
                 let node = octree[node_index];
-                voxels[grid_offset].write(Voxel { mat: node.mat, dist: node.dist });
+                voxels[grid_offset] = Voxel { mat: node.mat, dist: node.dist };
             },
         );
     }
 
-    if octree.is_empty() { return }
-    recurse(octree, &mut voxels.array, 0, 0, MaxDepth::<5>);
+    let mut voxels = alloc_zeroed_box_in::<VoxelGrid, A>(alloc);
+    if !octree.is_empty() {
+        recurse(octree, &mut voxels.array, 0, 0, MaxDepth::<5>);
+    }
+    voxels
 }
 
 const fn get_volume_for_layer(layer: usize) -> usize {
     1 << (15 - (3 * layer as usize))
 }
 
+fn alloc_zeroed_box_in<T: bytemuck::Zeroable, A: alloc::Allocator>(alloc: A) -> Box<T, A> {
+    let layout = alloc::Layout::new::<T>();
+    let Ok(ptr) = alloc::Allocator::allocate_zeroed(&alloc, layout) else {
+        alloc::handle_alloc_error(layout)
+    };
+
+    let ptr = ptr.as_ptr().cast::<T>();
+
+    // SAFETY: `T` is valid when zero-initialized, and `ptr` was successfully allocated by `alloc`
+    // with the correct size and alignment.
+    unsafe { Box::from_raw_in(ptr, alloc) }
+}
+
 #[cfg(test)]
 mod test {
-    use crate::VoxelGrid;
     use super::*;
 
     #[test]
     fn rasterize_empty_grid() {
         let octree = &[Octnode { mat: 0, dist: 0, child: 0 }];
-        let mut grid = VoxelGridOutput {
-            array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _],
-        };
-
-        rasterize(octree, &mut grid);
-
-        // SAFETY: `rasterize` never unitializes any of the values in `grid`.
-        let grid = unsafe {
-            &*((&mut grid as *mut VoxelGridOutput).cast_const().cast::<VoxelGrid>())
-        };
+        let grid = rasterize(octree, alloc::Global);
 
         let expect = const { &VoxelGrid { array: [Voxel { mat: 0, dist: 0 }; _] } };
-        assert_eq!(grid, expect);
+        assert_eq!(&*grid, expect);
     }
 
     #[test]
     fn rasterize_sphere_grid() {
         let octree = bytemuck::cast_slice(include_bytes!("../cases/sphere-octnodes.bin"));
-        let mut grid = VoxelGridOutput {
-            array: [const { MaybeUninit::new(Voxel { mat: 0, dist: 0 }) }; _],
-        };
-
-        rasterize(octree, &mut grid);
-
-        // SAFETY: `rasterize` never unitializes any of the values in `grid`.
-        let grid = unsafe {
-            &*((&mut grid as *mut VoxelGridOutput).cast_const().cast::<VoxelGrid>())
-        };
+        let grid = rasterize(octree, alloc::Global);
 
         let expect = const {
             &VoxelGrid { array: bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")) }
         };
-        assert_eq!(grid, expect);
+        assert_eq!(&*grid, expect);
     }
 }
