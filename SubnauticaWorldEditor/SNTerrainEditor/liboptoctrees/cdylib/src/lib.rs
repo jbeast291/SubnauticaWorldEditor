@@ -68,7 +68,7 @@ pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibT
 }
 
 struct LibOptoctrees {
-    table: InitTable,
+    #[expect(unused)] table: InitTable,
     alloc: LibAlloc,
 }
 
