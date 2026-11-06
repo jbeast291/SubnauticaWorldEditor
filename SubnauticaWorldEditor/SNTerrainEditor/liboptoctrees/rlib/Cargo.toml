@@ -15,7 +15,6 @@ __bench = []
 [dependencies]
 bytemuck = { version = "1.25", features = ["derive", "extern_crate_std", "latest_stable_rust"] }
 ggmath = { version = "0.18", features = ["bytemuck", "wide"] }
-rayon = "1.12"
 wide = "1.7"
 
 [build-dependencies]
