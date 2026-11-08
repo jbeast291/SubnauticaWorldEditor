@@ -5,7 +5,7 @@ compile_error!("big-endian targets are not supported");
 
 mod transpose;
 mod rasterize;
-mod voxel_op;
+mod voxels;
 mod derasterize;
 
 use rasterize::Rasterizer;
@@ -20,7 +20,7 @@ pub struct Octnode {
     pub child: u16,
 }
 
-pub use voxel_op::{VoxelOp, AddSphere, AddPyramid};
+pub use voxels::{VoxelOp, AddSphere, AddPyramid};
 
 pub fn octree_voxel_op<A: alloc::Allocator>(
     octree: &[Octnode],
@@ -35,7 +35,7 @@ pub fn octree_voxel_op<A: alloc::Allocator>(
 
     SCRATCH.with_borrow_mut(|(r, d)| {
         let voxels = r.rasterize(octree);
-        voxel_op::voxel_op(voxels, center, op);
+        voxels::voxel_op(voxels, center, op);
         d.derasterize(voxels, alloc)
     })
 }
@@ -122,7 +122,7 @@ impl Depth for AtDepth {
 pub mod __bench {
     pub use crate::{
         rasterize::Rasterizer,
-        voxel_op::{Voxel, VoxelGrid, voxel_op},
+        voxels::{Voxel, VoxelGrid, voxel_op},
         derasterize::Derasterizer,
     };
 }

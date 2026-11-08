@@ -2,7 +2,7 @@ use std::{alloc, array, iter, mem::MaybeUninit, num::NonZero, ptr};
 use wide::{u8x16, u16x8, u16x16, u32x8};
 use crate::{
     transpose,
-    voxel_op::VoxelGrid, Octnode,
+    voxels::VoxelGrid, Octnode,
     u8xN, u16xN, NATIVE_SIMD_WIDTH,
     Depth, MaxDepth, AtDepth,
 };
@@ -381,7 +381,7 @@ mod test {
 
     #[test]
     fn derasterize_empty_grid() {
-        let grid = VoxelGrid([crate::voxel_op::Voxel { mat: 0, dist: 0 }; _]);
+        let grid = VoxelGrid([crate::voxels::Voxel { mat: 0, dist: 0 }; _]);
 
         let mut d = Derasterizer::new();
         let nodes = d.derasterize(&grid, alloc::Global);
@@ -408,7 +408,7 @@ mod test {
         let sphere_grid = const {
             &VoxelGrid(bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")))
         };
-        let empty_grid = VoxelGrid([crate::voxel_op::Voxel { mat: 0, dist: 0 }; _]);
+        let empty_grid = VoxelGrid([crate::voxels::Voxel { mat: 0, dist: 0 }; _]);
 
         let mut d = Derasterizer::new();
         let sphere_nodes = d.derasterize(&sphere_grid, alloc::Global);

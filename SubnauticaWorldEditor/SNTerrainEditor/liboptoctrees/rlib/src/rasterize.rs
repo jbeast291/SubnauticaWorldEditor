@@ -1,4 +1,4 @@
-use crate::{voxel_op::{Voxel, VoxelGrid}, Octnode, Depth, MaxDepth};
+use crate::{voxels::{Voxel, VoxelGrid}, Octnode, Depth, MaxDepth};
 
 #[derive(Copy, Clone)]
 pub struct Rasterizer {
