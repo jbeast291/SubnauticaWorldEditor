@@ -67,7 +67,7 @@ internal class TEBatchManager : MonoBehaviour
         sw.Restart();
         activeSession.DEBUG__Clear();
         sw.Stop();
-        Plugin.LogError($"(Rasterize + Modify + Derasterize) Took: {sw.ElapsedMilliseconds}ms");
+        Plugin.LogError($"(Clear) Took: {sw.ElapsedMilliseconds}ms");
         
         
         sw.Restart();

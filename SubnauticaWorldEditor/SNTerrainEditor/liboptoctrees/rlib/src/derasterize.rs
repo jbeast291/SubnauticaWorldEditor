@@ -2,7 +2,7 @@ use std::{alloc, array, iter, mem::MaybeUninit, num::NonZero, ptr};
 use wide::{u8x16, u16x8, u16x16, u32x8};
 use crate::{
     transpose,
-    Octnode, VoxelGrid,
+    voxel_op::VoxelGrid, Octnode,
     u8xN, u16xN, NATIVE_SIMD_WIDTH,
     Depth, MaxDepth, AtDepth,
 };
@@ -371,7 +371,7 @@ mod test {
 
     #[test]
     fn derasterize_empty_grid() {
-        let grid = VoxelGrid { array: [crate::Voxel { mat: 0, dist: 0 }; _] };
+        let grid = VoxelGrid { array: [crate::voxel_op::Voxel { mat: 0, dist: 0 }; _] };
         let nodes = derasterize(&grid, alloc::Global);
 
         let expect = &[Octnode { mat: 0, dist: 0, child: 0 }];

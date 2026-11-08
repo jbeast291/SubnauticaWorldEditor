@@ -60,12 +60,12 @@ internal class EditSession : IDisposable
         foreach (ManagedBatch batch in managedBatches.Values) {
             foreach (ManagedOctree octree in batch.octrees) {
                 NativeArray<OctNode> old = octree.arr;
-                NativeGrid grid = LibOptoctrees.Rasterize(old);
-                grid.DEBUG__Clear();
-                NativeArray<OctNode> octreeBytes = LibOptoctrees.Derasterize(grid);
-                octree.arr = octreeBytes;
+                octree.arr = new(
+                    length: 1,
+                    allocator: Allocator.Persistent,
+                    options: NativeArrayOptions.ClearMemory
+                );
                 old.Dispose();
-                grid.Dispose();
             }
         }
     }
@@ -74,53 +74,21 @@ internal class EditSession : IDisposable
         ManagedBatch batch = managedBatches[batchIndex];
         System.Diagnostics.Stopwatch sw = new();
         sw.Start();
-        Dictionary<Int3, NativeGrid> grids = new();
-        foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
-            ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
-            NativeArray<OctNode> old = octree.arr;
-            NativeGrid grid = LibOptoctrees.Rasterize(old);
-            grids.Add(octreeLocalIndex, grid);
-        }
-        sw.Stop();
-        Plugin.LogError($"(Spheres) Average Rasterize Took: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
-        
-        sw.Restart();
         Int3 batchBlockPos = batchIndex * ManagedBatch.BATCH_BLOCK_LENGTH;
-        foreach (var kVp in grids) {
-            Int3 gridBlockPos = batchBlockPos + (kVp.Key * NativeGrid.SideLength);
-            LibOptoctrees.VoxelOpAddSphere(kVp.Value, gridBlockPos, gridBlockPos + new Int3(16), 16);
-        }
-        sw.Stop();
-        Plugin.LogError($"(Spheres) Average Voxel Opp: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
-        
-        sw.Restart();
         foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
             ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
             NativeArray<OctNode> old = octree.arr;
-            NativeGrid grid = grids[octreeLocalIndex];
-            
-            octree.arr = LibOptoctrees.Derasterize(grid);
+            Int3 gridBlockPos = batchBlockPos + (octreeLocalIndex * 32);
+            octree.arr = LibOptoctrees.OctreeAddSphere(
+                octree: old,
+                gridBlockPos, opBlockCenter: gridBlockPos + new Int3(16), radius: 16
+            );
             old.Dispose();
-            grid.Dispose();
         }
         sw.Stop();
-        Plugin.LogError($"(Spheres) Average Derasterize Took: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
+        Plugin.LogError($"(Spheres) Average Rasterize + VoxelOp + Derasterize Took: {sw.Elapsed.TotalMilliseconds / 125.0}ms");
     }
 
-    public void DEBUG__dumpTestData(Int3 batchIndex) {
-        ManagedBatch batch = managedBatches[batchIndex];
-        ManagedOctree octree = batch.octrees.Get(new(0));
-        
-        NativeArray<OctNode> old = octree.arr;
-        NativeGrid grid = LibOptoctrees.Rasterize(old);
-
-        WriteNativeArrayToFile(old, "sphereOctree.bin");
-        WriteNativeArrayToFile(grid.nativeArray, "sphereGrid.bin");
-        
-        grid.Dispose();
-    }
-    
-    
     private static void WriteNativeArrayToFile<T>(NativeArray<T> nativeArray, string fileName) where T : struct {
         NativeArray<byte> unsafeArray = nativeArray.Reinterpret<byte>(UnsafeUtility.SizeOf<T>());
         byte[] managedBuffer = new byte[unsafeArray.Length];

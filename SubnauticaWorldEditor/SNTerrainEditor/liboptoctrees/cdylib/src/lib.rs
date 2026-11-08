@@ -1,5 +1,5 @@
 use std::{alloc::{self, Allocator}, ffi, num, ptr, slice};
-use optoctrees::{Octnode, VoxelGrid};
+use optoctrees::Octnode;
 
 #[repr(C)]
 pub struct InitTable {
@@ -12,22 +12,12 @@ pub struct LibTable {
     pub lib: *mut ffi::c_void,
     pub drop: unsafe extern "C" fn(table: *mut LibTable),
 
-    pub rasterize_octree: unsafe extern "C" fn(
+    pub octree_voxel_op: unsafe extern "C" fn(
         lib: *const ffi::c_void,
         octree: OctnodeArray,
-    ) -> *mut VoxelGrid,
-
-    pub voxel_op: unsafe extern "C" fn(
-        lib: *const ffi::c_void,
-        voxels: *mut VoxelGrid,
         center: Vector3Float32,
         discrim: VoxelOperation,
         op: *const ffi::c_void,
-    ),
-
-    pub derasterize_octree: unsafe extern "C" fn(
-        lib: *const ffi::c_void,
-        voxels: *const VoxelGrid,
     ) -> OctnodeArray,
 }
 
@@ -59,9 +49,7 @@ pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibT
 
     let table = LibTable {
         lib, drop: drop_lib,
-        rasterize_octree,
-        voxel_op,
-        derasterize_octree,
+        octree_voxel_op,
     };
 
     Box::into_raw(Box::new(table))
@@ -79,55 +67,27 @@ unsafe extern "C" fn drop_lib(table: *mut LibTable) {
     drop(table);
 }
 
-unsafe extern "C" fn rasterize_octree(
+unsafe extern "C" fn octree_voxel_op(
     lib: *const ffi::c_void,
     octree: OctnodeArray,
-) -> *mut VoxelGrid {
-    let lib = unsafe { &*lib.cast::<LibOptoctrees>() };
-    let octree = unsafe { slice::from_raw_parts(octree.ptr, octree.len) };
-
-    let voxels = optoctrees::rasterize(octree, lib.alloc);
-    let (voxels, _) = Box::into_raw_with_allocator(voxels);
-
-    voxels
-}
-
-unsafe extern "C" fn voxel_op(
-    _: *const ffi::c_void,
-    voxels: *mut VoxelGrid,
     center: Vector3Float32,
     discrim: VoxelOperation,
     op: *const ffi::c_void,
-) {
-    let voxels = unsafe { &mut *voxels };
-    match discrim {
+) -> OctnodeArray {
+    let lib = unsafe { &*lib.cast::<LibOptoctrees>() };
+    let octree = unsafe { slice::from_raw_parts(octree.ptr, octree.len) };
+    let center = [center.x, center.y, center.z];
+
+    let nodes = match discrim {
         VoxelOperation::AddSphere => {
             let op = unsafe { *op.cast::<optoctrees::AddSphere>() };
-            optoctrees::voxel_op(
-                voxels,
-                [center.x, center.y, center.z],
-                op,
-            );
+            optoctrees::octree_voxel_op(octree, center, op, lib.alloc)
         },
         VoxelOperation::AddPyramid => {
             let op = unsafe { *op.cast::<optoctrees::AddPyramid>() };
-            optoctrees::voxel_op(
-                voxels,
-                [center.x, center.y, center.z],
-                op,
-            );
+            optoctrees::octree_voxel_op(octree, center, op, lib.alloc)
         },
-    }
-}
-
-unsafe extern "C" fn derasterize_octree(
-    lib: *const ffi::c_void,
-    voxels: *const VoxelGrid,
-) -> OctnodeArray {
-    let lib = unsafe { &*lib.cast::<LibOptoctrees>() };
-    let voxels = unsafe { &*voxels };
-
-    let nodes = optoctrees::derasterize(voxels, lib.alloc);
+    };
     let (nodes, _) = Box::into_raw_with_allocator(nodes);
 
     OctnodeArray { ptr: nodes.cast::<Octnode>(), len: nodes.len() }

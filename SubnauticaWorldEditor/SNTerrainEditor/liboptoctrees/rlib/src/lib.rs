@@ -1,8 +1,9 @@
+use std::alloc;
+
 #[cfg(not(target_endian = "little"))]
 compile_error!("big-endian targets are not supported");
 
 mod transpose;
-
 mod rasterize;
 mod voxel_op;
 mod derasterize;
@@ -16,24 +17,17 @@ pub struct Octnode {
     pub child: u16,
 }
 
-#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
-#[derive(Copy, Clone, Default, bytemuck::Pod, bytemuck::Zeroable)]
-#[repr(C, align(2))]
-pub struct Voxel {
-    pub mat: u8,
-    pub dist: u8,
-}
+pub use voxel_op::{VoxelOperation, AddSphere, AddPyramid};
 
-#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
-#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-#[repr(C, align(64))]
-pub struct VoxelGrid {
-    pub array: [Voxel; 32 * 32 * 32],
+pub fn octree_voxel_op<A: alloc::Allocator>(
+    octree: &[Octnode],
+    center: [f32; 3], op: impl VoxelOperation,
+    alloc: A,
+) -> Box<[Octnode], A> {
+    let mut voxels = rasterize::rasterize(octree, alloc::Global);
+    voxel_op::voxel_op(&mut voxels, center, op);
+    derasterize::derasterize(&voxels, alloc)
 }
-
-pub use rasterize::rasterize;
-pub use voxel_op::{VoxelOperation, AddSphere, AddPyramid, voxel_op};
-pub use derasterize::derasterize;
 
 #[expect(nonstandard_style)]
 type u8xN = cfg_select! {
@@ -115,5 +109,9 @@ impl Depth for AtDepth {
 #[cfg(feature = "__bench")]
 #[doc(hidden)]
 pub mod __bench {
-    pub use crate::{rasterize, voxel_op, derasterize};
+    pub use crate::{
+        rasterize::rasterize,
+        voxel_op::{Voxel, VoxelGrid, voxel_op},
+        derasterize::derasterize,
+    };
 }

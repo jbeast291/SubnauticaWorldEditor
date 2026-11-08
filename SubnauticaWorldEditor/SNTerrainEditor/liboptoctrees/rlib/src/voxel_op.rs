@@ -1,7 +1,21 @@
 use std::array;
 use ggmath::Vec3;
 use wide::{u16x8, i16x8, i32x8, f32x8};
-use crate::{Voxel, VoxelGrid};
+
+#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
+#[derive(Copy, Clone, Default, bytemuck::Pod, bytemuck::Zeroable)]
+#[repr(C, align(2))]
+pub struct Voxel {
+    pub mat: u8,
+    pub dist: u8,
+}
+
+#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+#[repr(C, align(64))]
+pub struct VoxelGrid {
+    pub array: [Voxel; 32 * 32 * 32],
+}
 
 // TODO: aabb optimizations
 

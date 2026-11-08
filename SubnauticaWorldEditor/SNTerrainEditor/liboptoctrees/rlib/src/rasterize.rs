@@ -1,5 +1,5 @@
 use std::alloc;
-use crate::{Octnode, Voxel, VoxelGrid, Depth, MaxDepth};
+use crate::{voxel_op::{Voxel, VoxelGrid}, Octnode, Depth, MaxDepth};
 
 pub fn rasterize<A: alloc::Allocator>(octree: &[Octnode], alloc: A) -> Box<VoxelGrid, A> {
     fn recurse(

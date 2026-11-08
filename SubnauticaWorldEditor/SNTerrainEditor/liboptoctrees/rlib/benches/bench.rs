@@ -1,7 +1,7 @@
 use std::{alloc, hint::black_box, time::Duration};
 use criterion::{Criterion, criterion_main, criterion_group};
 use rand::{prelude::*, rngs};
-use optoctrees::{Octnode, Voxel, VoxelGrid, VoxelOperation};
+use optoctrees::{__bench::{Voxel, VoxelGrid}, Octnode, VoxelOperation};
 
 type Group<'c> = criterion::BenchmarkGroup<'c, criterion::measurement::WallTime>;
 
