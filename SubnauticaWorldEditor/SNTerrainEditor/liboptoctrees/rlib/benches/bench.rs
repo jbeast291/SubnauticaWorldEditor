@@ -14,7 +14,25 @@ criterion_group! {
         .sample_size(1000)
         .noise_threshold(0.05)
         .significance_level(0.01);
-    targets = rasterize, voxel_op, derasterize
+    targets = octree_voxel_op, rasterize, voxel_op, derasterize
+}
+
+fn octree_voxel_op(c: &mut Criterion) {
+    let mut g = c.benchmark_group("octree_voxel_op");
+
+    bench(&mut g, "add_sphere", optoctrees::AddSphere { radius: 5.75 });
+
+    fn bench(g: &mut Group, name: &str, op: impl VoxelOp + Copy) {
+        let octree = &[Octnode { mat: 0, dist: 0, child: 0 }];
+        g.bench_function(name, |b| b.iter(|| {
+            black_box(optoctrees::octree_voxel_op(
+                black_box(octree),
+                black_box([16.0, 16.0, 16.0]),
+                black_box(op),
+                black_box(alloc::Global),
+            ))
+        }));
+    }
 }
 
 fn rasterize(c: &mut Criterion) {
