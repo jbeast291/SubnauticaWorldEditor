@@ -7,13 +7,34 @@ use crate::{
     Depth, MaxDepth, AtDepth,
 };
 
-pub fn derasterize<A: alloc::Allocator>(voxels: &VoxelGrid, alloc: A) -> Box<[Octnode], A> {
-    let mut layers = OctreeLayers::new();
-    let voxels: &[u16xN; LEVEL0_CHUNKS * 2] = bytemuck::must_cast_ref(voxels);
-    let nodes = calc_layers(&mut layers, voxels);
+#[derive(Copy, Clone)]
+pub struct Derasterizer {
+    layers: OctreeLayers,
+}
 
-    let voxels: &[u16x8; 4096] = bytemuck::must_cast_ref(voxels);
-    emit_octree(voxels, &layers, nodes, alloc)
+impl Derasterizer {
+    #[inline(always)]
+    pub const fn new() -> Self {
+        Derasterizer {
+            layers: OctreeLayers {
+                level1: [LayerChunk::ZERO; _],
+                level2: [LayerChunk::ZERO; _],
+                level3: [LayerChunk::ZERO; _],
+                level4: [LayerChunk::ZERO; _],
+                level5: [LayerChunk::ZERO; _],
+            },
+        }
+    }
+
+    pub fn derasterize<A: alloc::Allocator>(
+        &mut self, voxels: &VoxelGrid, alloc: A,
+    ) -> Box<[Octnode], A> {
+        let voxels: &[u16xN; LEVEL0_CHUNKS * 2] = bytemuck::must_cast_ref(voxels);
+        let nodes = calc_layers(&mut self.layers, voxels);
+
+        let voxels: &[u16x8; 4096] = bytemuck::must_cast_ref(voxels);
+        emit_octree(voxels, &self.layers, nodes, alloc)
+    }
 }
 
 const LEVEL0_CHUNKS: usize = 32768usize.div_ceil(NATIVE_SIMD_WIDTH);
@@ -23,6 +44,7 @@ const LEVEL3_CHUNKS: usize = 64usize.div_ceil(NATIVE_SIMD_WIDTH);
 const LEVEL4_CHUNKS: usize = 8usize.div_ceil(NATIVE_SIMD_WIDTH);
 const LEVEL5_CHUNKS: usize = 1usize.div_ceil(NATIVE_SIMD_WIDTH);
 
+#[derive(Copy, Clone)]
 struct OctreeLayers {
     level1: [LayerChunk; LEVEL1_CHUNKS],
     level2: [LayerChunk; LEVEL2_CHUNKS],
@@ -36,18 +58,6 @@ struct LayerChunk {
     mat: u8xN,
     dist: u8xN,
     is_parent: u8xN,
-}
-
-impl OctreeLayers {
-    const fn new() -> Self {
-        OctreeLayers {
-            level1: [LayerChunk::ZERO; _],
-            level2: [LayerChunk::ZERO; _],
-            level3: [LayerChunk::ZERO; _],
-            level4: [LayerChunk::ZERO; _],
-            level5: [LayerChunk::ZERO; _],
-        }
-    }
 }
 
 impl LayerChunk {
@@ -372,7 +382,9 @@ mod test {
     #[test]
     fn derasterize_empty_grid() {
         let grid = VoxelGrid([crate::voxel_op::Voxel { mat: 0, dist: 0 }; _]);
-        let nodes = derasterize(&grid, alloc::Global);
+
+        let mut d = Derasterizer::new();
+        let nodes = d.derasterize(&grid, alloc::Global);
 
         let expect = &[Octnode { mat: 0, dist: 0, child: 0 }];
         assert_eq!(&*nodes, expect);
@@ -383,9 +395,28 @@ mod test {
         let grid = const {
             &VoxelGrid(bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")))
         };
-        let nodes = derasterize(&grid, alloc::Global);
+
+        let mut d = Derasterizer::new();
+        let nodes = d.derasterize(&grid, alloc::Global);
 
         let expect = bytemuck::cast_slice(include_bytes!("../cases/sphere-octree.bin"));
         assert_eq!(&*nodes, expect);
+    }
+
+    #[test]
+    fn derasterize_sphere_then_empty() {
+        let sphere_grid = const {
+            &VoxelGrid(bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")))
+        };
+        let empty_grid = VoxelGrid([crate::voxel_op::Voxel { mat: 0, dist: 0 }; _]);
+
+        let mut d = Derasterizer::new();
+        let sphere_nodes = d.derasterize(&sphere_grid, alloc::Global);
+        let empty_nodes = d.derasterize(&empty_grid, alloc::Global);
+
+        let expect_sphere = bytemuck::cast_slice(include_bytes!("../cases/sphere-octree.bin"));
+        let expect_empty = &[Octnode { mat: 0, dist: 0, child: 0 }];
+        assert_eq!(&*sphere_nodes, expect_sphere);
+        assert_eq!(&*empty_nodes, expect_empty);
     }
 }

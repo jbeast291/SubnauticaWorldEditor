@@ -1,4 +1,4 @@
-use std::alloc;
+use std::{alloc, cell::RefCell};
 
 #[cfg(not(target_endian = "little"))]
 compile_error!("big-endian targets are not supported");
@@ -7,6 +7,9 @@ mod transpose;
 mod rasterize;
 mod voxel_op;
 mod derasterize;
+
+use rasterize::Rasterizer;
+use derasterize::Derasterizer;
 
 #[cfg_attr(test, derive(Debug, Eq, PartialEq))]
 #[derive(Copy, Clone, Default, bytemuck::Pod, bytemuck::Zeroable)]
@@ -24,9 +27,17 @@ pub fn octree_voxel_op<A: alloc::Allocator>(
     center: [f32; 3], op: impl VoxelOp,
     alloc: A,
 ) -> Box<[Octnode], A> {
-    let mut voxels = rasterize::rasterize(octree, alloc::Global);
-    voxel_op::voxel_op(&mut voxels, center, op);
-    derasterize::derasterize(&voxels, alloc)
+    thread_local! {
+        static SCRATCH: RefCell<(Rasterizer, Derasterizer)> = const {
+            RefCell::new((Rasterizer::new(), Derasterizer::new()))
+        };
+    }
+
+    SCRATCH.with_borrow_mut(|(r, d)| {
+        let voxels = r.rasterize(octree);
+        voxel_op::voxel_op(voxels, center, op);
+        d.derasterize(voxels, alloc)
+    })
 }
 
 #[expect(nonstandard_style)]
@@ -110,8 +121,8 @@ impl Depth for AtDepth {
 #[doc(hidden)]
 pub mod __bench {
     pub use crate::{
-        rasterize::rasterize,
+        rasterize::Rasterizer,
         voxel_op::{Voxel, VoxelGrid, voxel_op},
-        derasterize::derasterize,
+        derasterize::Derasterizer,
     };
 }
