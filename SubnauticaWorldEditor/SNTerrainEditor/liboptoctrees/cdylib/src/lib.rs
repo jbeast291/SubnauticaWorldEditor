@@ -14,28 +14,28 @@ pub struct LibTable {
 
     pub octree_voxel_op: unsafe extern "C" fn(
         lib: *const ffi::c_void,
-        octree: OctnodeArray,
-        center: Vector3Float32,
-        discrim: VoxelOperation,
+        octree: Octree,
+        center: Vector3F32,
+        discrim: VoxelOpDiscrim,
         op: *const ffi::c_void,
-    ) -> OctnodeArray,
+    ) -> Octree,
 }
 
 #[repr(C)]
-pub struct OctnodeArray {
+pub struct Octree {
     pub ptr: *mut Octnode,
     pub len: usize,
 }
 
 #[repr(C)]
-pub struct Vector3Float32 {
+pub struct Vector3F32 {
     pub x: f32,
     pub y: f32,
     pub z: f32,
 }
 
 #[repr(i32)]
-pub enum VoxelOperation {
+pub enum VoxelOpDiscrim {
     AddSphere = 0,
     AddPyramid = 1,
 }
@@ -69,28 +69,28 @@ unsafe extern "C" fn drop_lib(table: *mut LibTable) {
 
 unsafe extern "C" fn octree_voxel_op(
     lib: *const ffi::c_void,
-    octree: OctnodeArray,
-    center: Vector3Float32,
-    discrim: VoxelOperation,
+    octree: Octree,
+    center: Vector3F32,
+    discrim: VoxelOpDiscrim,
     op: *const ffi::c_void,
-) -> OctnodeArray {
+) -> Octree {
     let lib = unsafe { &*lib.cast::<LibOptoctrees>() };
     let octree = unsafe { slice::from_raw_parts(octree.ptr, octree.len) };
     let center = [center.x, center.y, center.z];
 
     let nodes = match discrim {
-        VoxelOperation::AddSphere => {
+        VoxelOpDiscrim::AddSphere => {
             let op = unsafe { *op.cast::<optoctrees::AddSphere>() };
             optoctrees::octree_voxel_op(octree, center, op, lib.alloc)
         },
-        VoxelOperation::AddPyramid => {
+        VoxelOpDiscrim::AddPyramid => {
             let op = unsafe { *op.cast::<optoctrees::AddPyramid>() };
             optoctrees::octree_voxel_op(octree, center, op, lib.alloc)
         },
     };
     let (nodes, _) = Box::into_raw_with_allocator(nodes);
 
-    OctnodeArray { ptr: nodes.cast::<Octnode>(), len: nodes.len() }
+    Octree { ptr: nodes.cast::<Octnode>(), len: nodes.len() }
 }
 
 #[derive(Copy, Clone)]

@@ -371,7 +371,7 @@ mod test {
 
     #[test]
     fn derasterize_empty_grid() {
-        let grid = VoxelGrid { array: [crate::voxel_op::Voxel { mat: 0, dist: 0 }; _] };
+        let grid = VoxelGrid([crate::voxel_op::Voxel { mat: 0, dist: 0 }; _]);
         let nodes = derasterize(&grid, alloc::Global);
 
         let expect = &[Octnode { mat: 0, dist: 0, child: 0 }];
@@ -381,11 +381,11 @@ mod test {
     #[test]
     fn derasterize_sphere_grid() {
         let grid = const {
-            &VoxelGrid { array: bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")) }
+            &VoxelGrid(bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")))
         };
         let nodes = derasterize(&grid, alloc::Global);
 
-        let expect = bytemuck::cast_slice(include_bytes!("../cases/sphere-octnodes.bin"));
+        let expect = bytemuck::cast_slice(include_bytes!("../cases/sphere-octree.bin"));
         assert_eq!(&*nodes, expect);
     }
 }

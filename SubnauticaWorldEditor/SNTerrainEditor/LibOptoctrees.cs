@@ -17,27 +17,27 @@ public static unsafe class LibOptoctrees {
         NativeArray<OctNode> octree,
         Int3 gridBlock, Int3 opBlockCenter, int radius
     ) {
-        OctnodeArray octnodes = new() {
+        Octree octnodes = new() {
             ptr = (OctNode*)octree.GetUnsafePtr(),
             len = (nuint)octree.Length
         };
 
         Int3 relativeBlock = opBlockCenter - gridBlock;
 
-        Vector3Float32 relativeCenter = new() {
+        Vector3F32 relativeCenter = new() {
             x = relativeBlock.x,
             y = relativeBlock.y,
             z = relativeBlock.z
         };
-        AddSphere sphere = new() { scale = radius };
+        AddSphere sphere = new() { radius = radius };
 
         var octree_voxel_op = Marshal
             .GetDelegateForFunctionPointer<octree_voxel_op>(TABLE->octree_voxel_op);
 
-        OctnodeArray result = octree_voxel_op(
+        Octree result = octree_voxel_op(
             TABLE->lib,
             octnodes,
-            relativeCenter, VoxelOperation.AddSphere, &sphere
+            relativeCenter, VoxelOpDiscrim.AddSphere, &sphere
         );
 
         return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<OctNode>(
@@ -79,33 +79,33 @@ public static unsafe class LibOptoctrees {
     private delegate void drop(LibTable* libTable);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate OctnodeArray octree_voxel_op(
+    private delegate Octree octree_voxel_op(
         void* lib,
-        OctnodeArray octree,
-        Vector3Float32 center, VoxelOperation discrim, void* op
+        Octree octree,
+        Vector3F32 center, VoxelOpDiscrim discrim, void* op
     );
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct OctnodeArray {
+    private struct Octree {
         internal OctNode* ptr;
         internal nuint len;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct Vector3Float32 {
+    private struct Vector3F32 {
         internal float x;
         internal float y;
         internal float z;
     }
 
-    private enum VoxelOperation {
+    private enum VoxelOpDiscrim {
         AddSphere = 0,
         AddPyramid = 1,
     }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct AddSphere {
-        internal float scale;
+        internal float radius;
     }
 
     private static readonly UnityAllocDelegate UNITY_ALLOC = UnityAlloc;

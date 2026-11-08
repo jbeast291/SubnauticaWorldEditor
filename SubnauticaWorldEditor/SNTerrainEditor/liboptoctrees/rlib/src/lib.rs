@@ -17,11 +17,11 @@ pub struct Octnode {
     pub child: u16,
 }
 
-pub use voxel_op::{VoxelOperation, AddSphere, AddPyramid};
+pub use voxel_op::{VoxelOp, AddSphere, AddPyramid};
 
 pub fn octree_voxel_op<A: alloc::Allocator>(
     octree: &[Octnode],
-    center: [f32; 3], op: impl VoxelOperation,
+    center: [f32; 3], op: impl VoxelOp,
     alloc: A,
 ) -> Box<[Octnode], A> {
     let mut voxels = rasterize::rasterize(octree, alloc::Global);

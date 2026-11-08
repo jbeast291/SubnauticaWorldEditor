@@ -45,7 +45,7 @@ pub fn rasterize<A: alloc::Allocator>(octree: &[Octnode], alloc: A) -> Box<Voxel
 
     let mut voxels = alloc_zeroed_box_in::<VoxelGrid, A>(alloc);
     if !octree.is_empty() {
-        recurse(octree, &mut voxels.array, 0, 0, MaxDepth::<5>);
+        recurse(octree, &mut voxels.0, 0, 0, MaxDepth::<5>);
     }
     voxels
 }
@@ -76,17 +76,17 @@ mod test {
         let octree = &[Octnode { mat: 0, dist: 0, child: 0 }];
         let grid = rasterize(octree, alloc::Global);
 
-        let expect = const { &VoxelGrid { array: [Voxel { mat: 0, dist: 0 }; _] } };
+        let expect = const { &VoxelGrid([Voxel { mat: 0, dist: 0 }; _]) };
         assert_eq!(&*grid, expect);
     }
 
     #[test]
     fn rasterize_sphere_grid() {
-        let octree = bytemuck::cast_slice(include_bytes!("../cases/sphere-octnodes.bin"));
+        let octree = bytemuck::cast_slice(include_bytes!("../cases/sphere-octree.bin"));
         let grid = rasterize(octree, alloc::Global);
 
         let expect = const {
-            &VoxelGrid { array: bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")) }
+            &VoxelGrid(bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")))
         };
         assert_eq!(&*grid, expect);
     }

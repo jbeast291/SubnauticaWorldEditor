@@ -13,13 +13,11 @@ pub struct Voxel {
 #[cfg_attr(test, derive(Debug, Eq, PartialEq))]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C, align(64))]
-pub struct VoxelGrid {
-    pub array: [Voxel; 32 * 32 * 32],
-}
+pub struct VoxelGrid(pub [Voxel; 32 * 32 * 32]);
 
 // TODO: aabb optimizations
 
-pub trait VoxelOperation {
+pub trait VoxelOp {
     fn compile(self) -> impl DistanceFunction;
 }
 
@@ -33,38 +31,38 @@ pub trait DistanceFunction: Sync {
 #[derive(Clone, Copy)]
 #[repr(C)]
 pub struct AddSphere {
-    pub scale: f32,
+    pub radius: f32,
 }
 
 struct AddSphereFunc {
-    sq_scale: f32x8,
-    rsq_scale: f32x8,
+    sq_radius: f32x8,
+    rsq_radius: f32x8,
 }
 
-impl VoxelOperation for AddSphere {
+impl VoxelOp for AddSphere {
     fn compile(self) -> impl DistanceFunction {
-        let sq_scale = self.scale * self.scale;
-        let rsq_scale = sq_scale.recip();
-        let sq_scale = f32x8::splat(sq_scale);
-        let rsq_scale = f32x8::splat(rsq_scale);
+        let sq_radius = self.radius * self.radius;
+        let rsq_radius = sq_radius.recip();
+        let sq_radius = f32x8::splat(sq_radius);
+        let rsq_radius = f32x8::splat(rsq_radius);
 
-        AddSphereFunc { sq_scale, rsq_scale }
+        AddSphereFunc { sq_radius, rsq_radius }
     }
 }
 
 impl DistanceFunction for AddSphereFunc {
     fn evaluate(&self, at: Vec3<f32>) -> u8 {
         let sq_dist = at.length_squared();
-        if sq_dist >= self.sq_scale.as_array()[0] { 0 } else {
-            ((1.0 - sq_dist * self.rsq_scale.as_array()[0]) * 252.0).round_ties_even() as u8
+        if sq_dist >= self.sq_radius.as_array()[0] { 0 } else {
+            ((1.0 - sq_dist * self.rsq_radius.as_array()[0]) * 252.0).round_ties_even() as u8
         }
     }
 
     fn evaluate_simd(&self, at: Vec3<f32x8>) -> u16x8 {
         let sq_dist = at.length_squared();
 
-        let dist = (f32x8::ONE - sq_dist * self.rsq_scale) * f32x8::splat(252.0);
-        let dist = sq_dist.simd_ge(self.sq_scale).select(f32x8::ZERO, dist);
+        let dist = (f32x8::ONE - sq_dist * self.rsq_radius) * f32x8::splat(252.0);
+        let dist = sq_dist.simd_ge(self.sq_radius).select(f32x8::ZERO, dist);
         let dist = dist.round_ties_even().fast_trunc_int();
 
         i16x8::from_i32x8_truncate(dist).cast_unsigned()
@@ -83,7 +81,7 @@ struct AddPyramidFunc {
     #[expect(unused)] base_halfwidth: f32,
 }
 
-impl VoxelOperation for AddPyramid {
+impl VoxelOp for AddPyramid {
     fn compile(self) -> impl DistanceFunction {
         let AddPyramid { height, base_halfwidth } = self;
         AddPyramidFunc { height, base_halfwidth }
@@ -101,9 +99,9 @@ impl DistanceFunction for AddPyramidFunc {
 pub fn voxel_op(
     voxels: &mut VoxelGrid,
     center: [f32; 3],
-    op: impl VoxelOperation,
+    op: impl VoxelOp,
 ) {
-    let voxels = bytemuck::cast_slice_mut::<Voxel, u16x8>(&mut voxels.array);
+    let voxels = bytemuck::cast_slice_mut::<Voxel, u16x8>(&mut voxels.0);
     let center = Vec3::new(center[0], center[1], center[2]).map(|n| f32x8::splat(n));
     let op = op.compile();
 
