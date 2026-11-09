@@ -1,4 +1,4 @@
-use crate::{voxels::{Voxel, VoxelGrid}, Octnode, Depth, MaxDepth};
+use crate::{voxels::{Voxel, VoxelGrid}, Octnode, Depth, MaxDepth, AtDepth};
 
 #[derive(Copy, Clone)]
 pub struct Rasterizer {
@@ -12,59 +12,71 @@ impl Rasterizer {
     }
 
     pub fn rasterize(&mut self, octree: &[Octnode]) -> &mut VoxelGrid {
-        if octree.is_empty() {
-            self.grid = bytemuck::zeroed();
+        if let Some(root) = octree.first() {
+            rasterize_recurse(&mut self.grid, 0, octree, root, MaxDepth::<5>);
         } else {
-            rasterize_recurse(octree, &mut self.grid.0, 0, 0, MaxDepth::<5>);
+            self.grid = bytemuck::zeroed();
         }
 
         &mut self.grid
     }
 }
 
+#[inline(always)]
 fn rasterize_recurse(
-    octree: &[Octnode],
-    voxels: &mut [Voxel; 32 * 32 * 32],
-    grid_offset: usize,
-    node_index: usize,
-    depth: impl Depth,
+    voxels: &mut VoxelGrid, vox_idx: usize,
+    octree: &[Octnode], node: &Octnode,
+    depth: impl RasterDepth,
 ) {
-    let layer = 5 - depth.remaining();
+    let volume = depth.volume();
     depth.descend(
         voxels,
-        |voxels, depth| {
-            let node = octree[node_index];
-            let child_index = node.child as usize;
-
-            if child_index == 0 || child_index + 7 >= octree.len() {
-                let voxel = Voxel { mat: node.mat, dist: node.dist };
-                for i in 0..get_volume_for_layer(layer) {
-                    voxels[grid_offset + i] = voxel;
+        #[inline(always)] |voxels, depth| {
+            if let Some(children) = node_children(octree, node) {
+                let volume = depth.volume();
+                let mut vox_idx = vox_idx;
+                for child in children {
+                    rasterize_recurse(voxels, vox_idx, octree, child, depth);
+                    vox_idx += volume;
                 }
-                return
-            }
-
-            let child_volume = get_volume_for_layer(layer + 1);
-
-            for i in 0..8 {
-                rasterize_recurse(
-                    octree,
-                    voxels,
-                    grid_offset + child_volume * i,
-                    child_index + i,
-                    depth,
-                );
+            } else {
+                let voxel = Voxel { mat: node.mat, dist: node.dist };
+                voxels.0[vox_idx..vox_idx + volume].fill(voxel);
             }
         },
-        |voxels| {
-            let node = octree[node_index];
-            voxels[grid_offset] = Voxel { mat: node.mat, dist: node.dist };
+        #[inline(always)] |voxels| {
+            voxels.0[vox_idx] = Voxel { mat: node.mat, dist: node.dist };
         },
     );
 }
 
-const fn get_volume_for_layer(layer: usize) -> usize {
-    1 << (15 - (3 * layer as usize))
+#[inline(always)]
+fn node_children<'o>(octree: &'o [Octnode], node: &'o Octnode) -> Option<&'o [Octnode; 8]> {
+    if node.child == 0 { None } else { octree.get(node.child as usize..)?.first_chunk() }
+}
+
+trait RasterDepth: Depth<Descend = Self::RasterDescend> {
+    type RasterDescend: RasterDepth;
+    fn volume(&self) -> usize;
+}
+
+macro_rules! impl_raster_depth {
+    ($($num:literal),* $(,)?) => {$(
+        impl RasterDepth for MaxDepth<$num> {
+            type RasterDescend = Self::Descend;
+
+            #[inline(always)]
+            fn volume(&self) -> usize { const { (1usize << $num).pow(3) } }
+        }
+    )*};
+}
+impl_raster_depth!(5, 4, 3, 2, 1, 0);
+
+impl RasterDepth for AtDepth {
+    type RasterDescend = Self::Descend;
+
+    #[inline(always)]
+    fn volume(&self) -> usize { match *self { } }
 }
 
 #[cfg(test)]

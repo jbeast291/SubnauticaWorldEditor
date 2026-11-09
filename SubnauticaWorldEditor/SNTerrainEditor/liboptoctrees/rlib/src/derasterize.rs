@@ -251,14 +251,14 @@ fn emit_children(
 
     let children = depth.descend(
         &mut *buf,
-        |buf, depth| {
+        #[inline(always)] |buf, depth| {
             let mut children = [0; 8];
             for c in (0..8).rev() {
                 children[c] = emit_children(voxels, layers, buf, depth, 8 * idx + c);
             }
             u32x8::from(children)
         },
-        |buf| emit_grandchildren(voxels, &layers.level1, buf, idx),
+        #[inline(always)] |buf| emit_grandchildren(voxels, &layers.level1, buf, idx),
     );
 
     let pos = buf.push_siblings(children);

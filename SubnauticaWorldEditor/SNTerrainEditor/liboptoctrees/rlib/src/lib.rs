@@ -67,7 +67,6 @@ trait Depth: Copy {
         descend: impl FnOnce(T, Self::Descend) -> R,
         done: impl FnOnce(T) -> R,
     ) -> R;
-    fn remaining(&self) -> usize;
 }
 
 #[derive(Copy, Clone)]
@@ -77,6 +76,8 @@ macro_rules! impl_depth {
     ($($num:literal),* $(,)?) => {$(
         impl Depth for MaxDepth<$num> {
             type Descend = MaxDepth<{ $num - 1 }>;
+
+            #[inline(always)]
             fn descend<T, R>(
                 self, val: T,
                 descend: impl FnOnce(T, Self::Descend) -> R,
@@ -84,7 +85,6 @@ macro_rules! impl_depth {
             ) -> R {
                 descend(val, MaxDepth)
             }
-            fn remaining(&self) -> usize { $num }
         }
     )*};
 }
@@ -92,6 +92,8 @@ impl_depth!(5, 4, 3, 2, 1);
 
 impl Depth for MaxDepth<0> {
     type Descend = AtDepth;
+
+    #[inline(always)]
     fn descend<T, R>(
         self, val: T,
         _: impl FnOnce(T, AtDepth) -> R,
@@ -99,7 +101,6 @@ impl Depth for MaxDepth<0> {
     ) -> R {
         done(val)
     }
-    fn remaining(&self) -> usize { 0 }
 }
 
 #[derive(Copy, Clone)]
@@ -107,6 +108,8 @@ enum AtDepth { }
 
 impl Depth for AtDepth {
     type Descend = AtDepth;
+
+    #[inline(always)]
     fn descend<T, R>(
         self, _: T,
         _: impl FnOnce(T, AtDepth) -> R,
@@ -114,7 +117,6 @@ impl Depth for AtDepth {
     ) -> R {
         match self { }
     }
-    fn remaining(&self) -> usize { match *self { } }
 }
 
 #[cfg(feature = "__bench")]
