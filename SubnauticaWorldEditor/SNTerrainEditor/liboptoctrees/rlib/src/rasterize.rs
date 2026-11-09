@@ -36,7 +36,7 @@ fn rasterize_recurse(
             let node = octree[node_index];
             let child_index = node.child as usize;
 
-            if child_index == 0 {
+            if child_index == 0 || child_index + 7 >= octree.len() {
                 let voxel = Voxel { mat: node.mat, dist: node.dist };
                 for i in 0..get_volume_for_layer(layer) {
                     voxels[grid_offset + i] = voxel;
