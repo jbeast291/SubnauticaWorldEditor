@@ -1,6 +1,8 @@
 use std::{alloc, array, iter, mem::MaybeUninit, num::NonZero, ptr};
 use wide::{u8x16, u16x8, u16x16, u32x8};
-use crate::{transpose, voxels::VoxelGrid, Octnode, u8xN, u16xN, NATIVE_SIMD_WIDTH};
+use crate::{voxels::VoxelGrid, Octnode, u8xN, u16xN, NATIVE_SIMD_WIDTH};
+
+mod transpose;
 
 #[derive(Copy, Clone)]
 pub struct Derasterizer {

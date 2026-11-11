@@ -3,7 +3,6 @@ use std::{alloc, cell::RefCell};
 #[cfg(not(target_endian = "little"))]
 compile_error!("big-endian targets are not supported");
 
-mod transpose;
 mod rasterize;
 mod voxels;
 mod derasterize;
