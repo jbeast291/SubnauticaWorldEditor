@@ -1,4 +1,4 @@
-use crate::{voxels::{Voxel, VoxelGrid}, Octnode, Depth, MaxDepth, AtDepth};
+use crate::{voxels::{Voxel, VoxelGrid}, Octnode};
 
 #[derive(Copy, Clone)]
 pub struct Rasterizer {
@@ -13,7 +13,7 @@ impl Rasterizer {
 
     pub fn rasterize(&mut self, octree: &[Octnode]) -> &mut VoxelGrid {
         if let Some(root) = octree.first() {
-            rasterize_recurse(&mut self.grid, 0, octree, root, MaxDepth::<5>);
+            self.grid.0.rasterize_node(octree, root);
         } else {
             self.grid = bytemuck::zeroed();
         }
@@ -22,61 +22,58 @@ impl Rasterizer {
     }
 }
 
-#[inline(always)]
-fn rasterize_recurse(
-    voxels: &mut VoxelGrid, vox_idx: usize,
-    octree: &[Octnode], node: &Octnode,
-    depth: impl RasterDepth,
-) {
-    let volume = depth.volume();
-    depth.descend(
-        voxels,
-        #[inline(always)] |voxels, depth| {
-            if let Some(children) = node_children(octree, node) {
-                let volume = depth.volume();
-                let mut vox_idx = vox_idx;
-                for child in children {
-                    rasterize_recurse(voxels, vox_idx, octree, child, depth);
-                    vox_idx += volume;
-                }
-            } else {
-                let voxel = Voxel { mat: node.mat, dist: node.dist };
-                voxels.0[vox_idx..vox_idx + volume].fill(voxel);
-            }
-        },
-        #[inline(always)] |voxels| {
-            voxels.0[vox_idx] = Voxel { mat: node.mat, dist: node.dist };
-        },
-    );
+trait RasterizeNode {
+    fn rasterize_node(&mut self, octree: &[Octnode], node: &Octnode);
 }
 
-#[inline(always)]
-fn node_children<'o>(octree: &'o [Octnode], node: &'o Octnode) -> Option<&'o [Octnode; 8]> {
-    if node.child == 0 { None } else { octree.get(node.child as usize..)?.first_chunk() }
-}
-
-trait RasterDepth: Depth<Descend = Self::RasterDescend> {
-    type RasterDescend: RasterDepth;
-    fn volume(&self) -> usize;
-}
-
-macro_rules! impl_raster_depth {
-    ($($num:literal),* $(,)?) => {$(
-        impl RasterDepth for MaxDepth<$num> {
-            type RasterDescend = Self::Descend;
-
+macro_rules! impl_rasterize_node {
+    ($vol:literal => $next:literal $(=> $subseq:literal)*) => {
+        impl RasterizeNode for [Voxel; $vol] {
             #[inline(always)]
-            fn volume(&self) -> usize { const { (1usize << $num).pow(3) } }
+            fn rasterize_node(&mut self, octree: &[Octnode], node: &Octnode) {
+                match node_children(octree, node) {
+                    Some(children) => {
+                        let voxels: &mut [[Voxel; $next]; 8] = bytemuck::must_cast_mut(self);
+                        for (voxels, child) in voxels.iter_mut().zip(children) {
+                            voxels.rasterize_node(octree, child);
+                        }
+                    },
+
+                    None => {
+                        let node: u32 = bytemuck::must_cast(*node);
+                        self.fill(bytemuck::must_cast(node as u16));
+                    },
+                }
+            }
         }
-    )*};
+
+        impl_rasterize_node!($next $(=> $subseq)*);
+    };
+
+    ($done:literal) => { };
 }
-impl_raster_depth!(5, 4, 3, 2, 1, 0);
+impl_rasterize_node!(32768 => 4096 => 512 => 64 => 8);
 
-impl RasterDepth for AtDepth {
-    type RasterDescend = Self::Descend;
-
+impl RasterizeNode for [Voxel; 8] {
     #[inline(always)]
-    fn volume(&self) -> usize { match *self { } }
+    fn rasterize_node(&mut self, octree: &[Octnode], node: &Octnode) {
+        *self = match node_children(octree, node) {
+            Some(children) => {
+                let children: [u32; 8] = bytemuck::must_cast(*children);
+                bytemuck::must_cast(children.map(|c| c as u16))
+            },
+
+            None => {
+                let node: u32 = bytemuck::must_cast(*node);
+                bytemuck::must_cast([node as u16; 8])
+            },
+        }
+    }
+}
+
+#[inline(always)]
+fn node_children<'o>(octree: &'o [Octnode], node: &Octnode) -> Option<&'o [Octnode; 8]> {
+    if node.child == 0 { None } else { octree.get(node.child as usize..)?.first_chunk() }
 }
 
 #[cfg(test)]
