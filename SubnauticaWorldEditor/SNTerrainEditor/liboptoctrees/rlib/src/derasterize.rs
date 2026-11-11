@@ -1,11 +1,6 @@
 use std::{alloc, array, iter, mem::MaybeUninit, num::NonZero, ptr};
 use wide::{u8x16, u16x8, u16x16, u32x8};
-use crate::{
-    transpose,
-    voxels::VoxelGrid, Octnode,
-    u8xN, u16xN, NATIVE_SIMD_WIDTH,
-    Depth, MaxDepth, AtDepth,
-};
+use crate::{transpose, voxels::VoxelGrid, Octnode, u8xN, u16xN, NATIVE_SIMD_WIDTH};
 
 #[derive(Copy, Clone)]
 pub struct Derasterizer {
@@ -295,28 +290,81 @@ fn emit_grandchildren(
     u32x8::from(children) << 16 | u32x8::from(voxel)
 }
 
-trait EmitDepth: Depth<Descend = Self::EmitDescend> {
-    type EmitDescend: EmitDepth;
+trait EmitDepth: Copy {
+    type Descend: EmitDepth;
+
+    fn descend<T, R>(
+        self, val: T,
+        descend: impl FnOnce(T, Self::Descend) -> R,
+        done: impl FnOnce(T) -> R,
+    ) -> R;
+
     fn layer<'l>(&self, layers: &'l OctreeLayers) -> &'l [LayerChunk];
 }
+
+#[derive(Copy, Clone)]
+struct MaxDepth<const N: usize>;
+
+#[derive(Copy, Clone)]
+enum AtDepth { }
 
 macro_rules! impl_emit_depth {
     ($($depth:literal => $layer:ident),* $(,)?) => {$(
         impl EmitDepth for MaxDepth<$depth> {
-            type EmitDescend = Self::Descend;
+            type Descend = MaxDepth<{ $depth - 1 }>;
 
             #[inline(always)]
-            fn layer<'l>(&self, layers: &'l OctreeLayers) -> &'l [LayerChunk] { &layers.$layer }
+            fn descend<T, R>(
+                self, val: T,
+                descend: impl FnOnce(T, Self::Descend) -> R,
+                _: impl FnOnce(T) -> R,
+            ) -> R {
+                descend(val, MaxDepth)
+            }
+
+            #[inline(always)]
+            fn layer<'l>(&self, layers: &'l OctreeLayers) -> &'l [LayerChunk] {
+                &layers.$layer
+            }
         }
     )*};
 }
-impl_emit_depth!(3 => level5, 2 => level4, 1 => level3, 0 => level2);
+impl_emit_depth!(3 => level5, 2 => level4, 1 => level3);
 
-impl EmitDepth for AtDepth {
-    type EmitDescend = Self::Descend;
+impl EmitDepth for MaxDepth<0> {
+    type Descend = AtDepth;
 
     #[inline(always)]
-    fn layer<'l>(&self, _: &'l OctreeLayers) -> &'l [LayerChunk] { match *self { } }
+    fn descend<T, R>(
+        self, val: T,
+        _: impl FnOnce(T, AtDepth) -> R,
+        done: impl FnOnce(T) -> R,
+    ) -> R {
+        done(val)
+    }
+
+    #[inline(always)]
+    fn layer<'l>(&self, layers: &'l OctreeLayers) -> &'l [LayerChunk] {
+        &layers.level2
+    }
+}
+
+impl EmitDepth for AtDepth {
+    type Descend = AtDepth;
+
+    #[inline(always)]
+    fn descend<T, R>(
+        self, _: T,
+        _: impl FnOnce(T, AtDepth) -> R,
+        _: impl FnOnce(T) -> R,
+    ) -> R {
+        match self { }
+    }
+
+    #[inline(always)]
+    fn layer<'l>(&self, _: &'l OctreeLayers) -> &'l [LayerChunk] {
+        match *self { }
+    }
 }
 
 struct ReverseOctreeBuffer<A: alloc::Allocator> {

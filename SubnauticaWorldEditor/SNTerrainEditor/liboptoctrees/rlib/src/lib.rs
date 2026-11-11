@@ -60,65 +60,6 @@ const NATIVE_SIMD_WIDTH: usize = cfg_select! {
     _  => 16,
 };
 
-trait Depth: Copy {
-    type Descend: Depth;
-    fn descend<T, R>(
-        self, val: T,
-        descend: impl FnOnce(T, Self::Descend) -> R,
-        done: impl FnOnce(T) -> R,
-    ) -> R;
-}
-
-#[derive(Copy, Clone)]
-struct MaxDepth<const N: usize>;
-
-macro_rules! impl_depth {
-    ($($num:literal),* $(,)?) => {$(
-        impl Depth for MaxDepth<$num> {
-            type Descend = MaxDepth<{ $num - 1 }>;
-
-            #[inline(always)]
-            fn descend<T, R>(
-                self, val: T,
-                descend: impl FnOnce(T, Self::Descend) -> R,
-                _: impl FnOnce(T) -> R,
-            ) -> R {
-                descend(val, MaxDepth)
-            }
-        }
-    )*};
-}
-impl_depth!(5, 4, 3, 2, 1);
-
-impl Depth for MaxDepth<0> {
-    type Descend = AtDepth;
-
-    #[inline(always)]
-    fn descend<T, R>(
-        self, val: T,
-        _: impl FnOnce(T, AtDepth) -> R,
-        done: impl FnOnce(T) -> R,
-    ) -> R {
-        done(val)
-    }
-}
-
-#[derive(Copy, Clone)]
-enum AtDepth { }
-
-impl Depth for AtDepth {
-    type Descend = AtDepth;
-
-    #[inline(always)]
-    fn descend<T, R>(
-        self, _: T,
-        _: impl FnOnce(T, AtDepth) -> R,
-        _: impl FnOnce(T) -> R,
-    ) -> R {
-        match self { }
-    }
-}
-
 #[cfg(feature = "__bench")]
 #[doc(hidden)]
 pub mod __bench {
