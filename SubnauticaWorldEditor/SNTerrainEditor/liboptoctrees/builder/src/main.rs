@@ -112,6 +112,10 @@ fn build(ci: bool) -> anyhow::Result<()> {
 
         dispatch_build(ci, false, &mut outputs, target, &cpus)
             .with_context(|| format!("building dispatch for {target}"))?;
+
+        if let Target::Macos = target && let CargoTool::Zigbuild = target.cargo_build_tool() {
+            printhelp!("macos builds using zigbuild may give spurious missing sdk warnings");
+        }
     }
 
     clean_dir("target/builder", |n| n.to_str().is_some_and(|n| outputs.contains(n)))
@@ -611,8 +615,7 @@ impl CargoTool {
                 process::Command::new("cargo").args(["zigbuild", "--help"])
                     .quiet().run()
                     .err_missing_dep("cargo-zigbuild", [
-                        "cargo install --locked --git https://github.com/rust-cross/cargo-zigbuild \
-                        --rev 110abf59 cargo-zigbuild",
+                        "cargo install --locked cargo-zigbuild",
                         "https://github.com/rust-cross/cargo-zigbuild",
                     ])?;
 
