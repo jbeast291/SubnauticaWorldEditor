@@ -615,7 +615,7 @@ impl CargoTool {
                 process::Command::new("cargo").args(["zigbuild", "--help"])
                     .quiet().run()
                     .err_missing_dep("cargo-zigbuild", [
-                        "cargo install --locked cargo-zigbuild",
+                        "cargo install cargo-zigbuild",
                         "https://github.com/rust-cross/cargo-zigbuild",
                     ])?;
 
@@ -639,7 +639,7 @@ impl CargoTool {
                 process::Command::new("cargo").args(["xwin", "--version"])
                     .quiet().run()
                     .err_missing_dep("cargo-xwin", [
-                        "cargo install --locked cargo-xwin",
+                        "cargo install cargo-xwin",
                         "https://github.com/rust-cross/cargo-xwin",
                     ])?;
 
