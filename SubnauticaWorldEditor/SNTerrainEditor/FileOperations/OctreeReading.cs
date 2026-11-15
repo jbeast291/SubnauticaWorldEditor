@@ -23,7 +23,7 @@ public static class OctreeReading {
             {
                 throw new InvalidDataException("Cannot overwrite existing batch data with empty");
             }
-            batchdata.octrees.Get(octreeLocalIndex).arr = EMPTY.Reinterpret<OctNode>();
+            batchdata.octrees.Get(octreeLocalIndex).arr = EMPTY;
         }
     }
     
@@ -40,7 +40,7 @@ public static class OctreeReading {
             if (reader.ReadInt32() < 4) return false; // version field
 
             foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
-                batchdata.octrees.Get(octreeLocalIndex).arr = ReadOctreeNodes(reader);
+                batchdata.octrees.Get(octreeLocalIndex).arr = ReadOctreeBytes(reader);
             }
         }
         catch (Exception ex) {
@@ -50,10 +50,6 @@ public static class OctreeReading {
             return false;
         }
         return true;
-    }
-
-    private static NativeArray<OctNode> ReadOctreeNodes(PooledBinaryReader reader) {
-        return ReadOctreeBytes(reader).Reinterpret<OctNode>();
     }
 
     private static readonly NativeArray<byte> EMPTY = new(0, Allocator.Persistent);

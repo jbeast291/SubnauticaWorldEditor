@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using Nautilus.Utility;
-using SNTerrainEditor.Core.Editing;
 using SNTerrainEditor.FileOperations;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -19,31 +18,29 @@ namespace SNTerrainEditor.Core.DataTypes;
 /// </summary>
 internal class EditSession : IDisposable
 {
-    
     /*
     Design principles:
         1. Terrain must always be editable regardless of if its visually loaded or not. Treat terrain edits as independent of visuals
         2. Edit sessions should not be concerned with the state of the world streamer. Some other class should be delegated to sync batch loads and refresh 
-    
-     
+
     Initializing:
         Load octrees from separate streamer (steal from TP), tho pooling on it isn't necessarily needed?. This will help when data is needed from farther batches later :/
         When octree data is requested from world streamer, and it's a managed octree, use our copy
             if the world streamer already has the octree loaded, then swap in ours and return the array to pool
-    
+
     Editing:
         need to make some kind of generic "edit action"
             NeedsNeighbors: Bool // load surrounding octrees when acting. This is also a hard limitation for performance,
                                     an edit *cannot* need neighbors greater than 32 voxels away (this is VERY reasonable)
             Center: Int3 // block location of center
-    
+
     TODO: determine BF or DF is faster (or neither????)
      */
-    
+
     private readonly WorldStreamer WORLD_STREAMER;
-    
+
     private readonly Dictionary<Int3, ManagedBatch> managedBatches = new();
-    
+
     internal EditSession(WorldStreamer worldStreamer) {
         WORLD_STREAMER = worldStreamer;
     }
@@ -59,7 +56,7 @@ internal class EditSession : IDisposable
     internal void DEBUG__Clear() {
         foreach (ManagedBatch batch in managedBatches.Values) {
             foreach (ManagedOctree octree in batch.octrees) {
-                NativeArray<OctNode> old = octree.arr;
+                NativeArray<byte> old = octree.arr;
                 octree.arr = new(
                     length: 1,
                     allocator: Allocator.Persistent,
@@ -77,7 +74,7 @@ internal class EditSession : IDisposable
         Int3 batchBlockPos = batchIndex * ManagedBatch.BATCH_BLOCK_LENGTH;
         foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
             ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
-            NativeArray<OctNode> old = octree.arr;
+            NativeArray<byte> old = octree.arr;
             Int3 gridBlockPos = batchBlockPos + (octreeLocalIndex * 32);
             octree.arr = LibOptoctrees.OctreeAddSphere(
                 octree: old,

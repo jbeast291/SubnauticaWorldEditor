@@ -1,25 +1,25 @@
+using System;
 using System.Runtime.InteropServices;
 using SNTerrainEditor.Core.DataTypes;
-using SNTerrainEditor.Core.Editing;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace SNTerrainEditor;
 
 /// <summary>Interop with Rust native library for efficient octree operations.</summary>
-public static unsafe class LibOptoctrees {
+public unsafe class LibOptoctrees : IDisposable {
     // TODO: switch to a non-static class to better support fallible initialization and drop
 
     /// <summary>Draw a sphere on an octree, producing a new octree.</summary>
     /// <SAFETY>The provided <paramref name="octree"/> must remain valid for reads and completely
     /// unmodified until this call returns.</SAFETY>
-    internal static unsafe NativeArray<OctNode> OctreeAddSphere(
-        NativeArray<OctNode> octree,
+    internal static unsafe NativeArray<byte> OctreeAddSphere(
+        NativeArray<byte> octree,
         Int3 gridBlock, Int3 opBlockCenter, int radius
     ) {
         Octree octnodes = new() {
-            ptr = (OctNode*)octree.GetUnsafePtr(),
-            len = (nuint)octree.Length
+            ptr = (byte*)octree.GetUnsafePtr(),
+            len = (nuint)octree.Length / 4
         };
 
         Int3 relativeBlock = opBlockCenter - gridBlock;
@@ -32,31 +32,41 @@ public static unsafe class LibOptoctrees {
         AddSphere sphere = new() { radius = radius };
 
         var octree_voxel_op = Marshal
-            .GetDelegateForFunctionPointer<octree_voxel_op>(TABLE->octree_voxel_op);
+            .GetDelegateForFunctionPointer<octree_voxel_op>(INSTANCE.table->octree_voxel_op);
 
         Octree result = octree_voxel_op(
-            TABLE->lib,
+            INSTANCE.table->lib,
             octnodes,
             relativeCenter, VoxelOpDiscrim.AddSphere, &sphere
         );
 
-        return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<OctNode>(
-            result.ptr, (int)result.len, Allocator.Persistent
+        return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<byte>(
+            result.ptr, (int)result.len * 4, Allocator.Persistent
         );
     }
 
-    private static readonly LibTable* TABLE;
+    private static LibOptoctrees INSTANCE;
+    private readonly LibTable* table;
 
-    static LibOptoctrees() {
+    static LibOptoctrees()
+    { 
+        UNITY_ALLOC = UnityAlloc;
+        UNITY_FREE = UnityFree;
+        INSTANCE = new();
+    }
+
+    private LibOptoctrees() {
         var unityAlloc = Marshal.GetFunctionPointerForDelegate(UNITY_ALLOC);
-
         var unityFree = Marshal.GetFunctionPointerForDelegate(UNITY_FREE);
 
         InitTable init = new() {
             alloc = unityAlloc,
             free = unityFree,
         };
-        TABLE = init_liboptoctrees(&init);
+        table = init_liboptoctrees(&init);
+        if (table == null) {
+            throw new Exception("Native rust code failed to load library");
+        }
     }
 
     [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
@@ -87,7 +97,7 @@ public static unsafe class LibOptoctrees {
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Octree {
-        internal OctNode* ptr;
+        internal byte* ptr;
         internal nuint len;
     }
 
@@ -108,8 +118,8 @@ public static unsafe class LibOptoctrees {
         internal float radius;
     }
 
-    private static readonly UnityAllocDelegate UNITY_ALLOC = UnityAlloc;
-    private static readonly UnityFreeDelegate UNITY_FREE = UnityFree;
+    private static readonly UnityAllocDelegate UNITY_ALLOC;
+    private static readonly UnityFreeDelegate UNITY_FREE;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void* UnityAllocDelegate(long size, int align);
@@ -127,4 +137,12 @@ public static unsafe class LibOptoctrees {
         memory: ptr,
         allocator: Allocator.Persistent
     );
+
+    public void Dispose()
+    {
+        var drop = Marshal.GetDelegateForFunctionPointer<drop>(table->drop);
+        drop(table);
+    }
 }
+
+// poll: more trees, or stop calling me

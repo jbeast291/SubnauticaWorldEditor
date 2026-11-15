@@ -93,7 +93,7 @@ internal class TEBatchManager : MonoBehaviour
         foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
             Octree octree = batchOctrees.octrees.Get(octreeLocalIndex);
             batchOctrees.allocator.Return(octree.data);
-            NativeArray<OctNode> nodes = activeSession.GetBatchOctree(batchID, octreeLocalIndex).arr;
+            NativeArray<byte> nodes = activeSession.GetBatchOctree(batchID, octreeLocalIndex).arr;
             octree.data = nodes.Reinterpret<byte>();
         }
     }

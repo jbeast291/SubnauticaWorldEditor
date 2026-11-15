@@ -183,3 +183,8 @@ fn voxel_grid_index([x, y, z]: [usize; 3]) -> usize {
 }
 
 // TODO: add tests
+
+// Selection Enum (sphere, AAcuboid, capsule/spline)
+// Operation Enum (fill, clear, paint, flatten, smooth)
+
+// blockPos + [+0.0, 1.0]
