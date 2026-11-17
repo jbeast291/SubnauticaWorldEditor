@@ -43,7 +43,7 @@ pub enum VoxelOpDiscrim {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibTable {
     let init = unsafe { ptr::read(init) };
-    let alloc = LibAlloc { alloc: init.alloc, free: init.free };
+    let alloc = LibAlloc(LibAllocImpl { alloc: init.alloc, free: init.free });
     let lib = LibOptoctrees { table: init, alloc };
     let lib = Box::into_raw(Box::new(lib)).cast::<ffi::c_void>();
 
@@ -94,12 +94,64 @@ unsafe extern "C" fn octree_voxel_op(
 }
 
 #[derive(Copy, Clone)]
-struct LibAlloc {
+struct LibAlloc(LibAllocImpl);
+
+#[derive(Copy, Clone)]
+struct LibAllocImpl {
     alloc: unsafe extern "C" fn(size: i64, align: i32) -> *mut ffi::c_void,
     free: unsafe extern "C" fn(ptr: *mut ffi::c_void),
 }
 
 unsafe impl Allocator for LibAlloc {
+    fn allocate(&self, layout: alloc::Layout) -> Result<ptr::NonNull<[u8]>, alloc::AllocError> {
+        self.0.allocate(layout)
+    }
+
+    unsafe fn deallocate(&self, ptr: ptr::NonNull<u8>, layout: alloc::Layout) {
+        unsafe { self.0.deallocate(ptr, layout) }
+    }
+
+    unsafe fn grow(
+        &self,
+        ptr: ptr::NonNull<u8>,
+        old_layout: alloc::Layout,
+        new_layout: alloc::Layout,
+    ) -> Result<ptr::NonNull<[u8]>, alloc::AllocError> {
+        if old_layout.size() == new_layout.size() && old_layout.align() >= new_layout.align() {
+            Ok(ptr::NonNull::slice_from_raw_parts(ptr, old_layout.size()))
+        } else {
+            unsafe { self.0.grow(ptr, old_layout, new_layout) }
+        }
+    }
+
+    unsafe fn grow_zeroed(
+        &self,
+        ptr: ptr::NonNull<u8>,
+        old_layout: alloc::Layout,
+        new_layout: alloc::Layout,
+    ) -> Result<ptr::NonNull<[u8]>, alloc::AllocError> {
+        if old_layout.size() == new_layout.size() && old_layout.align() >= new_layout.align() {
+            Ok(ptr::NonNull::slice_from_raw_parts(ptr, old_layout.size()))
+        } else {
+            unsafe { self.0.grow_zeroed(ptr, old_layout, new_layout) }
+        }
+    }
+
+    unsafe fn shrink(
+        &self,
+        ptr: ptr::NonNull<u8>,
+        old_layout: alloc::Layout,
+        new_layout: alloc::Layout,
+    ) -> Result<ptr::NonNull<[u8]>, alloc::AllocError> {
+        if old_layout.align() >= new_layout.align() {
+            Ok(ptr::NonNull::slice_from_raw_parts(ptr, old_layout.size()))
+        } else {
+            unsafe { self.0.shrink(ptr, old_layout, new_layout) }
+        }
+    }
+}
+
+unsafe impl Allocator for LibAllocImpl {
     fn allocate(&self, layout: alloc::Layout) -> Result<ptr::NonNull<[u8]>, alloc::AllocError> {
         let align = num::NonZero::new(layout.align()).unwrap_or(num::NonZero::<usize>::MIN);
 
