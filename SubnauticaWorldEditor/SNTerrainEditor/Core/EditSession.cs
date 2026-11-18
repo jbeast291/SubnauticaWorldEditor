@@ -45,14 +45,14 @@ internal class EditSession : IDisposable
         WORLD_STREAMER = worldStreamer;
     }
 
-    internal void AddBatch(Int3 batchIndex) {
-        managedBatches.Add(batchIndex, OctreeReading.GetBatchOctrees(batchIndex));
+    internal void EnsureBatch(Int3 batchIndex) {
+        managedBatches[batchIndex] = OctreeReading.GetBatchOctrees(batchIndex);
     }
 
     internal ManagedOctree GetBatchOctree(Int3 batchIndex, Int3 octreeIndex) {
         return managedBatches[batchIndex].octrees.Get(octreeIndex);
     }
-    
+
     internal void DEBUG__Clear() {
         foreach (ManagedBatch batch in managedBatches.Values) {
             foreach (ManagedOctree octree in batch.octrees) {

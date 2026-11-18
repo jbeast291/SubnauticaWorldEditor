@@ -60,16 +60,15 @@ internal class TEBatchManager : MonoBehaviour
     {
         System.Diagnostics.Stopwatch sw = new();
         sw.Start();
-        activeSession.AddBatch(new(12, 18, 12));
+        activeSession.EnsureBatch(new(12, 18, 12));
         sw.Stop();
         Plugin.LogError($"Reading + Octree Allocations Took {sw.ElapsedMilliseconds}ms");
-        
+
         sw.Restart();
         activeSession.DEBUG__Clear();
         sw.Stop();
         Plugin.LogError($"(Clear) Took: {sw.ElapsedMilliseconds}ms");
-        
-        
+
         sw.Restart();
         activeSession.DEBUG__Sphere(new(12, 18, 12));
         sw.Stop();
@@ -118,7 +117,7 @@ internal class TEBatchManager : MonoBehaviour
             ClipmapLevel level = levels[i];
             foreach (Int3 cellIDForLevel in level.GetCellRange(batchBlockRange))
             {
-                level.GetCell(cellIDForLevel)?.RefreshMeshAsync();
+                level.GetCell(cellIDForLevel)?.QueueRefreshMeshAsync();
             }
         }
     }
