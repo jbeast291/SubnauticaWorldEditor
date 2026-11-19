@@ -118,11 +118,13 @@ unsafe impl Allocator for LibAlloc {
         old_layout: alloc::Layout,
         new_layout: alloc::Layout,
     ) -> Result<ptr::NonNull<[u8]>, alloc::AllocError> {
-        if old_layout.size() == new_layout.size() && old_layout.align() >= new_layout.align() {
-            Ok(ptr::NonNull::slice_from_raw_parts(ptr, old_layout.size()))
-        } else {
-            unsafe { self.0.grow(ptr, old_layout, new_layout) }
-        }
+        let skip = old_layout.size() == new_layout.size() && (
+            old_layout.align() >= new_layout.align() ||
+            ptr.addr().get().is_multiple_of(new_layout.align())
+        );
+
+        if skip { Ok(ptr::NonNull::slice_from_raw_parts(ptr, old_layout.size())) }
+        else { unsafe { self.0.grow(ptr, old_layout, new_layout) } }
     }
 
     unsafe fn grow_zeroed(
@@ -131,11 +133,13 @@ unsafe impl Allocator for LibAlloc {
         old_layout: alloc::Layout,
         new_layout: alloc::Layout,
     ) -> Result<ptr::NonNull<[u8]>, alloc::AllocError> {
-        if old_layout.size() == new_layout.size() && old_layout.align() >= new_layout.align() {
-            Ok(ptr::NonNull::slice_from_raw_parts(ptr, old_layout.size()))
-        } else {
-            unsafe { self.0.grow_zeroed(ptr, old_layout, new_layout) }
-        }
+        let skip = old_layout.size() == new_layout.size() && (
+            old_layout.align() >= new_layout.align() ||
+            ptr.addr().get().is_multiple_of(new_layout.align())
+        );
+
+        if skip { Ok(ptr::NonNull::slice_from_raw_parts(ptr, old_layout.size())) }
+        else { unsafe { self.0.grow_zeroed(ptr, old_layout, new_layout) } }
     }
 
     unsafe fn shrink(
@@ -144,11 +148,11 @@ unsafe impl Allocator for LibAlloc {
         old_layout: alloc::Layout,
         new_layout: alloc::Layout,
     ) -> Result<ptr::NonNull<[u8]>, alloc::AllocError> {
-        if old_layout.align() >= new_layout.align() {
-            Ok(ptr::NonNull::slice_from_raw_parts(ptr, old_layout.size()))
-        } else {
-            unsafe { self.0.shrink(ptr, old_layout, new_layout) }
-        }
+        let skip = old_layout.align() >= new_layout.align() ||
+            ptr.addr().get().is_multiple_of(new_layout.align());
+
+        if skip { Ok(ptr::NonNull::slice_from_raw_parts(ptr, old_layout.size())) }
+        else { unsafe { self.0.shrink(ptr, old_layout, new_layout) } }
     }
 }
 
