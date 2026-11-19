@@ -748,7 +748,7 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 [[package]]
 name = "sn-terrain"
 version = "0.0.0"
-source = "git+https://github.com/Esper89/sn-terrain?rev=9c1767f8#9c1767f8872e8404f55344d508340c72c8fb280d"
+source = "git+https://github.com/Esper89/sn-terrain?rev=78af2205#78af2205dd96205e7aec22eb9b2a4d93197999b4"
 dependencies = [
  "bytemuck",
  "seq-macro",
