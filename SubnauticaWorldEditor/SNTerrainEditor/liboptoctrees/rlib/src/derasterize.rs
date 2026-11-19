@@ -133,26 +133,26 @@ fn calc_parent_layer<const CHUNKS: usize, const PREV: usize>(
 #[inline(always)]
 fn calc_layer_chunk(mat: &[u8xN; 8], dist: &[u8xN; 8], is_grandparent: u8xN) -> LayerChunk {
     let empty: [u8xN; 8] = array::from_fn(|i| mat[i].simd_eq(u8xN::ZERO));
-    let solid: [u8xN; 8] = array::from_fn(|i| dist[i].simd_eq(u8xN::ZERO));
+    let nonsurface: [u8xN; 8] = array::from_fn(|i| dist[i].simd_eq(u8xN::ZERO));
 
-    let (mut identical, mut all_empty, mut all_solid) = (u8xN::MAX, u8xN::MAX, u8xN::MAX);
+    let (mut identical, mut all_empty, mut all_nonsurface) = (u8xN::MAX, u8xN::MAX, u8xN::MAX);
     let mut any_empty = u8xN::ZERO;
     for i in 0..8 {
         identical &= mat[i].simd_eq(mat[0]) & dist[i].simd_eq(dist[0]);
         all_empty &= empty[i];
-        all_solid &= solid[i];
+        all_nonsurface &= nonsurface[i];
         any_empty |= empty[i];
     }
 
-    let homogenous_children = identical | (all_solid & (all_empty | !any_empty));
+    let homogenous_children = identical | (all_nonsurface & (all_empty | !any_empty));
     let is_parent = is_grandparent | !homogenous_children;
 
     if is_parent.to_bitmask() == 0 {
         return LayerChunk { mat: mat[0], dist: dist[0], is_parent: u8xN::ZERO }
     }
 
-    let parent_mat = calc_parent_mat(mat, &empty, &solid);
-    let parent_dist = calc_parent_dist(dist, &empty, &solid);
+    let parent_mat = calc_parent_mat(mat, &empty, &nonsurface);
+    let parent_dist = calc_parent_dist(dist, &empty, &nonsurface);
 
     let parent_dist = parent_dist.max(parent_mat.simd_ne(u8xN::ZERO) & u8xN::splat(1));
 
@@ -164,9 +164,9 @@ fn calc_layer_chunk(mat: &[u8xN; 8], dist: &[u8xN; 8], is_grandparent: u8xN) -> 
 }
 
 #[inline(always)]
-fn calc_parent_mat(mat: &[u8xN; 8], empty: &[u8xN; 8], solid: &[u8xN; 8]) -> u8xN {
+fn calc_parent_mat(mat: &[u8xN; 8], empty: &[u8xN; 8], nonsurface: &[u8xN; 8]) -> u8xN {
     let vote_weight: [u8xN; 8] = array::from_fn(|i| {
-        u8xN::splat(0x01) | (!solid[i] & u8xN::splat(0x10))
+        u8xN::splat(0x01) | (!nonsurface[i] & u8xN::splat(0x10))
     });
 
     let mut best_score = u8xN::ZERO;
@@ -177,7 +177,7 @@ fn calc_parent_mat(mat: &[u8xN; 8], empty: &[u8xN; 8], solid: &[u8xN; 8]) -> u8x
             votes += mat[candidate].simd_eq(mat[voter]) & vote_weight[voter];
         }
 
-        let vote_mask = u8xN::splat(0x0F) | (!solid[candidate] & u8xN::splat(0xF0));
+        let vote_mask = u8xN::splat(0x0F) | (!nonsurface[candidate] & u8xN::splat(0xF0));
         let score = !empty[candidate] & votes & vote_mask;
 
         let new_best_score = best_score.max(score);
@@ -189,12 +189,12 @@ fn calc_parent_mat(mat: &[u8xN; 8], empty: &[u8xN; 8], solid: &[u8xN; 8]) -> u8x
 }
 
 #[inline(always)]
-fn calc_parent_dist(dist: &[u8xN; 8], empty: &[u8xN; 8], solid: &[u8xN; 8]) -> u8xN {
+fn calc_parent_dist(dist: &[u8xN; 8], empty: &[u8xN; 8], nonsurface: &[u8xN; 8]) -> u8xN {
     cfg_select! {
         cpu = "x86-64-v3" => {
             let mut sum = [u16x16::ZERO; NATIVE_SIMD_WIDTH / 16];
             for i in 0..8 {
-                let dist = dist[i] | (solid[i] & !empty[i] & u8xN::splat(252));
+                let dist = dist[i] | (nonsurface[i] & !empty[i] & u8xN::splat(252));
                 let dist: [u8x16; NATIVE_SIMD_WIDTH / 16] = bytemuck::must_cast(dist);
 
                 for (sum, dist) in sum.iter_mut().zip(dist) {
@@ -213,7 +213,7 @@ fn calc_parent_dist(dist: &[u8xN; 8], empty: &[u8xN; 8], solid: &[u8xN; 8]) -> u
         _ => {
             let mut sum = u16x16::ZERO;
             for i in 0..8 {
-                sum += u16x16::from(dist[i] | (solid[i] & !empty[i] & u8x16::splat(252)));
+                sum += u16x16::from(dist[i] | (nonsurface[i] & !empty[i] & u8x16::splat(252)));
             }
 
             let mean: u16x16 = (sum + 3 + ((sum >> 3) & 1u16)) >> 3;
