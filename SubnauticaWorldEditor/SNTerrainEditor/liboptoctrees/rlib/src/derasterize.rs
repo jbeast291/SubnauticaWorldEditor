@@ -199,7 +199,9 @@ fn calc_parent_dist(dist: &[u8xN; 8], empty: &[u8xN; 8], nonsurface: &[u8xN; 8])
         cpu = "x86-64-v3" => {
             let mut sum = [u16x16::ZERO; NATIVE_SIMD_WIDTH / 16];
             for i in 0..8 {
-                let dist = dist[i] | (nonsurface[i] & !empty[i] & u8xN::splat(252));
+                let dist = dist[i] |
+                    (nonsurface[i] & empty[i].select(u8xN::splat(1), u8xN::splat(252)));
+
                 let dist: [u8x16; NATIVE_SIMD_WIDTH / 16] = bytemuck::must_cast(dist);
 
                 for (sum, dist) in sum.iter_mut().zip(dist) {
@@ -218,7 +220,9 @@ fn calc_parent_dist(dist: &[u8xN; 8], empty: &[u8xN; 8], nonsurface: &[u8xN; 8])
         _ => {
             let mut sum = u16x16::ZERO;
             for i in 0..8 {
-                sum += u16x16::from(dist[i] | (nonsurface[i] & !empty[i] & u8x16::splat(252)));
+                sum += u16x16::from(dist[i] |
+                    (nonsurface[i] & empty[i].select(u8xN::splat(1), u8xN::splat(252)))
+                );
             }
 
             let mean: u16x16 = (sum + 3 + ((sum >> 3) & 1u16)) >> 3;
