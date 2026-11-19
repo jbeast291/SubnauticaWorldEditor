@@ -1,5 +1,5 @@
 use std::{alloc::{self, Allocator}, ffi, num, ptr, slice};
-use optoctrees::Octnode;
+use optoctrees::sn_terrain;
 
 #[repr(C)]
 pub struct InitTable {
@@ -23,7 +23,7 @@ pub struct LibTable {
 
 #[repr(C)]
 pub struct Octree {
-    pub ptr: *mut Octnode,
+    pub ptr: *mut sn_terrain::Octnode,
     pub len: usize,
 }
 
@@ -76,9 +76,10 @@ unsafe extern "C" fn octree_voxel_op(
 ) -> Octree {
     let lib = unsafe { &*lib.cast::<LibOptoctrees>() };
     let octree = unsafe { slice::from_raw_parts(octree.ptr, octree.len) };
+    let octree = sn_terrain::Octree::new(octree);
     let center = [center.x, center.y, center.z];
 
-    let nodes = match discrim {
+    let octree = match discrim {
         VoxelOpDiscrim::AddSphere => {
             let op = unsafe { *op.cast::<optoctrees::AddSphere>() };
             optoctrees::octree_voxel_op(octree, center, op, lib.alloc)
@@ -88,9 +89,9 @@ unsafe extern "C" fn octree_voxel_op(
             optoctrees::octree_voxel_op(octree, center, op, lib.alloc)
         },
     };
-    let (nodes, _) = Box::into_raw_with_allocator(nodes);
+    let (octree, _) = Box::into_raw_with_allocator(octree.into_nodes());
 
-    Octree { ptr: nodes.cast::<Octnode>(), len: nodes.len() }
+    Octree { ptr: octree.cast(), len: octree.len() }
 }
 
 #[derive(Copy, Clone)]

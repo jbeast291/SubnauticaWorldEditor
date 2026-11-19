@@ -1,7 +1,8 @@
 use std::{alloc, hint::black_box, time::Duration};
 use criterion::{Criterion, criterion_main, criterion_group};
 use rand::{prelude::*, rngs};
-use optoctrees::{__bench::{Voxel, VoxelGrid}, Octnode, VoxelOp};
+use sn_terrain::{Octree, VoxelGrid, Voxel};
+use optoctrees::VoxelOp;
 
 type Group<'c> = criterion::BenchmarkGroup<'c, criterion::measurement::WallTime>;
 
@@ -23,7 +24,7 @@ fn octree_voxel_op(c: &mut Criterion) {
     bench(&mut g, "add_sphere", optoctrees::AddSphere { radius: 5.75 });
 
     fn bench(g: &mut Group, name: &str, op: impl VoxelOp + Copy) {
-        let octree = &[Octnode { mat: 0, dist: 0, child: 0 }];
+        let octree = Octree::EMPTY;
         g.bench_function(name, |b| b.iter(|| {
             black_box(optoctrees::octree_voxel_op(
                 black_box(octree),
@@ -38,13 +39,13 @@ fn octree_voxel_op(c: &mut Criterion) {
 fn rasterize(c: &mut Criterion) {
     let mut g = c.benchmark_group("rasterize");
 
-    bench(&mut g, "empty_octree", &[Octnode { mat: 0, dist: 0, child: 0 }]);
+    bench(&mut g, "empty_octree", Octree::EMPTY);
 
-    bench(&mut g, "sphere_octree", {
-        bytemuck::cast_slice(include_bytes!("../cases/sphere-octree.bin"))
-    });
+    bench(&mut g, "sphere_octree", Octree::new(bytemuck::cast_slice({
+        include_bytes!("../cases/sphere-octree.bin")
+    })));
 
-    fn bench(g: &mut Group, name: &str, octree: &[Octnode]) {
+    fn bench(g: &mut Group, name: &str, octree: &Octree) {
         let mut r = optoctrees::__bench::Rasterizer::new();
         g.bench_function(name, |b| b.iter(|| {
             black_box(r.rasterize(black_box(octree)));

@@ -1,4 +1,5 @@
 use std::{alloc, cell::RefCell};
+use sn_terrain::Octree;
 
 #[cfg(not(target_endian = "little"))]
 compile_error!("big-endian targets are not supported");
@@ -10,22 +11,15 @@ mod derasterize;
 use rasterize::Rasterizer;
 use derasterize::Derasterizer;
 
-#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
-#[derive(Copy, Clone, Default, bytemuck::Pod, bytemuck::Zeroable)]
-#[repr(C, packed)]
-pub struct Octnode {
-    pub mat: u8,
-    pub dist: u8,
-    pub child: u16,
-}
+pub use sn_terrain;
 
 pub use voxels::{VoxelOp, AddSphere, AddPyramid};
 
 pub fn octree_voxel_op<A: alloc::Allocator>(
-    octree: &[Octnode],
+    octree: &Octree,
     center: [f32; 3], op: impl VoxelOp,
     alloc: A,
-) -> Box<[Octnode], A> {
+) -> Box<Octree, A> {
     thread_local! {
         static SCRATCH: RefCell<(Rasterizer, Derasterizer)> = const {
             RefCell::new((Rasterizer::new(), Derasterizer::new()))
@@ -64,7 +58,7 @@ const NATIVE_SIMD_WIDTH: usize = cfg_select! {
 pub mod __bench {
     pub use crate::{
         rasterize::Rasterizer,
-        voxels::{Voxel, VoxelGrid, voxel_op},
+        voxels::voxel_op,
         derasterize::Derasterizer,
     };
 }

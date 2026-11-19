@@ -15,6 +15,7 @@ __bench = []
 [dependencies]
 bytemuck = { version = "1.25", features = ["derive", "extern_crate_std", "latest_stable_rust"] }
 ggmath = { version = "0.18", features = ["bytemuck", "wide"] }
+sn-terrain = { git = "https://github.com/Esper89/sn-terrain", rev = "9c1767f8" }
 wide = "1.7"
 
 [build-dependencies]

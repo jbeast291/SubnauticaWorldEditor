@@ -1,19 +1,7 @@
 use std::array;
 use ggmath::Vec3;
+use sn_terrain::{VoxelGrid, Voxel};
 use wide::{u16x8, i16x8, i32x8, f32x8};
-
-#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
-#[derive(Copy, Clone, Default, bytemuck::Pod, bytemuck::Zeroable)]
-#[repr(C, align(2))]
-pub struct Voxel {
-    pub mat: u8,
-    pub dist: u8,
-}
-
-#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
-#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-#[repr(C, align(64))]
-pub struct VoxelGrid(pub [Voxel; 32 * 32 * 32]);
 
 // TODO: aabb optimizations
 
@@ -115,71 +103,13 @@ pub fn voxel_op(
 
 fn voxel_grid_coords_simd(idx: usize) -> Vec3<i32x8> {
     let idx = idx * 8;
-    let first = voxel_grid_coords(idx);
+    let [x, y, z] = VoxelGrid::coords(idx);
 
     Vec3::new(
-        i32x8::splat(first.x) + i32x8::new([0, 0, 0, 0, 1, 1, 1, 1]),
-        i32x8::splat(first.y) + i32x8::new([0, 0, 1, 1, 0, 0, 1, 1]),
-        i32x8::splat(first.z) + i32x8::new([0, 1, 0, 1, 0, 1, 0, 1]),
+        i32x8::splat(x) + i32x8::new([0, 0, 0, 0, 1, 1, 1, 1]),
+        i32x8::splat(y) + i32x8::new([0, 0, 1, 1, 0, 0, 1, 1]),
+        i32x8::splat(z) + i32x8::new([0, 1, 0, 1, 0, 1, 0, 1]),
     )
-}
-
-fn voxel_grid_coords(idx: usize) -> Vec3<i32> {
-    // FIXME: use `extract_bits` when it's stabilized
-    /*
-    Vec3::new(
-        idx.extract_bits(0b100_100_100_100_100) as i32,
-        idx.extract_bits(0b010_010_010_010_010) as i32,
-        idx.extract_bits(0b001_001_001_001_001) as i32,
-    )
-    */
-
-    let idx = idx as i32;
-    Vec3::new(
-        (idx >> 2 & 0b00001) |
-        (idx >> 4 & 0b00010) |
-        (idx >> 6 & 0b00100) |
-        (idx >> 8 & 0b01000) |
-        (idx >> 10 & 0b10000),
-        (idx >> 1 & 0b00001) |
-        (idx >> 3 & 0b00010) |
-        (idx >> 5 & 0b00100) |
-        (idx >> 7 & 0b01000) |
-        (idx >> 9 & 0b10000),
-        (idx >> 0 & 0b00001) |
-        (idx >> 2 & 0b00010) |
-        (idx >> 4 & 0b00100) |
-        (idx >> 6 & 0b01000) |
-        (idx >> 8 & 0b10000),
-    )
-}
-
-#[expect(unused)]
-fn voxel_grid_index([x, y, z]: [usize; 3]) -> usize {
-    // FIXME: use `deposit_bits` when it's stabilized
-    /*
-    z.deposit_bits(0b001_001_001_001_001) |
-    y.deposit_bits(0b010_010_010_010_010) |
-    x.deposit_bits(0b100_100_100_100_100)
-    */
-
-    (z & 0b00001) << 0 |
-    (z & 0b00010) << 2 |
-    (z & 0b00100) << 4 |
-    (z & 0b01000) << 6 |
-    (z & 0b10000) << 8 |
-
-    (y & 0b00001) << 1 |
-    (y & 0b00010) << 3 |
-    (y & 0b00100) << 5 |
-    (y & 0b01000) << 7 |
-    (y & 0b10000) << 9 |
-
-    (x & 0b00001) << 2 |
-    (x & 0b00010) << 4 |
-    (x & 0b00100) << 6 |
-    (x & 0b01000) << 8 |
-    (x & 0b10000) << 10
 }
 
 // TODO: add tests

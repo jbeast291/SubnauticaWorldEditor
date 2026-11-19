@@ -1,6 +1,7 @@
 use std::{alloc, array, iter, mem::MaybeUninit, num::NonZero, ptr};
+use sn_terrain::{Octree, Octnode, VoxelGrid};
 use wide::{u8x16, u16x8, u16x16, u32x8};
-use crate::{voxels::VoxelGrid, Octnode, u8xN, u16xN, NATIVE_SIMD_WIDTH};
+use crate::{u8xN, u16xN, NATIVE_SIMD_WIDTH};
 
 mod transpose;
 
@@ -25,7 +26,7 @@ impl Derasterizer {
 
     pub fn derasterize<A: alloc::Allocator>(
         &mut self, voxels: &VoxelGrid, alloc: A,
-    ) -> Box<[Octnode], A> {
+    ) -> Box<Octree, A> {
         let voxels: &[u16xN; LEVEL0_CHUNKS * 2] = bytemuck::must_cast_ref(voxels);
         let nodes = calc_layers(&mut self.layers, voxels);
 
@@ -224,7 +225,7 @@ fn calc_parent_dist(dist: &[u8xN; 8], empty: &[u8xN; 8], solid: &[u8xN; 8]) -> u
 fn emit_octree<A: alloc::Allocator>(
     voxels: &[u16x8; 4096], layers: &OctreeLayers,
     nodes: NonZero<usize>, alloc: A,
-) -> Box<[Octnode], A> {
+) -> Box<Octree, A> {
     let nodes = NonZero::<u16>::try_from(nodes)
         .expect("octree buffer len should not overflow u16");
     let mut buf = ReverseOctreeBuffer::alloc(nodes, alloc);
@@ -409,7 +410,7 @@ impl<A: alloc::Allocator> ReverseOctreeBuffer<A> {
         idx as u16
     }
 
-    fn finish(mut self, root: u32) -> Box<[Octnode], A> {
+    fn finish(mut self, root: u32) -> Box<Octree, A> {
         let Some(root_idx) = self.start.checked_sub(1) else {
             panic!("octree buffer capacity overflow")
         };
@@ -421,7 +422,10 @@ impl<A: alloc::Allocator> ReverseOctreeBuffer<A> {
 
         // SAFETY: All nodes from `start` onwards were initialized per invariants, and the root node
         // was just initialized.
-        unsafe { self.buf.assume_init() }
+        let nodes = unsafe { self.buf.assume_init() };
+
+        // SAFETY: The length of `nodes` is in range for `NonZero<u16>` per invariants.
+        unsafe { Octree::new_unchecked_boxed(nodes) }
     }
 }
 
@@ -431,12 +435,12 @@ mod test {
 
     #[test]
     fn derasterize_empty_grid() {
-        let grid = VoxelGrid([crate::voxels::Voxel { mat: 0, dist: 0 }; _]);
+        let grid = VoxelGrid::EMPTY;
 
         let mut d = Derasterizer::new();
         let nodes = d.derasterize(&grid, alloc::Global);
 
-        let expect = &[Octnode { mat: 0, dist: 0, child: 0 }];
+        let expect = Octree::EMPTY;
         assert_eq!(&*nodes, expect);
     }
 
@@ -449,7 +453,9 @@ mod test {
         let mut d = Derasterizer::new();
         let nodes = d.derasterize(&grid, alloc::Global);
 
-        let expect = bytemuck::cast_slice(include_bytes!("../cases/sphere-octree.bin"));
+        let expect = Octree::new(bytemuck::cast_slice({
+            include_bytes!("../cases/sphere-octree.bin")
+        }));
         assert_eq!(&*nodes, expect);
     }
 
@@ -458,14 +464,16 @@ mod test {
         let sphere_grid = const {
             &VoxelGrid(bytemuck::must_cast(*include_bytes!("../cases/sphere-grid.bin")))
         };
-        let empty_grid = VoxelGrid([crate::voxels::Voxel { mat: 0, dist: 0 }; _]);
+        let empty_grid = VoxelGrid::EMPTY;
 
         let mut d = Derasterizer::new();
         let sphere_nodes = d.derasterize(&sphere_grid, alloc::Global);
         let empty_nodes = d.derasterize(&empty_grid, alloc::Global);
 
-        let expect_sphere = bytemuck::cast_slice(include_bytes!("../cases/sphere-octree.bin"));
-        let expect_empty = &[Octnode { mat: 0, dist: 0, child: 0 }];
+        let expect_sphere = Octree::new(bytemuck::cast_slice({
+            include_bytes!("../cases/sphere-octree.bin")
+        }));
+        let expect_empty = Octree::EMPTY;
         assert_eq!(&*sphere_nodes, expect_sphere);
         assert_eq!(&*empty_nodes, expect_empty);
     }
