@@ -69,18 +69,6 @@ public static class OctreeStreamerRefresh {
         }
         batchOctrees.allocator = new FakeArrayPool();
 
-        foreach (BatchOctreesStreamer.IListener listener in batchStreamer.listeners)
-        {
-            Int3.Bounds blockRange = Int3.Bounds.FinerBounds(batchOctrees.id, batchStreamer.batchSize);
-            if (listener.IsProcessing(batchStreamer, blockRange, batchStreamer.minLod, batchStreamer.maxLod))
-            {
-                // im sorry esper this is temporary i swear!
-                // (I have no clue how to fix it)
-                batchStreamer.streamingThread.Enqueue(BEGIN_REFRESH_OCTREES, batchStreamer, batchRefresh);
-                return;
-            }
-        }
-
         switch (batchOctrees.state) 
         {
             case BatchOctrees.State.Unloaded:
