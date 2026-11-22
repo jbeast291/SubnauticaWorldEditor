@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using SNTerrainEditor.Core.DataTypes;
 using SNTerrainEditor.Extensions;
 using SNTerrainEditor.FileOperations;
@@ -73,30 +75,23 @@ internal class TEBatchManager : MonoBehaviour
         activeSession.DEBUG__Sphere(new(12, 18, 12));
         sw.Stop();
         Plugin.LogError($"(Workers: {JobsUtility.JobWorkerCount}) Create Spheres (Rasterize + Modify + Derasterize) Took: {sw.ElapsedMilliseconds}ms");
-        
+
         sw.Restart();
-        DEBUG__UploadChangesToWorldStreamer(new(12, 18, 12));
+        DEBUG__UploadChangesToWorldStreamer(new(12, 18, 12), () => DEBUG__RefreshMeshForBatch(12, 18, 12));
         sw.Stop();
         Plugin.LogError($"Upload Took: {sw.ElapsedMilliseconds}ms");
-        
-        sw.Restart();
-        DEBUG__RefreshMeshForBatch(12, 18, 12);
-        sw.Stop(); 
-        Plugin.LogError($"Visual Refreshed Queued In: {sw.ElapsedMilliseconds}ms");
+    }
+    private static void DEBUG__UploadChangesToWorldStreamer(Int3 batchID, Action onComplete)
+    {
+        List<Int3> octrees = new();
+        foreach (Int3 localOctreeId in Int3.Range(new Int3(5, 5 ,5))) {
+            Int3 globalOctreeId = (batchID * 5) + localOctreeId;
+            octrees.Add(globalOctreeId);
+        }
+
+        OctreeStreamerRefresh.QueueOctreeRefresh(octrees, onComplete);
     }
 
-    private void DEBUG__UploadChangesToWorldStreamer(Int3 batchID) {
-        BatchOctreesStreamer octreesStreamer = worldStreamer.octreesStreamer;
-        BatchOctrees batchOctrees = octreesStreamer.GetBatch(batchID);
-        
-        foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
-            Octree octree = batchOctrees.octrees.Get(octreeLocalIndex);
-            batchOctrees.allocator.Return(octree.data);
-            NativeArray<byte> nodes = activeSession.GetBatchOctree(batchID, octreeLocalIndex).arr;
-            octree.data = nodes.Reinterpret<byte>();
-        }
-    }
-    
     private void DEBUG__RefreshMeshForBatch(int x, int y, int z)
     {
         const int batchSize = 160;
@@ -104,14 +99,13 @@ internal class TEBatchManager : MonoBehaviour
 
         BatchOctreesStreamer octreesStreamer = worldStreamer.octreesStreamer;
         BatchOctreesStreamer lowDetailOctreesStreamer = worldStreamer.lowDetailOctreesStreamer;
-        
+
         int minLevel = Math.Min(octreesStreamer.minLod, lowDetailOctreesStreamer.minLod);
         int maxLevel = Math.Max(octreesStreamer.maxLod, lowDetailOctreesStreamer.maxLod);
-        
+
         Int3.Bounds batchBlockRange = new(batchMinBlockPos, batchMinBlockPos + (Int3.one * 160));
-        
         ClipmapLevel[] levels = worldStreamer.clipmapStreamer.levels;
-        
+
         for (int i = minLevel; i < maxLevel; i++)
         {
             ClipmapLevel level = levels[i];

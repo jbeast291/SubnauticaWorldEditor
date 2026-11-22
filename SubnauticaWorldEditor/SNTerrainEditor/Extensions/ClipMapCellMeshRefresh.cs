@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Nautilus.Extensions;
-using Nautilus.Handlers;
 using UWE;
 using WorldStreaming;
 
@@ -12,23 +10,23 @@ namespace SNTerrainEditor.Extensions;
 
 public static class ClipMapCellMeshRefresh
 {
-    //double check its only used on streaming thread!!
-    private static HashSet<ClipmapCell> DEFFERED_CELLS_TO_REFRESH = new();
+    //`SAFETY`: must be only accessed on the Streaming Thread
+    private static readonly HashSet<ClipmapCell> DEFERRED_CELLS_TO_REFRESH = new();
 
     extension(ClipmapCell clipmapCell)
     {
         public void QueueRefreshMeshAsync()
         {
-            clipmapCell.level.streamer.streamingThread.Enqueue(BeginRefresh, clipmapCell, null);
+            clipmapCell.level.streamer.streamingThread.Enqueue(BEGIN_REFRESH_DELEGATE, clipmapCell, null);
         }
     }
 
-    private static readonly Task.Function BeginRefresh = TryRefresh;
-    // Streaming Thread
+    private static readonly Task.Function BEGIN_REFRESH_DELEGATE = TryRefresh;
+    // `SAFETY`: Must be called from Streaming Thread
     public static void TryRefresh(object owner, object? state)
     {
         ClipmapCell clipmapCell = (ClipmapCell)owner;
-
+        //TODO: double check octrees are loaded with ClipmapCell.OnBatchOctreesChanged() logic
         switch (clipmapCell.state)
         {
             case ClipmapCell.State.Unloaded:
@@ -40,9 +38,9 @@ public static class ClipMapCellMeshRefresh
             case ClipmapCell.State.HiddenByParent:
             case ClipmapCell.State.HiddenByChildren:
                 // Cell is not requested by anything. We are free to modify.
-                DEFFERED_CELLS_TO_REFRESH.Remove(clipmapCell);
+                DEFERRED_CELLS_TO_REFRESH.Remove(clipmapCell);
                 clipmapCell.state = ClipmapCell.State.BuildingMesh;
-                clipmapCell.level.streamer.meshingThreads.Enqueue(BeginRebuildMeshDelegate, clipmapCell, null);
+                clipmapCell.level.streamer.meshingThreads.Enqueue(BEGIN_REBUILD_MESH_DELEGATE, clipmapCell, null);
                 break;
             case ClipmapCell.State.QueuedForLoading:
             case ClipmapCell.State.QueuedForUnloading:
@@ -52,7 +50,7 @@ public static class ClipMapCellMeshRefresh
             case ClipmapCell.State.BuildingMeshToUnloading:
             case ClipmapCell.State.BuildingLayersToUnloading:
                 // Cell is doing stuff, we must wait for it to finish!
-                DEFFERED_CELLS_TO_REFRESH.Add(clipmapCell);
+                DEFERRED_CELLS_TO_REFRESH.Add(clipmapCell);
                 return;
             default:
                 Plugin.LogError("Unknown clipmapCell state: " + clipmapCell.state);
@@ -61,15 +59,16 @@ public static class ClipMapCellMeshRefresh
     }
 
     [HarmonyPatch(typeof(ClipmapCell), nameof(ClipmapCell.EndBuildLayers), typeof(object), typeof(object))]
-    private static class AddOnStart {
+    private static class RefreshDeferredCells {
+        // `SAFETY`: Called from streaming thread
         private static bool Prefix(object owner, object state)
         {
             ClipmapCell cell = (ClipmapCell) owner;
-            if (DEFFERED_CELLS_TO_REFRESH.Contains(cell))
+            if (DEFERRED_CELLS_TO_REFRESH.Contains(cell))
             {
                 if (cell.state == ClipmapCell.State.BuildingLayersToUnloading) {
                     // Cell was requested to reload to a different position, we need to cancel our refresh
-                    DEFFERED_CELLS_TO_REFRESH.Remove(cell);
+                    DEFERRED_CELLS_TO_REFRESH.Remove(cell);
                     cell.state = ClipmapCell.State.QueuedForUnloading;
                     cell.level.EnqueueForUnloading(cell);
                 } else {
@@ -84,9 +83,8 @@ public static class ClipMapCellMeshRefresh
         }
     }
 
-
-    private static readonly Task.Function BeginRebuildMeshDelegate = RebuildMeshTask;
-    // Meshing Thread
+    // `SAFETY`: Must be called from Meshing Thread
+    private static readonly Task.Function BEGIN_REBUILD_MESH_DELEGATE = RebuildMeshTask;
     private static void RebuildMeshTask(object owner, object state)
     {
         ClipmapCell clipmapCell = (ClipmapCell)owner;
@@ -97,11 +95,11 @@ public static class ClipMapCellMeshRefresh
         meshBuilder.Reset(clipmapCell.level.id, clipmapCell.id, clipmapCell.level.cellSize, clipmapCell.level.settings, clipmapStreamer.host.blockTypes);
         meshBuilder.DoThreadablePart(octreesStreamer, clipmapStreamer.settings.collision);
 
-        clipmapCell.level.streamer.buildLayersThread.Enqueue(BeginUpdateChunkDelegate, clipmapCell, meshBuilder);
+        clipmapCell.level.streamer.buildLayersThread.Enqueue(BEGIN_UPDATE_CHUNK_DELEGATE, clipmapCell, meshBuilder);
     }
 
-    private static readonly Task.Function BeginUpdateChunkDelegate = UpdateChunkTask;
-    // Main Unity Thread
+    // `SAFETY`: Must be called from Main Unity Thread
+    private static readonly Task.Function BEGIN_UPDATE_CHUNK_DELEGATE = UpdateChunkTask;
     private static void UpdateChunkTask(object owner, object state)
     {
         ClipmapCell clipmapCell = (ClipmapCell)owner;
@@ -116,7 +114,7 @@ public static class ClipMapCellMeshRefresh
         CoroutineHost.StartCoroutine(UpdateLayersAsync(clipmapCell, meshBuilder));
     }
 
-    // Main Unity Thread
+    // `SAFETY`: Must be called from Main Unity Thread
     private static IEnumerator UpdateLayersAsync(ClipmapCell clipmapCell, MeshBuilder meshBuilder)
     {
         if (clipmapCell.chunk.Exists())
