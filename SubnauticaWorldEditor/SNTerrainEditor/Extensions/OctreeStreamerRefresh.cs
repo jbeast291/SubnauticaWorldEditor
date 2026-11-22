@@ -2,7 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Threading;
 using HarmonyLib;
+using Unity.Collections;
 using UWE;
 using WorldStreaming;
 
@@ -19,7 +22,7 @@ public static class OctreeStreamerRefresh {
         public required int numOperations;
         public required Action onComplete;
     }
-    private readonly record struct BatchRefresh(Request request, Int3 batchId, BitArray octreesToRefresh);
+    private readonly record struct BatchRefresh(HashSet<Request> requestedBy, Int3 batchId, BitArray octreesToRefresh);
 
     public static void QueueOctreeRefresh(IEnumerable<Int3> octrees, Action onComplete) {
         Dictionary<Int3, BitArray> batches = new();
@@ -48,7 +51,7 @@ public static class OctreeStreamerRefresh {
             // TODO: store static ref so we arnt pointer chasing
             BatchOctreesStreamer batchStreamer = LargeWorldStreamer.main.streamerV2.octreesStreamer;
             batchStreamer.streamingThread.Enqueue(BEGIN_REFRESH_OCTREES, batchStreamer, 
-                new BatchRefresh(request, batchId, octreesToRefresh));
+                new BatchRefresh([request], batchId, octreesToRefresh));
         }
     }
 
@@ -58,9 +61,20 @@ public static class OctreeStreamerRefresh {
         BatchOctreesStreamer batchStreamer = (BatchOctreesStreamer) owner;
         BatchRefresh batchRefresh = (BatchRefresh) state;
 
-        // TODO: check if any cells are processing this batch, if so re-queue and check later!
-
         BatchOctrees batchOctrees = batchStreamer.GetBatch(batchRefresh.batchId);
+
+        foreach (BatchOctreesStreamer.IListener listener in batchStreamer.listeners)
+        {
+            Int3.Bounds blockRange = Int3.Bounds.FinerBounds(batchOctrees.id, batchStreamer.batchSize);
+            if (listener.IsProcessing(batchStreamer, blockRange, batchStreamer.minLod, batchStreamer.maxLod))
+            {
+                // im sorry esper this is temporary i swear!
+                // (I have no clue how to fix it)
+                batchStreamer.streamingThread.Enqueue(BEGIN_REFRESH_OCTREES, batchStreamer, batchRefresh);
+                return;
+            }
+        }
+
         switch (batchOctrees.state) 
         {
             case BatchOctrees.State.Unloaded:
@@ -74,14 +88,19 @@ public static class OctreeStreamerRefresh {
             case BatchOctrees.State.Loading:
                 // We wait for it to load, and then reload it right away to ensure it loaded.
                 // the proper trees, otherwise we can't guarantee such!
-                DEFERRED_BATCHES_TO_REFRESH.Add(batchOctrees, batchRefresh);
+                if (DEFERRED_BATCHES_TO_REFRESH.TryGetValue(batchOctrees,
+                        out BatchRefresh otherBatchRefresh)
+                ) {
+                    batchRefresh.requestedBy.ForEach(i => otherBatchRefresh.requestedBy.Add(i));
+                } else {
+                    DEFERRED_BATCHES_TO_REFRESH.Add(batchOctrees, batchRefresh);
+                }
+                
                 break;
             case BatchOctrees.State.Loaded:
-                batchOctrees.state = BatchOctrees.State.Loading;
-                batchStreamer.ioThread.Enqueue(RELOAD_BATCH_OCTREE, 
-                    batchOctrees, batchRefresh
-                );
                 // Just reload the given things :)
+                batchOctrees.state = BatchOctrees.State.Loading;
+                batchStreamer.ioThread.Enqueue(RELOAD_BATCH_OCTREE, batchOctrees, batchRefresh);
                 break;
             default:
                 Plugin.LogError("Unknown batchOctrees state: " + batchOctrees.state);
@@ -120,11 +139,14 @@ public static class OctreeStreamerRefresh {
                               localOctreeId.x * octreesPerBatchSide * octreesPerBatchSide;
 
             if (!octreesToRefresh[octreeIndex]) continue;
-
-            Octree octree = batchOctrees.octrees.Get(localOctreeId);
-            octree.Clear(batchOctrees.allocator);
-            octree.Read(default, batchOctrees.id, null);
-            octree.UnloadChildren(batchOctrees.streamer.minLod, batchOctrees.allocator);
+            
+            lock (batchOctrees.octrees)
+            {
+                Octree octree = new(localOctreeId);
+                batchOctrees.octrees.Set(localOctreeId, octree);
+                octree.Read(default, batchOctrees.id, null);
+                octree.UnloadChildren(batchOctrees.streamer.minLod, new FakeArrayPool());
+            }
         }
 
         // In case anything was waiting on this, calling this will send events to the
@@ -143,10 +165,102 @@ public static class OctreeStreamerRefresh {
     private static void EndRefreshBatch(object owner, object _)
     {
         BatchRefresh batchRefresh = (BatchRefresh) owner;
-        Request request = batchRefresh.request; 
-        request.numOperations--;
-        if (request.numOperations <= 0) {
-            request.onComplete.Invoke();
+        batchRefresh.requestedBy.ForEach(static request =>
+        {
+            request.numOperations--;
+            if (request.numOperations <= 0) {
+                request.onComplete.Invoke();
+            }
+        });
+    }
+
+    [HarmonyPatch(typeof(BatchOctrees), nameof(BatchOctrees.GetOctree))]
+    private static class LockOctreeAccess {
+        [ThreadStatic] private static bool lockTaken;
+        // `SAFETY`: Called from meshing thread
+        private static void Prefix(Octree __instance) {
+            Monitor.Enter(__instance, ref lockTaken);
+        }
+
+        private static void Finalizer(Octree __instance) {
+            if(!lockTaken) return;
+            lockTaken = false;
+            Monitor.Exit(__instance);
         }
     }
+
+    [HarmonyPatch(typeof(BatchOctrees), nameof(BatchOctrees.LoadOctrees))]
+    private static class LockOctreeAccess2 {
+        [ThreadStatic] private static bool lockTaken;
+        // `SAFETY`: Called from meshing thread
+        private static void Prefix(Octree __instance) {
+            Monitor.Enter(__instance, ref lockTaken);
+        }
+
+        private static void Finalizer(Octree __instance) {
+            if(!lockTaken) return;
+            lockTaken = false;
+            Monitor.Exit(__instance);
+        }
+    }
+
+    [HarmonyPatch(typeof(BatchOctrees), nameof(BatchOctrees.ClearOctrees))]
+    private static class LockOctreeAccess3 {
+        [ThreadStatic] private static bool lockTaken;
+        // `SAFETY`: Called from meshing thread
+        private static void Prefix(Octree __instance) {
+            Monitor.Enter(__instance, ref lockTaken);
+        }
+
+        private static void Finalizer(Octree __instance) {
+            if(!lockTaken) return;
+            lockTaken = false;
+            Monitor.Exit(__instance);
+        }
+    }
+
+    [HarmonyPatch(typeof(object))]
+    private static class OctreeDataDisposal
+    {
+        [HarmonyTargetMethod]
+        private static MethodBase TargetMethod() 
+            => AccessTools.Method(typeof(object), "Finalize");
+
+        private static void Prefix(object __instance) {
+            if (__instance is Octree octree) octree.data.Dispose();
+        }
+    }
+}
+
+
+internal sealed class FakeArrayPool : SplitNativeArrayPool<byte> {
+    internal FakeArrayPool() : base(0, 0, 0, 0, 0, 0, 0, 0) {
+        SolidOctree = new(Octree.BytesPerNode, Allocator.Persistent);
+        SolidOctree.CopyFrom(new byte[] { 1, 0, 0, 0 });
+    }
+
+    [HarmonyPatch(typeof(SplitNativeArrayPool<byte>), nameof(Get))]
+    private static class FakeArrayPoolGetImpl {
+        private static bool Prefix(
+            SplitNativeArrayPool<byte> __instance, int minLength, ref NativeArray<byte> __result
+        ) {
+            if (__instance is not FakeArrayPool) return true;
+            __result = new(minLength, Allocator.Persistent);
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(SplitNativeArrayPool<byte>), nameof(Return))]
+    private static class FakeArrayPoolReturnImpl {
+        private static bool Prefix(
+            SplitNativeArrayPool<byte> __instance, ref NativeArray<byte> arr
+        ) {
+            if (__instance is not FakeArrayPool fakeArrayPool) return true;
+            if (arr == fakeArrayPool.SolidOctree) return false;
+            arr.Dispose();
+            return false;
+        }
+    }
+
+    internal NativeArray<byte> SolidOctree { get; private set; }
 }

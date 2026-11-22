@@ -28,6 +28,7 @@
         <PackageReference Include="Subnautica.GameLibs" Version="82304.0.0-r.0"/>
         <PackageReference Include="PolySharp" Version="1.15.0"/>
         <PackageReference Include="Subnautica.Nautilus" Version="1.*-*" PrivateAssets="all"/>
+        <PackageReference Include="HarmonyX" Version="2.9.0" />
     </ItemGroup>
 
     <Target Name="BuildRust" AfterTargets="Build">
