@@ -10,7 +10,7 @@ namespace SNTerrainEditor.Extensions;
 
 public static class ClipMapCellMeshRefresh
 {
-    //`SAFETY`: must be only accessed on the Streaming Thread
+    //`SAFETY`: must be only accessed on the streaming thread
     private static readonly HashSet<ClipmapCell> DEFERRED_CELLS_TO_REFRESH = new();
 
     extension(ClipmapCell clipmapCell)
@@ -22,7 +22,7 @@ public static class ClipMapCellMeshRefresh
     }
 
     private static readonly Task.Function BEGIN_REFRESH_DELEGATE = TryRefresh;
-    // `SAFETY`: Must be called from Streaming Thread
+    // `SAFETY`: Must be called from streaming thread
     public static void TryRefresh(object owner, object? state)
     {
         ClipmapCell clipmapCell = (ClipmapCell)owner;
@@ -83,9 +83,9 @@ public static class ClipMapCellMeshRefresh
         }
     }
 
-    // `SAFETY`: Must be called from Meshing Thread
-    private static readonly Task.Function BEGIN_REBUILD_MESH_DELEGATE = RebuildMeshTask;
-    private static void RebuildMeshTask(object owner, object state)
+    // `SAFETY`: Must be called from meshing thread
+    private static readonly Task.Function BEGIN_REBUILD_MESH_DELEGATE = BeginRebuildMesh;
+    private static void BeginRebuildMesh(object owner, object state)
     {
         ClipmapCell clipmapCell = (ClipmapCell)owner;
         ClipmapStreamer clipmapStreamer = clipmapCell.streamer;
@@ -95,12 +95,12 @@ public static class ClipMapCellMeshRefresh
         meshBuilder.Reset(clipmapCell.level.id, clipmapCell.id, clipmapCell.level.cellSize, clipmapCell.level.settings, clipmapStreamer.host.blockTypes);
         meshBuilder.DoThreadablePart(octreesStreamer, clipmapStreamer.settings.collision);
 
-        clipmapCell.level.streamer.buildLayersThread.Enqueue(BEGIN_UPDATE_CHUNK_DELEGATE, clipmapCell, meshBuilder);
+        clipmapCell.level.streamer.streamingThread.Enqueue(END_REBUILD_MESH_DELEGATE, clipmapCell, meshBuilder);
     }
 
-    // `SAFETY`: Must be called from Main Unity Thread
-    private static readonly Task.Function BEGIN_UPDATE_CHUNK_DELEGATE = UpdateChunkTask;
-    private static void UpdateChunkTask(object owner, object state)
+    // `SAFETY`: Must be called from streaming thread
+    private static readonly Task.Function END_REBUILD_MESH_DELEGATE = EndRebuildMesh;
+    private static void EndRebuildMesh(object owner, object state)
     {
         ClipmapCell clipmapCell = (ClipmapCell)owner;
         MeshBuilder meshBuilder = (MeshBuilder)state;
@@ -110,8 +110,14 @@ public static class ClipMapCellMeshRefresh
         } else {
             clipmapCell.state = ClipmapCell.State.BuildingLayers;
         }
+        clipmapCell.level.streamer.buildLayersThread.Enqueue(BEGIN_REBUILD_LAYERS_DELEGATE, clipmapCell, meshBuilder);
+    }
 
-        CoroutineHost.StartCoroutine(UpdateLayersAsync(clipmapCell, meshBuilder));
+    // `SAFETY`: Must be called from build layers thread
+    private static readonly Task.Function BEGIN_REBUILD_LAYERS_DELEGATE = BeginRebuildLayers;
+    private static void BeginRebuildLayers(object owner, object state)
+    {
+        CoroutineHost.StartCoroutine(UpdateLayersAsync((ClipmapCell)owner, (MeshBuilder)state));
     }
 
     // `SAFETY`: Must be called from Main Unity Thread
