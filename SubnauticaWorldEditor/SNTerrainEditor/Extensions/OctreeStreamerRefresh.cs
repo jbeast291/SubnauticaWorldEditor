@@ -62,6 +62,12 @@ public static class OctreeStreamerRefresh {
         BatchRefresh batchRefresh = (BatchRefresh) state;
 
         BatchOctrees batchOctrees = batchStreamer.GetBatch(batchRefresh.batchId);
+        if (batchOctrees == null)
+        {
+            batchStreamer.streamingThread.Enqueue(END_REFRESH_BATCH, batchRefresh, null);
+            return;
+        }
+        batchOctrees.allocator = new FakeArrayPool();
 
         foreach (BatchOctreesStreamer.IListener listener in batchStreamer.listeners)
         {
@@ -145,7 +151,7 @@ public static class OctreeStreamerRefresh {
                 Octree octree = new(localOctreeId);
                 batchOctrees.octrees.Set(localOctreeId, octree);
                 octree.Read(default, batchOctrees.id, null);
-                octree.UnloadChildren(batchOctrees.streamer.minLod, new FakeArrayPool());
+                octree.UnloadChildren(batchOctrees.streamer.minLod, batchOctrees.allocator);
             }
         }
 
@@ -178,11 +184,11 @@ public static class OctreeStreamerRefresh {
     private static class LockOctreeAccess {
         [ThreadStatic] private static bool lockTaken;
         // `SAFETY`: Called from meshing thread
-        private static void Prefix(Octree __instance) {
+        private static void Prefix(BatchOctrees __instance) {
             Monitor.Enter(__instance, ref lockTaken);
         }
 
-        private static void Finalizer(Octree __instance) {
+        private static void Finalizer(BatchOctrees __instance) {
             if(!lockTaken) return;
             lockTaken = false;
             Monitor.Exit(__instance);
@@ -193,11 +199,11 @@ public static class OctreeStreamerRefresh {
     private static class LockOctreeAccess2 {
         [ThreadStatic] private static bool lockTaken;
         // `SAFETY`: Called from meshing thread
-        private static void Prefix(Octree __instance) {
+        private static void Prefix(BatchOctrees __instance) {
             Monitor.Enter(__instance, ref lockTaken);
         }
 
-        private static void Finalizer(Octree __instance) {
+        private static void Finalizer(BatchOctrees __instance) {
             if(!lockTaken) return;
             lockTaken = false;
             Monitor.Exit(__instance);
@@ -208,11 +214,11 @@ public static class OctreeStreamerRefresh {
     private static class LockOctreeAccess3 {
         [ThreadStatic] private static bool lockTaken;
         // `SAFETY`: Called from meshing thread
-        private static void Prefix(Octree __instance) {
+        private static void Prefix(BatchOctrees __instance) {
             Monitor.Enter(__instance, ref lockTaken);
         }
 
-        private static void Finalizer(Octree __instance) {
+        private static void Finalizer(BatchOctrees __instance) {
             if(!lockTaken) return;
             lockTaken = false;
             Monitor.Exit(__instance);
@@ -227,7 +233,9 @@ public static class OctreeStreamerRefresh {
             => AccessTools.Method(typeof(object), "Finalize");
 
         private static void Prefix(object __instance) {
-            if (__instance is Octree octree) octree.data.Dispose();
+            if (__instance is Octree octree && octree.data.IsCreated) {
+                octree.data.Dispose();
+            }
         }
     }
 }

@@ -25,6 +25,25 @@ public static class OctreePatches
     }
 }
 
+
+//TODO: might be smarter to patch octree?
+[HarmonyPatch(typeof(BatchOctrees))]
+public static class BatchOctreePatches2
+{
+    // io thread >_> 
+    [HarmonyPatch(typeof(BatchOctrees), nameof(BatchOctrees.ClearOctrees))]
+    [HarmonyPrefix]
+    public static bool Prefix(BatchOctrees __instance)
+    {
+        if (TEBatchManager.main.activeSession.managedBatches.TryGetValue(__instance.id, out ManagedBatch _)
+        ) {
+            __instance.streamer.streamingThread.Enqueue(BatchOctrees.EndUnloadOctreesDelegate, __instance, null);
+            return false;
+        }
+        return true;
+    }
+}
+
 [HarmonyPatch(typeof(BatchOctrees))]
 public static class BatchOctreePatches
 {
