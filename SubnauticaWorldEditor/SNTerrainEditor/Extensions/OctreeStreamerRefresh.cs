@@ -89,7 +89,6 @@ public static class OctreeStreamerRefresh {
                 } else {
                     DEFERRED_BATCHES_TO_REFRESH.Add(batchOctrees, batchRefresh);
                 }
-                
                 break;
             case BatchOctrees.State.Loaded:
                 // Just reload the given things :)
@@ -168,40 +167,12 @@ public static class OctreeStreamerRefresh {
         });
     }
 
+    [HarmonyPatch(typeof(BatchOctrees), nameof(BatchOctrees.ClearOctrees))]
+    [HarmonyPatch(typeof(BatchOctrees), nameof(BatchOctrees.LoadOctrees))]
     [HarmonyPatch(typeof(BatchOctrees), nameof(BatchOctrees.GetOctree))]
     private static class LockOctreeAccess {
         [ThreadStatic] private static bool lockTaken;
-        // `SAFETY`: Called from meshing thread
-        private static void Prefix(BatchOctrees __instance) {
-            Monitor.Enter(__instance, ref lockTaken);
-        }
-
-        private static void Finalizer(BatchOctrees __instance) {
-            if(!lockTaken) return;
-            lockTaken = false;
-            Monitor.Exit(__instance);
-        }
-    }
-
-    [HarmonyPatch(typeof(BatchOctrees), nameof(BatchOctrees.LoadOctrees))]
-    private static class LockOctreeAccess2 {
-        [ThreadStatic] private static bool lockTaken;
-        // `SAFETY`: Called from meshing thread
-        private static void Prefix(BatchOctrees __instance) {
-            Monitor.Enter(__instance, ref lockTaken);
-        }
-
-        private static void Finalizer(BatchOctrees __instance) {
-            if(!lockTaken) return;
-            lockTaken = false;
-            Monitor.Exit(__instance);
-        }
-    }
-
-    [HarmonyPatch(typeof(BatchOctrees), nameof(BatchOctrees.ClearOctrees))]
-    private static class LockOctreeAccess3 {
-        [ThreadStatic] private static bool lockTaken;
-        // `SAFETY`: Called from meshing thread
+        // `SAFETY`: Can be called from basically any thread
         private static void Prefix(BatchOctrees __instance) {
             Monitor.Enter(__instance, ref lockTaken);
         }
