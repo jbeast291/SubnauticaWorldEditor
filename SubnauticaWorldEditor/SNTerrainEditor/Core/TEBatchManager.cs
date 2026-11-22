@@ -77,9 +77,16 @@ internal class TEBatchManager : MonoBehaviour
         Plugin.LogError($"(Workers: {JobsUtility.JobWorkerCount}) Create Spheres (Rasterize + Modify + Derasterize) Took: {sw.ElapsedMilliseconds}ms");
 
         sw.Restart();
-        DEBUG__UploadChangesToWorldStreamer(new(12, 18, 12), () => DEBUG__RefreshMeshForBatch(12, 18, 12));
-        sw.Stop();
-        Plugin.LogError($"Upload Took: {sw.ElapsedMilliseconds}ms");
+        DEBUG__UploadChangesToWorldStreamer(new(12, 18, 12), () =>
+        {
+            sw.Stop();
+            Plugin.LogError($"Upload Took: {sw.ElapsedMilliseconds}ms");
+            sw.Restart();
+            DEBUG__RefreshMeshForBatch(12, 18, 12);
+            sw.Stop();
+            Plugin.LogError($"Mesh Refresh Queue: {sw.ElapsedMilliseconds}ms");
+        });
+        
     }
     private static void DEBUG__UploadChangesToWorldStreamer(Int3 batchID, Action onComplete)
     {
