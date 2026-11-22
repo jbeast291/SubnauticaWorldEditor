@@ -3,6 +3,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using SNTerrainEditor.Core;
 using SNTerrainEditor.Core.DataTypes;
+using Unity.Collections;
 using UWE;
 using WorldStreaming;
 
@@ -61,4 +62,43 @@ public static class BatchOctreePatches
             )
             .SetOpcodeAndAdvance(OpCodes.Ldloc_2)
             .InstructionEnumeration();
+
+    [HarmonyPatch(typeof(BatchOctrees), MethodType.Constructor, [
+        typeof(BatchOctreesStreamer), typeof(Int3),
+        typeof(int), typeof(UWE.SplitNativeArrayPool<byte>)
+    ])]
+    [HarmonyPostfix]
+    public static void Prefix(BatchOctrees __instance)
+    {
+        __instance.allocator = FakeArrayPool.allocator;
+    }
+}
+
+
+internal sealed class FakeArrayPool() : SplitNativeArrayPool<byte>(0, 0, 0, 0, 0, 0, 0, 0) {
+
+    internal static readonly FakeArrayPool allocator = new();
+    
+
+    [HarmonyPatch(typeof(SplitNativeArrayPool<byte>), nameof(Get))]
+    private static class FakeArrayPoolGetImpl {
+        private static bool Prefix(
+            SplitNativeArrayPool<byte> __instance, int minLength, ref NativeArray<byte> __result
+        ) {
+            if (__instance is not FakeArrayPool) return true;
+            __result = new(minLength, Allocator.Persistent);
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(SplitNativeArrayPool<byte>), nameof(Return))]
+    private static class FakeArrayPoolReturnImpl {
+        private static bool Prefix(
+            SplitNativeArrayPool<byte> __instance, ref NativeArray<byte> arr
+        ) {
+            if (__instance is not FakeArrayPool fakeArrayPool) return true;
+            arr.Dispose();
+            return false;
+        }
+    }
 }

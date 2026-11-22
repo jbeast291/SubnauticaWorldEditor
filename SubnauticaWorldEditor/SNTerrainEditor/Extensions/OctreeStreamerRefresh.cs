@@ -67,7 +67,6 @@ public static class OctreeStreamerRefresh {
             batchStreamer.streamingThread.Enqueue(END_REFRESH_BATCH, batchRefresh, null);
             return;
         }
-        batchOctrees.allocator = new FakeArrayPool();
 
         switch (batchOctrees.state) 
         {
@@ -132,13 +131,12 @@ public static class OctreeStreamerRefresh {
                               localOctreeId.x * octreesPerBatchSide * octreesPerBatchSide;
 
             if (!octreesToRefresh[octreeIndex]) continue;
-            
+
             lock (batchOctrees.octrees)
             {
                 Octree octree = new(localOctreeId);
                 batchOctrees.octrees.Set(localOctreeId, octree);
                 octree.Read(default, batchOctrees.id, null);
-                octree.UnloadChildren(batchOctrees.streamer.minLod, batchOctrees.allocator);
             }
         }
 
@@ -197,37 +195,4 @@ public static class OctreeStreamerRefresh {
             }
         }
     }
-}
-
-
-internal sealed class FakeArrayPool : SplitNativeArrayPool<byte> {
-    internal FakeArrayPool() : base(0, 0, 0, 0, 0, 0, 0, 0) {
-        SolidOctree = new(Octree.BytesPerNode, Allocator.Persistent);
-        SolidOctree.CopyFrom(new byte[] { 1, 0, 0, 0 });
-    }
-
-    [HarmonyPatch(typeof(SplitNativeArrayPool<byte>), nameof(Get))]
-    private static class FakeArrayPoolGetImpl {
-        private static bool Prefix(
-            SplitNativeArrayPool<byte> __instance, int minLength, ref NativeArray<byte> __result
-        ) {
-            if (__instance is not FakeArrayPool) return true;
-            __result = new(minLength, Allocator.Persistent);
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(SplitNativeArrayPool<byte>), nameof(Return))]
-    private static class FakeArrayPoolReturnImpl {
-        private static bool Prefix(
-            SplitNativeArrayPool<byte> __instance, ref NativeArray<byte> arr
-        ) {
-            if (__instance is not FakeArrayPool fakeArrayPool) return true;
-            if (arr == fakeArrayPool.SolidOctree) return false;
-            arr.Dispose();
-            return false;
-        }
-    }
-
-    internal NativeArray<byte> SolidOctree { get; private set; }
 }
