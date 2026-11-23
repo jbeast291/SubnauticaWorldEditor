@@ -8,8 +8,6 @@ namespace SNTerrainEditor;
 
 /// <summary>Interop with Rust native library for efficient octree operations.</summary>
 public unsafe class LibOptoctrees : IDisposable {
-    // TODO: switch to a non-static class to better support fallible initialization and drop
-
     /// <summary>Draw a sphere on an octree, producing a new octree.</summary>
     /// <SAFETY>The provided <paramref name="octree"/> must remain valid for reads and completely
     /// unmodified until this call returns.</SAFETY>
@@ -48,8 +46,7 @@ public unsafe class LibOptoctrees : IDisposable {
     private static LibOptoctrees INSTANCE;
     private readonly LibTable* table;
 
-    static LibOptoctrees()
-    { 
+    static LibOptoctrees() {
         UNITY_ALLOC = UnityAlloc;
         UNITY_FREE = UnityFree;
         INSTANCE = new();
@@ -83,6 +80,8 @@ public unsafe class LibOptoctrees : IDisposable {
         internal void* lib;
         internal nint drop;
         internal nint octree_voxel_op;
+        internal nint get_octree_blocking;
+        internal nint drop_octree;
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -95,11 +94,11 @@ public unsafe class LibOptoctrees : IDisposable {
         Vector3F32 center, VoxelOpDiscrim discrim, void* op
     );
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct Octree {
-        internal byte* ptr;
-        internal nuint len;
-    }
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate SharedOctreePtr get_octree_blocking(void* lib, OctreePos pos);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void drop_octree(void* lib, SharedOctreePtr octree);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Vector3F32 {
@@ -116,6 +115,25 @@ public unsafe class LibOptoctrees : IDisposable {
     [StructLayout(LayoutKind.Sequential)]
     private struct AddSphere {
         internal float radius;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Octree {
+        internal byte* ptr;
+        internal nuint len;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct OctreePos {
+        int x;
+        int y;
+        int z;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SharedOctreePtr {
+        byte* ptr;
+        int len;
     }
 
     private static readonly UnityAllocDelegate UNITY_ALLOC;
@@ -144,5 +162,3 @@ public unsafe class LibOptoctrees : IDisposable {
         drop(table);
     }
 }
-
-// poll: more trees, or stop calling me

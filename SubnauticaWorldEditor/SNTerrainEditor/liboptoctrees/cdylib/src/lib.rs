@@ -19,6 +19,16 @@ pub struct LibTable {
         discrim: VoxelOpDiscrim,
         op: *const ffi::c_void,
     ) -> Octree,
+
+    pub get_octree_blocking: unsafe extern "C" fn(
+        lib: *const ffi::c_void,
+        pos: sn_terrain::OctreePos,
+    ) -> sn_terrain::ffi::SharedOctreePtr,
+
+    pub drop_octree: unsafe extern "C" fn(
+        lib: *const ffi::c_void,
+        octree: sn_terrain::ffi::SharedOctreePtr,
+    ),
 }
 
 #[repr(C)]
@@ -44,12 +54,24 @@ pub enum VoxelOpDiscrim {
 pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibTable {
     let init = unsafe { ptr::read(init) };
     let alloc = unsafe { sn_terrain::ffi::UnityAlloc::new(init.alloc, init.free) };
-    let lib = LibOptoctrees { table: init, alloc };
+
+    let game = match sn_terrain::ffi::current_process_game_dir() {
+        Ok(game) => game,
+        Err(e) => {
+            eprintln!("[liboptoctrees] error: {e}");
+            return ptr::null_mut()
+        },
+    };
+    let world = sn_terrain::editor::WorldCache::new(game);
+
+    let lib = LibOptoctrees { table: init, alloc, world };
     let lib = Box::into_raw(Box::new(lib)).cast::<ffi::c_void>();
 
     let table = LibTable {
         lib, drop: drop_lib,
         octree_voxel_op,
+        get_octree_blocking,
+        drop_octree,
     };
 
     Box::into_raw(Box::new(table))
@@ -58,6 +80,7 @@ pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibT
 struct LibOptoctrees {
     #[expect(unused)] table: InitTable,
     alloc: sn_terrain::ffi::UnityAlloc,
+    world: sn_terrain::editor::WorldCache,
 }
 
 unsafe extern "C" fn drop_lib(table: *mut LibTable) {
@@ -92,4 +115,23 @@ unsafe extern "C" fn octree_voxel_op(
     let (octree, _) = Box::into_raw_with_allocator(octree.into_nodes());
 
     Octree { ptr: octree.cast(), len: octree.len() }
+}
+
+unsafe extern "C" fn get_octree_blocking(
+    lib: *const ffi::c_void,
+    pos: sn_terrain::OctreePos,
+) -> sn_terrain::ffi::SharedOctreePtr {
+    let lib = unsafe { &*lib.cast::<LibOptoctrees>() };
+    sn_terrain::ffi::SharedOctreeExt::into_ptr(lib.world.get_octree_blocking(pos))
+}
+
+unsafe extern "C" fn drop_octree(
+    _: *const ffi::c_void,
+    octree: sn_terrain::ffi::SharedOctreePtr,
+) {
+    let octree = unsafe {
+        <sn_terrain::SharedOctree as sn_terrain::ffi::SharedOctreeExt>::from_ptr(octree)
+    };
+
+    drop(octree);
 }
