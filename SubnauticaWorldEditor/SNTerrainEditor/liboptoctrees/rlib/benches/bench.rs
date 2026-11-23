@@ -46,9 +46,9 @@ fn rasterize(c: &mut Criterion) {
     })));
 
     fn bench(g: &mut Group, name: &str, octree: &Octree) {
-        let mut r = optoctrees::__bench::Rasterizer::new();
+        let mut grid = VoxelGrid([Voxel { mat: 1, dist: 1 }; _]);
         g.bench_function(name, |b| b.iter(|| {
-            black_box(r.rasterize(black_box(octree)));
+            black_box(sn_terrain::rasterize(black_box(octree), black_box(&mut grid)))
         }));
     }
 }

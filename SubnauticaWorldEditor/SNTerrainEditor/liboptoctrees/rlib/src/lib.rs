@@ -1,14 +1,12 @@
 use std::{alloc, cell::RefCell};
-use sn_terrain::Octree;
+use sn_terrain::{Octree, VoxelGrid};
 
 #[cfg(not(target_endian = "little"))]
 compile_error!("big-endian targets are not supported");
 
-mod rasterize;
 mod voxels;
 mod derasterize;
 
-use rasterize::Rasterizer;
 use derasterize::Derasterizer;
 
 pub use sn_terrain;
@@ -21,13 +19,13 @@ pub fn octree_voxel_op<A: alloc::Allocator>(
     alloc: A,
 ) -> Box<Octree, A> {
     thread_local! {
-        static SCRATCH: RefCell<(Rasterizer, Derasterizer)> = const {
-            RefCell::new((Rasterizer::new(), Derasterizer::new()))
+        static SCRATCH: RefCell<(VoxelGrid, Derasterizer)> = const {
+            RefCell::new((VoxelGrid::EMPTY, Derasterizer::new()))
         };
     }
 
-    SCRATCH.with_borrow_mut(|(r, d)| {
-        let voxels = r.rasterize(octree);
+    SCRATCH.with_borrow_mut(|(voxels, d)| {
+        sn_terrain::rasterize(octree, voxels);
         voxels::voxel_op(voxels, center, op);
         d.derasterize(voxels, alloc)
     })
@@ -57,7 +55,6 @@ const NATIVE_SIMD_WIDTH: usize = cfg_select! {
 #[doc(hidden)]
 pub mod __bench {
     pub use crate::{
-        rasterize::Rasterizer,
         voxels::voxel_op,
         derasterize::Derasterizer,
     };

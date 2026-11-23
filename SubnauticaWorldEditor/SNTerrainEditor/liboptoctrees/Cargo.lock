@@ -868,7 +868,7 @@ checksum = "3244542535d5de959d90ec55d1b5ff0fd2bb7b1310223907d5f11932847f7b59"
 [[package]]
 name = "sn-terrain"
 version = "0.0.0"
-source = "git+https://github.com/Esper89/sn-terrain?rev=86413d60#86413d607c72146ac73c9352dd1192a8a0d74d1e"
+source = "git+https://github.com/Esper89/sn-terrain?rev=ee9cb2f0#ee9cb2f07a81352cfe9d85972e77567d40ba4bd4"
 dependencies = [
  "ahash",
  "bytemuck",
