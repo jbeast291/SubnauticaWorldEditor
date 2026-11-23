@@ -1,10 +1,12 @@
-use std::{ffi, ptr, slice};
+use std::{ffi, panic, ptr, slice};
 use optoctrees::sn_terrain;
 
 #[repr(C)]
 pub struct InitTable {
     pub alloc: unsafe extern "C" fn(size: i64, align: i32) -> *mut ffi::c_void,
     pub free: unsafe extern "C" fn(ptr: *mut ffi::c_void),
+    pub log: unsafe extern "C" fn(level: LogLevel, ptr: *const u8, len: i32),
+    pub flush_log: unsafe extern "C" fn(),
 }
 
 #[repr(C)]
@@ -31,6 +33,16 @@ pub struct LibTable {
     ),
 }
 
+#[derive(Copy, Clone)]
+#[repr(i32)]
+pub enum LogLevel {
+    Debug = 0,
+    Info = 1,
+    Warning = 2,
+    Error = 3,
+    Fatal = 4,
+}
+
 #[repr(C)]
 pub struct Octree {
     pub ptr: *mut sn_terrain::Octnode,
@@ -54,6 +66,18 @@ pub enum VoxelOpDiscrim {
 pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibTable {
     let init = unsafe { ptr::read(init) };
     let alloc = unsafe { sn_terrain::ffi::UnityAlloc::new(init.alloc, init.free) };
+
+    panic::set_hook(Box::new(move |info| {
+        let msg = match (info.location(), info.payload_as_str()) {
+            (Some(at), Some(msg)) => format!("panic at {at} with: {msg}"),
+            (None, Some(msg)) => format!("panic with: {msg}"),
+            (Some(at), None) => format!("panic at {at}"),
+            (None, None) => "panic".to_owned(),
+        };
+
+        unsafe { (init.log)(LogLevel::Fatal, msg.as_ptr(), msg.len() as i32); }
+        unsafe { (init.flush_log)(); }
+    }));
 
     let game = match sn_terrain::ffi::current_process_game_dir() {
         Ok(game) => game,
