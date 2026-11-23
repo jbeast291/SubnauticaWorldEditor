@@ -447,10 +447,10 @@ mod test {
         let grid = VoxelGrid::EMPTY;
 
         let mut d = Derasterizer::new();
-        let nodes = d.derasterize(&grid, alloc::Global);
+        let octree = d.derasterize(&grid, alloc::Global);
 
-        let expect = Octree::EMPTY;
-        assert_eq!(&*nodes, expect);
+        let expect = Octree::EMPTY.nodes();
+        assert_eq!(octree.nodes(), expect);
     }
 
     #[test]
@@ -460,12 +460,10 @@ mod test {
         };
 
         let mut d = Derasterizer::new();
-        let nodes = d.derasterize(&grid, alloc::Global);
+        let octree = d.derasterize(&grid, alloc::Global);
 
-        let expect = Octree::new(bytemuck::cast_slice({
-            include_bytes!("../cases/sphere-octree.bin")
-        }));
-        assert_eq!(&*nodes, expect);
+        let expect = bytemuck::cast_slice(include_bytes!("../cases/sphere-octree.bin"));
+        assert_eq!(octree.nodes(), expect);
     }
 
     #[test]
@@ -476,14 +474,12 @@ mod test {
         let empty_grid = VoxelGrid::EMPTY;
 
         let mut d = Derasterizer::new();
-        let sphere_nodes = d.derasterize(&sphere_grid, alloc::Global);
-        let empty_nodes = d.derasterize(&empty_grid, alloc::Global);
+        let sphere_octree = d.derasterize(&sphere_grid, alloc::Global);
+        let empty_octree = d.derasterize(&empty_grid, alloc::Global);
 
-        let expect_sphere = Octree::new(bytemuck::cast_slice({
-            include_bytes!("../cases/sphere-octree.bin")
-        }));
-        let expect_empty = Octree::EMPTY;
-        assert_eq!(&*sphere_nodes, expect_sphere);
-        assert_eq!(&*empty_nodes, expect_empty);
+        let expect_sphere = bytemuck::cast_slice(include_bytes!("../cases/sphere-octree.bin"));
+        let expect_empty = Octree::EMPTY.nodes();
+        assert_eq!(sphere_octree.nodes(), expect_sphere);
+        assert_eq!(empty_octree.nodes(), expect_empty);
     }
 }
