@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
-using Nautilus.Utility;
 using SNTerrainEditor.FileOperations;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Jobs;
-using UnityEngine.Yoga;
 using WorldStreaming;
 
 namespace SNTerrainEditor.Core.DataTypes;
@@ -39,20 +34,20 @@ internal class EditSession : IDisposable
 
     private readonly WorldStreamer WORLD_STREAMER;
 
-    private readonly Dictionary<Int3, ManagedBatch> managedBatches = new();
+    internal readonly Dictionary<Int3, ManagedBatch> managedBatches = new();
 
     internal EditSession(WorldStreamer worldStreamer) {
         WORLD_STREAMER = worldStreamer;
     }
 
-    internal void AddBatch(Int3 batchIndex) {
-        managedBatches.Add(batchIndex, OctreeReading.GetBatchOctrees(batchIndex));
+    internal void EnsureBatch(Int3 batchIndex) {
+        managedBatches[batchIndex] = OctreeReading.GetBatchOctrees(batchIndex);
     }
 
     internal ManagedOctree GetBatchOctree(Int3 batchIndex, Int3 octreeIndex) {
         return managedBatches[batchIndex].octrees.Get(octreeIndex);
     }
-    
+
     internal void DEBUG__Clear() {
         foreach (ManagedBatch batch in managedBatches.Values) {
             foreach (ManagedOctree octree in batch.octrees) {
@@ -72,14 +67,16 @@ internal class EditSession : IDisposable
         System.Diagnostics.Stopwatch sw = new();
         sw.Start();
         Int3 batchBlockPos = batchIndex * ManagedBatch.BATCH_BLOCK_LENGTH;
+        float radius = 1;
         foreach (Int3 octreeLocalIndex in Int3.Range(ManagedBatch.OCTREES_PER_SIDE)) {
             ManagedOctree octree = batch.octrees.Get(octreeLocalIndex);
             NativeArray<byte> old = octree.arr;
             Int3 gridBlockPos = batchBlockPos + (octreeLocalIndex * 32);
             octree.arr = LibOptoctrees.OctreeAddSphere(
                 octree: old,
-                gridBlockPos, opBlockCenter: gridBlockPos + new Int3(16), radius: 16
+                gridBlockPos, opBlockCenter: gridBlockPos + new Int3(16), radius: (int) radius
             );
+            radius += 0.1953125f;
             old.Dispose();
         }
         sw.Stop();
