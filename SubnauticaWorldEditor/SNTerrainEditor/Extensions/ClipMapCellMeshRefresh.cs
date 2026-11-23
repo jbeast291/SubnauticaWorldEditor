@@ -26,7 +26,6 @@ public static class ClipMapCellMeshRefresh
     public static void TryRefresh(object owner, object? state)
     {
         ClipmapCell clipmapCell = (ClipmapCell)owner;
-        //TODO: double check octrees are loaded with ClipmapCell.OnBatchOctreesChanged() logic
         switch (clipmapCell.state)
         {
             case ClipmapCell.State.Unloaded:
