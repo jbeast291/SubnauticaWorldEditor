@@ -191,7 +191,7 @@ public static class OctreeStreamerRefresh {
 
         private static void Prefix(object __instance) {
             if (__instance is Octree { data.IsCreated: true } octree) {
-                octree.Clear(null);
+                octree.data.Dispose();
             }
         }
     }

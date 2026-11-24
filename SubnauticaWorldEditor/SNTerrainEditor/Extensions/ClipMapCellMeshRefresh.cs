@@ -77,7 +77,6 @@ public static class ClipMapCellMeshRefresh
                 }
                 return false;
             }
-            cell.EndBuildLayers();
             return true;
         }
     }

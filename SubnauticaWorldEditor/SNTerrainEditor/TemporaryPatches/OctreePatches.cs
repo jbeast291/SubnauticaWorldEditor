@@ -20,16 +20,6 @@ public static class OctreePatches
         return false;
     }
 
-    [HarmonyPatch(typeof(Octree), nameof(Octree.Clear))]
-    [HarmonyPrefix]
-    public static bool PrefixClear(Octree __instance) {
-        if (__instance.data.m_AllocatorLabel != Allocator.RustSharedOctree) {
-            return true;
-        }
-        __instance.data.Dispose();
-        return false;
-    }
-
     [HarmonyPatch(typeof(Octree), nameof(Octree.MakeLeaf))]
     [HarmonyPrefix]
     public static void PrefixMakeLeaf(Octree __instance) {
