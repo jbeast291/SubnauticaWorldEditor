@@ -1,5 +1,8 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
+using BepInEx.Logging;
 using SNTerrainEditor.Core.DataTypes;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -43,27 +46,66 @@ public unsafe class LibOptoctrees : IDisposable {
         );
     }
 
+    //TODO: SAFTEY docs
+    internal static unsafe NativeArray<byte> GetOctreeBlocking(Int3 octreeId)
+    {
+        var get_octree_blocking = Marshal.GetDelegateForFunctionPointer<get_octree_blocking>(
+                INSTANCE.table->get_octree_blocking
+        );
+
+        var sharedOctreePtr = get_octree_blocking(
+            INSTANCE.table->lib, 
+            new OctreePos {
+                x = octreeId.x,
+                y = octreeId.y,
+                z = octreeId.z,
+            }
+        );
+
+        var unityOctree = new NativeArray<byte>(
+            sharedOctreePtr.len,
+            Allocator.Persistent,
+            NativeArrayOptions.UninitializedMemory
+        );
+
+        Plugin.LogError("Before MemCpy");
+        Logger.Listeners.OfType<DiskLogListener>().ForEach(l => l.LogWriter?.Flush());
+        UnsafeUtility.MemCpy(unityOctree.GetUnsafePtr(), sharedOctreePtr.ptr, sharedOctreePtr.len);
+        Plugin.LogError("After MemCpy");
+        Logger.Listeners.OfType<DiskLogListener>().ForEach(l => l.LogWriter?.Flush());
+
+        var drop_octree = Marshal.GetDelegateForFunctionPointer<drop_octree>(
+            INSTANCE.table->drop_octree
+        );
+        drop_octree(INSTANCE.table->lib, sharedOctreePtr);
+
+        return unityOctree;
+    }
+
     private static LibOptoctrees INSTANCE;
     private readonly LibTable* table;
+    private readonly ManualLogSource bepInExLogger;
 
     static LibOptoctrees() {
         UNITY_ALLOC = UnityAlloc;
         UNITY_FREE = UnityFree;
+        BEPINEX_LOG = BepInExLog;
+        BEPINEX_FLUSH_LOG = BepInExFlushLog;
         INSTANCE = new();
     }
 
     private LibOptoctrees() {
-        var unityAlloc = Marshal.GetFunctionPointerForDelegate(UNITY_ALLOC);
-        var unityFree = Marshal.GetFunctionPointerForDelegate(UNITY_FREE);
-
         InitTable init = new() {
-            alloc = unityAlloc,
-            free = unityFree,
+            alloc = Marshal.GetFunctionPointerForDelegate(UNITY_ALLOC),
+            free = Marshal.GetFunctionPointerForDelegate(UNITY_FREE),
+            log = Marshal.GetFunctionPointerForDelegate(BEPINEX_LOG),
+            flush_log = Marshal.GetFunctionPointerForDelegate(BEPINEX_FLUSH_LOG),
         };
         table = init_liboptoctrees(&init);
         if (table == null) {
             throw new Exception("Native rust code failed to load library");
         }
+        bepInExLogger = Logger.CreateLogSource("LibOptoctrees");
     }
 
     [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
@@ -73,6 +115,8 @@ public unsafe class LibOptoctrees : IDisposable {
     private struct InitTable {
         internal nint alloc;
         internal nint free;
+        internal nint log;
+        internal nint flush_log;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -125,25 +169,41 @@ public unsafe class LibOptoctrees : IDisposable {
 
     [StructLayout(LayoutKind.Sequential)]
     private struct OctreePos {
-        int x;
-        int y;
-        int z;
+        internal int x;
+        internal int y;
+        internal int z;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct SharedOctreePtr {
-        byte* ptr;
-        int len;
+        internal byte* ptr;
+        internal int len;
+    }
+
+    private enum LogLevel {
+        Debug = 0,
+        Info = 1,
+        Warning = 2,
+        Error = 3,
+        Fatal = 4,
     }
 
     private static readonly UnityAllocDelegate UNITY_ALLOC;
     private static readonly UnityFreeDelegate UNITY_FREE;
+    private static readonly LogDelegate BEPINEX_LOG;
+    private static readonly FlushLogDelegate BEPINEX_FLUSH_LOG;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void* UnityAllocDelegate(long size, int align);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void UnityFreeDelegate(void* ptr);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void LogDelegate(LogLevel level, byte* ptr, int len);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void FlushLogDelegate();
 
     private static void* UnityAlloc(long size, int align) => UnsafeUtility.Malloc(
         size: size,
@@ -155,6 +215,20 @@ public unsafe class LibOptoctrees : IDisposable {
         memory: ptr,
         allocator: Allocator.Persistent
     );
+
+    private static void BepInExLog(LogLevel level, byte* ptr, int len)
+    {
+        string logMessage = Encoding.UTF8.GetString(ptr, len);
+        switch (level) {
+            case LogLevel.Fatal: INSTANCE.bepInExLogger.LogFatal(logMessage); break;
+            case LogLevel.Error: INSTANCE.bepInExLogger.LogError(logMessage); break;
+            case LogLevel.Warning: INSTANCE.bepInExLogger.LogWarning(logMessage); break;
+            case LogLevel.Info: INSTANCE.bepInExLogger.LogInfo(logMessage); break;
+            case LogLevel.Debug: INSTANCE.bepInExLogger.LogDebug(logMessage); break;
+        }
+    }
+    private static void BepInExFlushLog() 
+        => Logger.Listeners.OfType<DiskLogListener>().ForEach(l => l.LogWriter?.Flush());
 
     public void Dispose()
     {

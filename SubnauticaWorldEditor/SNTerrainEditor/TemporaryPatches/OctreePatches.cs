@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Emit;
+using BepInEx.Logging;
 using HarmonyLib;
-using SNTerrainEditor.Core;
-using SNTerrainEditor.Core.DataTypes;
 using Unity.Collections;
 using UWE;
 using WorldStreaming;
@@ -14,35 +15,34 @@ public static class OctreePatches
 {
     [HarmonyPatch(typeof(Octree), nameof(Octree.Read))]
     [HarmonyPrefix]
-    private static bool Prefix(Octree __instance, Int3 batchId, SplitNativeArrayPool<byte> allocator)
+    private static bool PrefixRead(Octree __instance, Int3 batchId)
     {
-        if (TEBatchManager.main.activeSession.managedBatches.TryGetValue(batchId, 
-                out ManagedBatch managedBatch)
-        ) {
-            __instance.data = managedBatch.octrees.Get(__instance.id).arr;
-            return false;
-        }
-        return true;
+        if (batchId != new Int3(12, 18, 12)) return true;
+        Int3 octreeId = (batchId * 5) + __instance.id;
+        Plugin.LogError("Reading " + octreeId);
+        Logger.Listeners.OfType<DiskLogListener>().ForEach(l => l.LogWriter?.Flush());
+        __instance.data = LibOptoctrees.GetOctreeBlocking(octreeId);
+        Plugin.LogError("Read " + __instance.data.Length + " " + __instance.data[0]);
+        Logger.Listeners.OfType<DiskLogListener>().ForEach(l => l.LogWriter?.Flush());
+        return false;
     }
-}
 
-
-//TODO: might be smarter to patch octree?
-[HarmonyPatch(typeof(BatchOctrees))]
-public static class BatchOctreePatches2
-{
-    // io thread >_> 
-    [HarmonyPatch(typeof(BatchOctrees), nameof(BatchOctrees.ClearOctrees))]
+    [HarmonyPatch(typeof(Octree), nameof(Octree.Clear))]
     [HarmonyPrefix]
-    public static bool Prefix(BatchOctrees __instance)
+    public static bool PrefixClear(Octree __instance)
     {
-        if (TEBatchManager.main.activeSession.managedBatches.TryGetValue(__instance.id, out ManagedBatch _)
-        ) {
-            __instance.streamer.streamingThread.Enqueue(BatchOctrees.EndUnloadOctreesDelegate, __instance, null);
-            return false;
-        }
-        return true;
+        //LibOptoctrees.DropRustOctree(__instance.data);
+        return false;
     }
+
+    [HarmonyPatch(typeof(Octree), nameof(Octree.MakeLeaf))]
+    [HarmonyPrefix]
+    public static bool PrefixMakeLeaf(Octree __instance) 
+        => throw new Exception("Modification unsupported on rust allocated octree!");
+
+    [HarmonyPatch(typeof(Octree), nameof(Octree.UnloadChildren))]
+    [HarmonyPrefix]
+    public static bool Prefix(Octree __instance) => false;
 }
 
 [HarmonyPatch(typeof(BatchOctrees))]
@@ -78,7 +78,6 @@ public static class BatchOctreePatches
 internal sealed class FakeArrayPool() : SplitNativeArrayPool<byte>(0, 0, 0, 0, 0, 0, 0, 0) {
 
     internal static readonly FakeArrayPool allocator = new();
-    
 
     [HarmonyPatch(typeof(SplitNativeArrayPool<byte>), nameof(Get))]
     private static class FakeArrayPoolGetImpl {

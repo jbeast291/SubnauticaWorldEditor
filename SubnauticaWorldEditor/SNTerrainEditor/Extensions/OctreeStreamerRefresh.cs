@@ -190,9 +190,9 @@ public static class OctreeStreamerRefresh {
             => AccessTools.Method(typeof(object), "Finalize");
 
         private static void Prefix(object __instance) {
-            if (__instance is Octree octree && octree.data.IsCreated) {
-                octree.data.Dispose();
-            }
+            /*if (__instance is Octree { data.IsCreated: true } octree) {
+                octree.Clear(null);
+            }*/
         }
     }
 }
