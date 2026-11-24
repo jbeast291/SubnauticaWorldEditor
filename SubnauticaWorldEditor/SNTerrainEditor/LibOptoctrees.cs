@@ -3,11 +3,22 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using BepInEx.Logging;
+using HarmonyLib;
+using Nautilus.Handlers;
 using SNTerrainEditor.Core.DataTypes;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace SNTerrainEditor;
+
+internal static class LibOptoctreesExtensions
+{
+    private static readonly Allocator __backingField
+        = EnumHandler.AddEntry<Allocator>("RustSharedOctree");
+    extension(Allocator) {
+        internal static Allocator RustSharedOctree => __backingField;
+    }
+}
 
 /// <summary>Interop with Rust native library for efficient octree operations.</summary>
 public unsafe class LibOptoctrees : IDisposable {
@@ -46,15 +57,18 @@ public unsafe class LibOptoctrees : IDisposable {
         );
     }
 
-    //TODO: SAFTEY docs
-    internal static unsafe NativeArray<byte> GetOctreeBlocking(Int3 octreeId)
-    {
+    /// <summary>
+    /// Get an octree by its position id, loading it from the game directory if it isn’t cached.
+    /// May block the thread to read from the filesystem.
+    /// </summary>
+    /// <SAFTEY>TODO</SAFTEY>
+    internal static unsafe NativeArray<byte> GetRustOctreeBlocking(Int3 octreeId) {
         var get_octree_blocking = Marshal.GetDelegateForFunctionPointer<get_octree_blocking>(
                 INSTANCE.table->get_octree_blocking
         );
 
         var sharedOctreePtr = get_octree_blocking(
-            INSTANCE.table->lib, 
+            INSTANCE.table->lib,
             new OctreePos {
                 x = octreeId.x,
                 y = octreeId.y,
@@ -62,24 +76,12 @@ public unsafe class LibOptoctrees : IDisposable {
             }
         );
 
-        var unityOctree = new NativeArray<byte>(
-            sharedOctreePtr.len,
-            Allocator.Persistent,
-            NativeArrayOptions.UninitializedMemory
-        );
+        NativeArray<byte> rustOctree = 
+            NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<byte>(
+                sharedOctreePtr.ptr, sharedOctreePtr.len, Allocator.RustSharedOctree
+            );
 
-        Plugin.LogError("Before MemCpy");
-        Logger.Listeners.OfType<DiskLogListener>().ForEach(l => l.LogWriter?.Flush());
-        UnsafeUtility.MemCpy(unityOctree.GetUnsafePtr(), sharedOctreePtr.ptr, sharedOctreePtr.len);
-        Plugin.LogError("After MemCpy");
-        Logger.Listeners.OfType<DiskLogListener>().ForEach(l => l.LogWriter?.Flush());
-
-        var drop_octree = Marshal.GetDelegateForFunctionPointer<drop_octree>(
-            INSTANCE.table->drop_octree
-        );
-        drop_octree(INSTANCE.table->lib, sharedOctreePtr);
-
-        return unityOctree;
+        return rustOctree;
     }
 
     private static LibOptoctrees INSTANCE;
@@ -105,7 +107,7 @@ public unsafe class LibOptoctrees : IDisposable {
         if (table == null) {
             throw new Exception("Native rust code failed to load library");
         }
-        bepInExLogger = Logger.CreateLogSource("LibOptoctrees");
+        bepInExLogger = Logger.CreateLogSource("Lib📚Optoctrees🧊🌲");
     }
 
     [DllImport("optoctrees", CallingConvention = CallingConvention.Cdecl)]
@@ -234,5 +236,27 @@ public unsafe class LibOptoctrees : IDisposable {
     {
         var drop = Marshal.GetDelegateForFunctionPointer<drop>(table->drop);
         drop(table);
+    }
+
+#pragma warning disable Publicizer001
+#pragma warning disable Harmony003
+    [HarmonyPatch(typeof(NativeArray<byte>), nameof(NativeArray<>.Deallocate))]
+    public class RustNativeArrayDisposal {
+        public static bool Prefix(NativeArray<byte> octree) {
+            if (octree.m_AllocatorLabel != Allocator.RustSharedOctree) {
+                return true;
+            }
+            SharedOctreePtr sharedOctreePtr = new() {
+                ptr = (byte*)octree.GetUnsafePtr(),
+                len = octree.Length,
+            };
+            var drop_octree = Marshal.GetDelegateForFunctionPointer<drop_octree>(
+                INSTANCE.table->drop_octree
+            );
+            drop_octree(INSTANCE.table->lib, sharedOctreePtr);
+            octree.m_Buffer = null;
+            octree.m_Length = 0;
+            return false;
+        }
     }
 }

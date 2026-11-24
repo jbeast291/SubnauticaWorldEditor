@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection.Emit;
-using BepInEx.Logging;
 using HarmonyLib;
 using Unity.Collections;
 using UWE;
@@ -17,32 +15,34 @@ public static class OctreePatches
     [HarmonyPrefix]
     private static bool PrefixRead(Octree __instance, Int3 batchId)
     {
-        if (batchId != new Int3(12, 18, 12)) return true;
         Int3 octreeId = (batchId * 5) + __instance.id;
-        Plugin.LogError("Reading " + octreeId);
-        Logger.Listeners.OfType<DiskLogListener>().ForEach(l => l.LogWriter?.Flush());
-        __instance.data = LibOptoctrees.GetOctreeBlocking(octreeId);
-        Plugin.LogError("Read " + __instance.data.Length + " " + __instance.data[0]);
-        Logger.Listeners.OfType<DiskLogListener>().ForEach(l => l.LogWriter?.Flush());
+        __instance.data = LibOptoctrees.GetRustOctreeBlocking(octreeId);
         return false;
     }
 
     [HarmonyPatch(typeof(Octree), nameof(Octree.Clear))]
     [HarmonyPrefix]
-    public static bool PrefixClear(Octree __instance)
-    {
-        //LibOptoctrees.DropRustOctree(__instance.data);
+    public static bool PrefixClear(Octree __instance) {
+        if (__instance.data.m_AllocatorLabel != Allocator.RustSharedOctree) {
+            return true;
+        }
+        __instance.data.Dispose();
         return false;
     }
 
     [HarmonyPatch(typeof(Octree), nameof(Octree.MakeLeaf))]
     [HarmonyPrefix]
-    public static bool PrefixMakeLeaf(Octree __instance) 
-        => throw new Exception("Modification unsupported on rust allocated octree!");
+    public static void PrefixMakeLeaf(Octree __instance) {
+        if (__instance.data.m_AllocatorLabel == Allocator.RustSharedOctree) { 
+            throw new Exception("Modification of rust allocated octrees not permitted!");
+        }
+    }
 
     [HarmonyPatch(typeof(Octree), nameof(Octree.UnloadChildren))]
     [HarmonyPrefix]
-    public static bool Prefix(Octree __instance) => false;
+    public static bool Prefix(Octree __instance) {
+        return __instance.data.m_AllocatorLabel != Allocator.RustSharedOctree;
+    }
 }
 
 [HarmonyPatch(typeof(BatchOctrees))]
@@ -68,34 +68,31 @@ public static class BatchOctreePatches
         typeof(int), typeof(UWE.SplitNativeArrayPool<byte>)
     ])]
     [HarmonyPostfix]
-    public static void Prefix(BatchOctrees __instance)
-    {
-        __instance.allocator = FakeArrayPool.allocator;
+    public static void Prefix(BatchOctrees __instance) {
+        __instance.allocator = RustSharedOctreesAllocator.SharedOctreesAllocator;
     }
 }
 
 
-internal sealed class FakeArrayPool() : SplitNativeArrayPool<byte>(0, 0, 0, 0, 0, 0, 0, 0) {
+internal sealed class RustSharedOctreesAllocator() : SplitNativeArrayPool<byte>(0, 0, 0, 0, 0, 0, 0, 0) {
 
-    internal static readonly FakeArrayPool allocator = new();
+    internal static readonly RustSharedOctreesAllocator SharedOctreesAllocator = new();
 
     [HarmonyPatch(typeof(SplitNativeArrayPool<byte>), nameof(Get))]
-    private static class FakeArrayPoolGetImpl {
+    private static class RustAllocatorGetImpl {
         private static bool Prefix(
             SplitNativeArrayPool<byte> __instance, int minLength, ref NativeArray<byte> __result
         ) {
-            if (__instance is not FakeArrayPool) return true;
-            __result = new(minLength, Allocator.Persistent);
-            return false;
+            throw new Exception("Cannot allocate rust Native Array here!");
         }
     }
 
     [HarmonyPatch(typeof(SplitNativeArrayPool<byte>), nameof(Return))]
-    private static class FakeArrayPoolReturnImpl {
+    private static class RustAllocatorReturnImpl {
         private static bool Prefix(
             SplitNativeArrayPool<byte> __instance, ref NativeArray<byte> arr
         ) {
-            if (__instance is not FakeArrayPool fakeArrayPool) return true;
+            if (__instance is not RustSharedOctreesAllocator) return true;
             arr.Dispose();
             return false;
         }
