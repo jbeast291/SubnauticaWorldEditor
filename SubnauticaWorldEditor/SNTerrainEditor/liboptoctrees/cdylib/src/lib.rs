@@ -86,7 +86,7 @@ pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibT
             return ptr::null_mut()
         },
     };
-    let world = sn_terrain::editor::WorldCache::new(game);
+    let world = sn_terrain::WorldCache::new(game);
 
     let lib = LibOptoctrees { table: init, alloc, world };
     let lib = Box::into_raw(Box::new(lib)).cast::<ffi::c_void>();
@@ -104,7 +104,7 @@ pub unsafe extern "C" fn init_liboptoctrees(init: *const InitTable) -> *mut LibT
 struct LibOptoctrees {
     #[expect(unused)] table: InitTable,
     alloc: sn_terrain::ffi::UnityAlloc,
-    world: sn_terrain::editor::WorldCache,
+    world: sn_terrain::WorldCache,
 }
 
 unsafe extern "C" fn drop_lib(table: *mut LibTable) {

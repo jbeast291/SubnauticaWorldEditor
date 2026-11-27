@@ -46,9 +46,8 @@ fn rasterize(c: &mut Criterion) {
     })));
 
     fn bench(g: &mut Group, name: &str, octree: &Octree) {
-        let mut grid = VoxelGrid([Voxel { mat: 1, dist: 1 }; _]);
         g.bench_function(name, |b| b.iter(|| {
-            black_box(sn_terrain::rasterize(black_box(octree), black_box(&mut grid)))
+            black_box(black_box(octree).rasterize())
         }));
     }
 }
@@ -86,9 +85,8 @@ fn derasterize(c: &mut Criterion) {
     bench(&mut g, "random_grid", &random_grid);
 
     fn bench(g: &mut Group, name: &str, voxels: &VoxelGrid) {
-        let mut d = optoctrees::__bench::Derasterizer::new();
         g.bench_function(name, |b| b.iter(|| {
-            black_box(d.derasterize(black_box(voxels), black_box(alloc::Global)))
+            black_box(black_box(voxels).derasterize::<Box<Octree>>())
         }));
     }
 }

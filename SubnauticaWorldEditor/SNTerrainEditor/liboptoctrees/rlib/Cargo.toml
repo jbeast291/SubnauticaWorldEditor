@@ -19,7 +19,7 @@ wide = "1.7"
 
 [dependencies.sn-terrain]
 git = "https://github.com/Esper89/sn-terrain"
-rev = "bda96948"
+rev = "fdb6b407"
 features = ["ffi", "editor"]
 
 [build-dependencies]
